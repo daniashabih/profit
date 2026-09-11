@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/ai_coach_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
-import '../workout/exercise_detail_screen.dart';
+import '../../widgets/common/fit_flow_button.dart';
+import '../../widgets/common/fit_flow_card.dart';
+import '../workout/workout_screen.dart';
+import '../nutrition/nutrition_screen.dart';
 
 class AiCoachScreen extends StatefulWidget {
   const AiCoachScreen({super.key});
@@ -13,6 +16,7 @@ class AiCoachScreen extends StatefulWidget {
 }
 
 class _AiCoachScreenState extends State<AiCoachScreen> {
+  bool _showChat = false;
   final _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -46,137 +50,189 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final aiProv = context.watch<AiCoachProvider>();
-    final workoutProv = context.watch<WorkoutProvider>();
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLime.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.auto_awesome_rounded,
-                color: AppColors.primaryLime,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'FitFlow Coach',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  'Online • AI Fitness Companion',
-                  style: TextStyle(fontSize: 11, color: AppColors.primaryLime),
-                ),
-              ],
-            ),
-          ],
+        title: Text(
+          _showChat ? 'AI Coach Chat' : 'Daily Guidance',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
-      ),
-      body: Column(
-        children: [
-          // Proactive Recommendation Banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
+        actions: [
+          // Toggle button between Daily Suggestion & Interactive Chat
+          IconButton(
+            tooltip: _showChat ? 'View Daily Plan' : 'Open AI Chat',
+            icon: Icon(
+              _showChat ? Icons.dashboard_outlined : Icons.chat_bubble_outline_rounded,
+              color: AppColors.primaryLime,
             ),
-            child: Column(
+            onPressed: () => setState(() => _showChat = !_showChat),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: _showChat ? _buildChatView(context, isDark, aiProv) : _buildDailySuggestionView(context, isDark),
+    );
+  }
+
+  // Screen 16 Layout: "What should I do today?"
+  Widget _buildDailySuggestionView(BuildContext context, bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          const Text(
+            'What should I do today?',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Based on your plan and goals',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 4 Suggestion Cards in 2x2 Grid
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            childAspectRatio: 1.05,
+            children: [
+              // 1. Workout Card
+              _buildSuggestionCard(
+                context,
+                title: 'Workout',
+                subtitle: 'Upper Body Strength',
+                detail: '45 mins • 7 exercises',
+                icon: Icons.fitness_center_rounded,
+                accentColor: AppColors.primaryLime,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+                  );
+                },
+              ),
+
+              // 2. Nutrition Card
+              _buildSuggestionCard(
+                context,
+                title: 'Nutrition',
+                subtitle: '1,800 kcal Target',
+                detail: '120g protein • Log meals',
+                icon: Icons.restaurant_rounded,
+                accentColor: AppColors.proteinColor,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NutritionScreen()),
+                  );
+                },
+              ),
+
+              // 3. Recovery Card
+              _buildSuggestionCard(
+                context,
+                title: 'Recovery',
+                subtitle: 'Rest & Stretch',
+                detail: '15 mins mobility • Relax',
+                icon: Icons.self_improvement_rounded,
+                accentColor: AppColors.carbsColor,
+                isDark: isDark,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Starting 15-minute guided dynamic mobility stretch...')),
+                  );
+                },
+              ),
+
+              // 4. Hydration Card
+              _buildSuggestionCard(
+                context,
+                title: 'Hydration',
+                subtitle: '2.5L Daily Goal',
+                detail: '1.8L logged • 72%',
+                icon: Icons.water_drop_rounded,
+                accentColor: const Color(0xFF38BDF8),
+                isDark: isDark,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('+250ml water added! Keep staying hydrated 💧')),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+
+          // Primary "Let's Go →" Button
+          FitFlowButton(
+            text: "Let's Go →",
+            height: 52,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Bottom Quote / Inspiration Card (Screen 16 mockup)
+          FitFlowCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
-                  children: [
-                    Text('⚡ ', style: TextStyle(fontSize: 14)),
-                    Text(
-                      'DAILY INTELLIGENCE',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                        color: AppColors.primaryLime,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  aiProv.dailyRecommendation,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLime.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.format_quote_rounded,
+                    color: AppColors.primaryLime,
+                    size: 22,
                   ),
                 ),
-                const SizedBox(height: 10),
-                // 3 Prominent action chips from spec:
-                // "View Recommendation", "Start Workout", "Ask AI Coach"
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ActionChip(
-                        avatar: const Icon(Icons.fitness_center_rounded, size: 14),
-                        label: const Text('Start Workout'),
-                        backgroundColor: AppColors.primaryLime,
-                        labelStyle: const TextStyle(
-                          color: Color(0xFF111827),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
-                        onPressed: () {
-                          if (workoutProv.todayWorkout.exercises.isNotEmpty) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ExerciseDetailScreen(
-                                  exercise: workoutProv.todayWorkout.exercises.first,
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ActionChip(
-                        avatar: const Icon(Icons.tips_and_updates_outlined, size: 14),
-                        label: const Text('View Recommendation'),
-                        backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                        labelStyle: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
+                      const Text(
+                        '"Small steps every day lead to big results."',
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          height: 1.4,
                         ),
-                        onPressed: () {
-                          _handleSend('What specific tips do you have for my session today?');
-                        },
                       ),
-                      const SizedBox(width: 8),
-                      ActionChip(
-                        avatar: const Icon(Icons.question_answer_outlined, size: 14),
-                        label: const Text('Ask AI Coach'),
-                        backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                        labelStyle: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                      const SizedBox(height: 6),
+                      Text(
+                        'ProFit Daily Motivation',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                         ),
-                        onPressed: () {
-                          _handleSend('How should I adjust my calories on recovery days?');
-                        },
                       ),
                     ],
                   ),
@@ -184,89 +240,192 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 18),
 
-          // Chat Messages List
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: aiProv.messages.length,
-              itemBuilder: (context, index) {
-                final msg = aiProv.messages[index];
-                return _buildMessageBubble(context, msg, isDark);
-              },
-            ),
-          ),
-
-          // Thinking indicator
-          if (aiProv.isThinking)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryLime),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Coach is typing...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Message Input Field
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              border: Border(
-                top: BorderSide(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          // Chat Switch Prompt
+          Center(
+            child: TextButton.icon(
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryLime),
+              label: const Text(
+                'Have questions? Ask AI Coach',
+                style: TextStyle(
+                  color: AppColors.primaryLime,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
                 ),
               ),
+              onPressed: () => setState(() => _showChat = true),
             ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _textController,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Ask about form, diet, or recovery...',
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        fillColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                      ),
-                      onSubmitted: _handleSend,
-                    ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String detail,
+    required IconData icon,
+    required Color accentColor,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 10),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryLime,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.send_rounded, color: Color(0xFF111827), size: 20),
-                      onPressed: () => _handleSend(_textController.text),
-                    ),
+                  child: Icon(icon, color: accentColor, size: 22),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Interactive AI Companion Chat
+  Widget _buildChatView(BuildContext context, bool isDark, AiCoachProvider aiProv) {
+    return Column(
+      children: [
+        // Chat Messages List
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            itemCount: aiProv.messages.length,
+            itemBuilder: (context, index) {
+              final msg = aiProv.messages[index];
+              return _buildMessageBubble(context, msg, isDark);
+            },
+          ),
+        ),
+
+        // Thinking indicator
+        if (aiProv.isThinking)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryLime),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Coach is typing...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Message Input Field
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
               ),
             ),
           ),
-        ],
-      ),
+          child: SafeArea(
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Ask about form, diet, or recovery...',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      fillColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                    ),
+                    onSubmitted: _handleSend,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryLime,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.send_rounded, color: Color(0xFF111827), size: 20),
+                    onPressed: () => _handleSend(_textController.text),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

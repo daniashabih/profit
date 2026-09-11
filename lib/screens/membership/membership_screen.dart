@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/membership_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
-import '../../core/utils/formatters.dart';
 
 class MembershipScreen extends StatefulWidget {
   const MembershipScreen({super.key});
@@ -12,48 +11,61 @@ class MembershipScreen extends StatefulWidget {
 }
 
 class _MembershipScreenState extends State<MembershipScreen> {
-  final UserMembershipModel userMembership = UserMembershipModel();
+  final UserMembershipModel userMembership = UserMembershipModel(
+    tierName: 'PREMIUM',
+    expiryDate: DateTime(2026, 9, 23),
+    daysRemaining: 184,
+    totalDays: 365,
+    activeFeatures: [
+      'Access to workout plans',
+      'Nutrition & macro plans',
+      'Advanced progress analytics',
+      'Dedicated 1-on-1 trainer support',
+      'Exclusive video content & guides',
+      'AI Fitness Coach unlimited chats',
+    ],
+  );
 
   final List<MembershipPlanModel> plans = const [
     MembershipPlanModel(
       id: 'plan_monthly',
-      name: 'FitFlow Pro Monthly',
+      name: 'ProFit Monthly',
       price: '\$14.99',
       period: '/ month',
       billingDescription: 'Billed monthly, cancel anytime',
       features: [
-        'Full exercise library & customized workouts',
-        'Daily calorie & macro tracking',
-        'Interactive charts & weight logs',
-        'AI Fitness Coach unlimited recommendations',
+        'Full gym & fitness floor access',
+        'Basic exercise tracker & plans',
+        'Calorie & macro tracking',
+        'Locker room & shower access',
       ],
     ),
     MembershipPlanModel(
       id: 'plan_annual',
-      name: 'FitFlow Elite Annual',
+      name: 'ProFit VIP Annual',
       price: '\$99.99',
       period: '/ year',
       billingDescription: 'Save 45% • Equivalent to \$8.33/mo',
       isPopular: true,
       features: [
-        'Everything in Pro Monthly',
-        '1-on-1 Dedicated certified trainer access',
-        'Tailored diet & hypertrophy programs',
-        'VIP early access to new video exercises',
-        'Offline workout logging mode',
+        'All ProFit Monthly features',
+        '1-on-1 Certified trainer consultation',
+        'Customized nutrition & macro roadmaps',
+        'All group fitness & HIIT classes',
+        'Spa & hydrotherapy recovery access',
       ],
     ),
     MembershipPlanModel(
       id: 'plan_lifetime',
-      name: 'FitFlow VIP Lifetime',
+      name: 'ProFit Black Lifetime',
       price: '\$249.99',
       period: 'one-time',
-      billingDescription: 'Pay once, full lifetime VIP membership',
+      billingDescription: 'Pay once, lifetime unlimited VIP access',
       features: [
-        'Lifetime unlimited access forever',
-        'All future AI features included',
-        'Direct priority WhatsApp/chat trainer line',
-        'Custom gym gear starter pack',
+        'Unlimited access to all ProFit clubs worldwide',
+        'Unlimited AI Coach & nutrition roadmap updates',
+        'Dedicated VIP locker & trainer priority',
+        'ProFit performance welcome kit',
       ],
     ),
   ];
@@ -68,8 +80,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'FitFlow Membership',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          'Your Membership',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
       ),
       body: SingleChildScrollView(
@@ -77,7 +89,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // CURRENT PREMIUM STATUS CARD
+            // CURRENT PREMIUM STATUS CARD (Exact mockup layout)
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
@@ -85,6 +97,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
                   colors: isDark
                       ? [const Color(0xFF1E2614), const Color(0xFF161C10)]
                       : [const Color(0xFFF7FEE7), Colors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
@@ -99,39 +113,68 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.primaryLime,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Text(
-                          'PREMIUM',
-                          style: TextStyle(
-                            color: Color(0xFF111827),
-                            fontWeight: FontWeight.w900,
-                            fontSize: 12,
-                            letterSpacing: 1,
-                          ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '👑 ',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              'PREMIUM',
+                              style: TextStyle(
+                                color: Color(0xFF111827),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '${userMembership.daysRemaining} days remaining',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${userMembership.daysRemaining} Days Remaining',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Expires on ${Formatters.formatFullDate(userMembership.expiryDate)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Expires: 23 September 2026',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '${(userMembership.progressPercentage * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryLime,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   // Progress bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
@@ -142,17 +185,26 @@ class _MembershipScreenState extends State<MembershipScreen> {
                       valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
 
                   // Features list with checkmarks
+                  const Text(
+                    'INCLUDED WITH YOUR PLAN',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   ...userMembership.activeFeatures.map((feat) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
+                      padding: const EdgeInsets.only(bottom: 10.0),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.check_circle_rounded,
-                            size: 18,
+                            size: 20,
                             color: AppColors.primaryLime,
                           ),
                           const SizedBox(width: 10),
@@ -173,11 +225,12 @@ class _MembershipScreenState extends State<MembershipScreen> {
 
                   // Button: RENEW MEMBERSHIP
                   FitFlowButton(
-                    text: 'RENEW MEMBERSHIP',
+                    text: 'Renew Membership',
+                    height: 50,
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Membership renewed for 1 full year! 🌟'),
+                          content: Text('ProFit Premium Membership renewed! 🌟'),
                           backgroundColor: Color(0xFF1E293B),
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -189,9 +242,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
             ),
             const SizedBox(height: 32),
 
-            // AVAILABLE PLANS FOR SUBSCRIPTION INTEGRATION
+            // AVAILABLE PLANS FOR UPGRADE OR EXTENSION
             const Text(
-              'UPGRADE OR EXTEND',
+              'OTHER PLANS',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -200,7 +253,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Select a membership tier to unlock personalized coaching and advanced analytics.',
+              'Choose or upgrade your plan to unlock more personal coaching and facilities.',
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,

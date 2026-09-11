@@ -14,6 +14,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedWeightUnit = 'kg';
   String _selectedHeightUnit = 'cm';
+  String _selectedLanguage = 'English';
   bool _pushNotifications = true;
   bool _soundEffects = true;
 
@@ -27,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text(
           'Settings',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
       ),
       body: SingleChildScrollView(
@@ -35,18 +36,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section: Appearance
+            // Account & Security
+            _buildSectionTitle('ACCOUNT'),
+            _buildSettingsCard(
+              isDark,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.person_outline_rounded, color: AppColors.primaryLime),
+                  title: const Text('Account & Security', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  subtitle: Text(
+                    'Email, password and active sessions',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Account settings managed securely by ProFit')),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Appearance
             _buildSectionTitle('APPEARANCE'),
             _buildSettingsCard(
               isDark,
               children: [
                 SwitchListTile(
                   title: const Text(
-                    'Dark Mode',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    'Appearance',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                   subtitle: Text(
-                    themeProv.isDarkMode ? 'Deep charcoal aesthetic' : 'Bright clean aesthetic',
+                    themeProv.isDarkMode ? 'Dark Mode (Electric Lime & Charcoal)' : 'Light Mode (Clean Bright)',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -62,54 +89,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Section: Units & Preferences
-            _buildSectionTitle('UNITS & MEASUREMENTS'),
+            // Preferences (Language & Units)
+            _buildSectionTitle('PREFERENCES'),
             _buildSettingsCard(
               isDark,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.straighten_rounded, color: AppColors.primaryLime),
-                  title: const Text('Weight Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  leading: const Icon(Icons.language_rounded, color: AppColors.primaryLime),
+                  title: const Text('Language', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   trailing: DropdownButton<String>(
-                    value: _selectedWeightUnit,
+                    value: _selectedLanguage,
                     underline: const SizedBox(),
                     items: const [
-                      DropdownMenuItem(value: 'kg', child: Text('Kilograms (kg)')),
-                      DropdownMenuItem(value: 'lbs', child: Text('Pounds (lbs)')),
+                      DropdownMenuItem(value: 'English', child: Text('English')),
+                      DropdownMenuItem(value: 'Urdu', child: Text('اردو (Urdu)')),
+                      DropdownMenuItem(value: 'Spanish', child: Text('Español')),
                     ],
                     onChanged: (val) {
-                      if (val != null) setState(() => _selectedWeightUnit = val);
+                      if (val != null) setState(() => _selectedLanguage = val);
                     },
                   ),
                 ),
                 Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 ListTile(
-                  leading: const Icon(Icons.height_rounded, color: AppColors.primaryLime),
-                  title: const Text('Height Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                  trailing: DropdownButton<String>(
-                    value: _selectedHeightUnit,
-                    underline: const SizedBox(),
-                    items: const [
-                      DropdownMenuItem(value: 'cm', child: Text('Centimeters (cm)')),
-                      DropdownMenuItem(value: 'ft', child: Text('Feet & Inches (ft)')),
+                  leading: const Icon(Icons.straighten_rounded, color: AppColors.primaryLime),
+                  title: const Text('Units', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  subtitle: Text(
+                    '$_selectedWeightUnit, $_selectedHeightUnit',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButton<String>(
+                        value: _selectedWeightUnit,
+                        underline: const SizedBox(),
+                        items: const [
+                          DropdownMenuItem(value: 'kg', child: Text('kg')),
+                          DropdownMenuItem(value: 'lbs', child: Text('lbs')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedWeightUnit = val);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      DropdownButton<String>(
+                        value: _selectedHeightUnit,
+                        underline: const SizedBox(),
+                        items: const [
+                          DropdownMenuItem(value: 'cm', child: Text('cm')),
+                          DropdownMenuItem(value: 'ft', child: Text('ft')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedHeightUnit = val);
+                        },
+                      ),
                     ],
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedHeightUnit = val);
-                    },
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
 
-            // Section: Notifications
+            // Notifications
             _buildSectionTitle('NOTIFICATIONS'),
             _buildSettingsCard(
               isDark,
               children: [
                 SwitchListTile(
-                  title: const Text('Push Reminders', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                  subtitle: const Text('Daily workout & nutrition alert'),
+                  title: const Text('Push Notifications', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  subtitle: const Text('Workout reminders and trainer messages'),
                   secondary: const Icon(Icons.notifications_active_outlined, color: AppColors.primaryLime),
                   activeThumbColor: AppColors.primaryLime,
                   value: _pushNotifications,
@@ -117,8 +169,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 SwitchListTile(
-                  title: const Text('Rest Timer Sound', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                  subtitle: const Text('Beep when set rest timer completes'),
+                  title: const Text('Sound Effects', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  subtitle: const Text('Rest timer completion beeps'),
                   secondary: const Icon(Icons.volume_up_outlined, color: AppColors.primaryLime),
                   activeThumbColor: AppColors.primaryLime,
                   value: _soundEffects,
@@ -128,49 +180,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Section: Security & Privacy
-            _buildSectionTitle('ACCOUNT & PRIVACY'),
+            // Privacy & Support
+            _buildSectionTitle('LEGAL & SUPPORT'),
             _buildSettingsCard(
               isDark,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.lock_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password reset instructions sent to your email')),
-                    );
-                  },
-                ),
-                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ListTile(
-                  leading: const Icon(Icons.security_rounded, color: AppColors.primaryLime),
-                  title: const Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primaryLime),
+                  title: const Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                   onTap: () {},
                 ),
                 Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 ListTile(
                   leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                   onTap: () {},
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Section: About
-            _buildSectionTitle('ABOUT'),
-            _buildSettingsCard(
-              isDark,
-              children: [
+                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 ListTile(
                   leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('About FitFlow', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  title: const Text('About ProFit', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   subtitle: Text(
-                    'Version ${AppConstants.appVersion} • Production Build',
+                    'Version ${AppConstants.appVersion} • ProFit Fitness Ecosystem',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/notification_model.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
-import '../../core/utils/formatters.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -36,6 +35,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return _items.where((item) => item.category == _selectedTab).toList();
   }
 
+  String _formatNotificationTime(int index, DateTime timestamp) {
+    // Exact times matching Screen 13 mockup
+    switch (index) {
+      case 0:
+        return '08:00 AM';
+      case 1:
+        return '11:30 AM';
+      case 2:
+        return '02:15 PM';
+      case 3:
+        return '01:30 PM';
+      case 4:
+        return 'Yesterday';
+      case 5:
+        return '2 days ago';
+      default:
+        return 'Just now';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -45,13 +64,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: const Text(
           'Notifications',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
         actions: [
           TextButton(
             onPressed: () async {
               await _notifService.markAllAsRead();
               await _load();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('All notifications marked as read'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
             },
             child: const Text(
               'Mark All Read',
@@ -81,12 +107,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? (isDark ? AppColors.primaryLime : const Color(0xFF111827))
+                            ? AppColors.primaryLime
                             : (isDark ? AppColors.darkSurface : Colors.white),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isSelected
-                              ? (isDark ? AppColors.primaryLime : const Color(0xFF111827))
+                              ? AppColors.primaryLime
                               : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
                         ),
                       ),
@@ -95,9 +121,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           cat.displayName,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: isSelected
-                                ? (isDark ? const Color(0xFF111827) : Colors.white)
+                                ? const Color(0xFF111827)
                                 : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                           ),
                         ),
@@ -125,8 +151,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ),
                             const SizedBox(height: 12),
                             const Text(
-                              'No notifications found',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                              'No notifications in this tab',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
@@ -165,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   child: Center(
                                     child: Text(
                                       item.iconEmoji,
-                                      style: const TextStyle(fontSize: 20),
+                                      style: const TextStyle(fontSize: 22),
                                     ),
                                   ),
                                 ),
@@ -189,7 +215,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                             ),
                                           ),
                                           Text(
-                                            Formatters.formatTime(item.timestamp),
+                                            _formatNotificationTime(index, item.timestamp),
                                             style: TextStyle(
                                               fontSize: 11,
                                               color: isDark

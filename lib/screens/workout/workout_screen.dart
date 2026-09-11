@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/workout/journey_step_card.dart';
+import '../../widgets/common/fit_flow_button.dart';
 import '../library/exercise_library_screen.dart';
 import 'exercise_detail_screen.dart';
 
@@ -18,9 +19,26 @@ class WorkoutScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: const Text(
-          'Workout Journey',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+        titleSpacing: 0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Today\'s ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: AppColors.primaryLime,
+              ),
+            ),
+            const Text(
+              'Workout',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -33,158 +51,85 @@ class WorkoutScreen extends StatelessWidget {
               );
             },
           ),
+          IconButton(
+            tooltip: 'Bookmark',
+            icon: const Icon(Icons.bookmark_border_rounded),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Workout routine bookmarked')),
+              );
+            },
+          ),
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Journey Overview Header Card
-            Container(
-              padding: const EdgeInsets.all(20),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 90),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 7 Numbered Exercises with Connected Timeline (Screen 5 in mockup)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: todayWorkout.exercises.length,
+                  itemBuilder: (context, index) {
+                    final exercise = todayWorkout.exercises[index];
+                    final isLast = index == todayWorkout.exercises.length - 1;
+
+                    return JourneyStepCard(
+                      stepIndex: index,
+                      exercise: exercise,
+                      isLast: isLast,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ExerciseDetailScreen(exercise: exercise),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom Fixed Lime Button: "Start Workout" (matching Screen 5)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 16,
+            child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF1E242C), const Color(0xFF151920)]
-                      : [Colors.white, const Color(0xFFF1F5F9)],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'CURRENT SESSION',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1,
-                              color: AppColors.primaryLime,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            todayWorkout.title,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Progress badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLime.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(
-                          '${todayWorkout.completedExercisesCount}/${todayWorkout.totalExercises} Done',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildMiniBadge(Icons.timer_outlined, '${todayWorkout.durationMinutes} min', isDark),
-                      const SizedBox(width: 12),
-                      _buildMiniBadge(Icons.local_fire_department_outlined, '${todayWorkout.estimatedCalories} kcal', isDark),
-                      const SizedBox(width: 12),
-                      _buildMiniBadge(Icons.bolt_rounded, todayWorkout.intensity, isDark),
-                    ],
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryLime.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 28),
-
-            // Numbered Journey Title
-            const Text(
-              'EXERCISE PATHWAY',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Follow the sequential sequence below for optimal muscle stimulation.',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Numbered Journey list
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: todayWorkout.exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = todayWorkout.exercises[index];
-                final isLast = index == todayWorkout.exercises.length - 1;
-
-                return JourneyStepCard(
-                  stepIndex: index,
-                  exercise: exercise,
-                  isLast: isLast,
-                  onTap: () {
+              child: FitFlowButton(
+                text: 'Start Workout',
+                height: 52,
+                borderRadius: 26,
+                onPressed: () {
+                  if (todayWorkout.exercises.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ExerciseDetailScreen(exercise: exercise),
+                        builder: (_) => ExerciseDetailScreen(
+                          exercise: todayWorkout.exercises.first,
+                        ),
                       ),
                     );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMiniBadge(IconData icon, String text, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppColors.primaryLime),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  }
+                },
+              ),
             ),
           ),
         ],

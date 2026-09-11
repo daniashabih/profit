@@ -9,8 +9,15 @@ import '../../widgets/nutrition/calorie_ring_widget.dart';
 import '../../widgets/nutrition/macro_bar_widget.dart';
 import 'add_meal_dialog.dart';
 
-class NutritionScreen extends StatelessWidget {
+class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
+
+  @override
+  State<NutritionScreen> createState() => _NutritionScreenState();
+}
+
+class _NutritionScreenState extends State<NutritionScreen> {
+  DateTime _selectedDate = DateTime(2026, 9, 12);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +29,7 @@ class NutritionScreen extends StatelessWidget {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'Nutrition Tracker',
+          'Nutrition',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
         actions: [
@@ -35,13 +42,64 @@ class NutritionScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Calorie Ring & Summary Card
+            // Date Selector Bar: < Today, 12 Sep >
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      setState(() {
+                        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                      });
+                    },
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primaryLime),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Today, ${_selectedDate.day} Sep',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right_rounded, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      setState(() {
+                        _selectedDate = _selectedDate.add(const Duration(days: 1));
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Calorie Ring & Macro Summary Card
             FitFlowCard(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   Row(
@@ -51,12 +109,12 @@ class NutritionScreen extends StatelessWidget {
                       CalorieRingWidget(
                         consumedCalories: today.consumedCalories,
                         targetCalories: today.targetCalories,
-                        size: 160,
+                        size: 150,
                       ),
                       // Macro Progress Bars
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 20.0),
+                          padding: const EdgeInsets.only(left: 18.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -64,16 +122,16 @@ class NutritionScreen extends StatelessWidget {
                                 label: 'Protein',
                                 currentGrams: today.consumedProtein,
                                 targetGrams: today.targetProteinGrams,
-                                barColor: AppColors.proteinColor,
+                                barColor: AppColors.primaryLime,
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 12),
                               MacroBarWidget(
                                 label: 'Carbs',
                                 currentGrams: today.consumedCarbs,
                                 targetGrams: today.targetCarbsGrams,
                                 barColor: AppColors.carbsColor,
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 12),
                               MacroBarWidget(
                                 label: 'Fat',
                                 currentGrams: today.consumedFat,
@@ -89,7 +147,7 @@ class NutritionScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
 
             // Meals Breakdown Header
             Row(
@@ -150,7 +208,7 @@ class NutritionScreen extends StatelessWidget {
     final totalCals = today.getCaloriesByType(type);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -185,12 +243,12 @@ class NutritionScreen extends StatelessWidget {
                       Text(
                         type.displayName,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        totalCals > 0 ? '$totalCals kcal recorded' : type.defaultTime,
+                        totalCals > 0 ? '$totalCals kcal' : type.defaultTime,
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,

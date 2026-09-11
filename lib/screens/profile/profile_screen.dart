@@ -8,6 +8,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_card.dart';
 import '../trainer/trainer_screen.dart';
 import '../membership/membership_screen.dart';
+import '../progress/progress_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
 import '../gamification/gamification_screen.dart';
@@ -41,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Experience FitFlow as a Gym Member, Certified Trainer, or Club Administrator.',
+                'Experience ProFit as a Gym Member, Certified Trainer, or Club Administrator.',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -91,6 +92,58 @@ class ProfileScreen extends StatelessWidget {
               }),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context) {
+    final authProv = context.read<AuthProvider>();
+    final user = authProv.user;
+    final nameController = TextEditingController(text: user?.name ?? 'Dania Shabih');
+    final goalController = TextEditingController(text: user?.goal ?? 'Weight Loss');
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Full Name'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: goalController,
+                decoration: const InputDecoration(labelText: 'Fitness Goal'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryLime,
+                foregroundColor: const Color(0xFF111827),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile updated successfully!')),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
         );
       },
     );
@@ -154,153 +207,99 @@ class ProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // PROFILE HERO CARD
-            FitFlowCard(
-              padding: const EdgeInsets.all(20),
+            // PROFILE HERO SECTION (Matching Screen 12 mockup)
+            Center(
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      // Avatar
-                      Stack(
+                  // Avatar with Lime Border
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primaryLime, width: 2.5),
+                    ),
+                    child: CircleAvatar(
+                      radius: 46,
+                      backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
+                      backgroundImage: (user?.avatarUrl.isNotEmpty ?? false)
+                          ? NetworkImage(user!.avatarUrl)
+                          : null,
+                      child: (user?.avatarUrl.isEmpty ?? true)
+                          ? const Icon(Icons.person_rounded, size: 48, color: AppColors.primaryLime)
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    user?.name ?? 'Dania Shabih',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Beginner • Fitness',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // "Edit Profile" Pill Button
+                  GestureDetector(
+                    onTap: () => _showEditProfileDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
-                              child: (user?.avatarUrl.isNotEmpty ?? false)
-                                  ? Image.network(
-                                      user!.avatarUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => const Icon(
-                                        Icons.person_rounded,
-                                        size: 38,
-                                        color: AppColors.primaryLime,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.person_rounded,
-                                      size: 38,
-                                      color: AppColors.primaryLime,
-                                    ),
-                            ),
+                          Icon(
+                            Icons.edit_outlined,
+                            size: 14,
+                            color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
                           ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primaryLime,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.verified_rounded,
-                                size: 14,
-                                color: Color(0xFF111827),
-                              ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.name ?? 'Alex Rivera',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              user?.email ?? 'alex.rivera@fitflow.app',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    user?.fitnessLevel ?? 'Intermediate',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryLime.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    user?.membershipTier ?? 'PREMIUM',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primaryLime,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Goal display
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.track_changes_rounded, size: 16, color: AppColors.primaryLime),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Goal: ${user?.goal ?? "Build Lean Muscle & Tone"}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
 
-                  // User Biometrics Row: Current weight, Target weight, Height
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetricStat('Current Weight', '${progressProv.currentWeight} kg', isDark),
-                      _buildMetricStat('Target Weight', '${progressProv.targetWeight} kg', isDark),
-                      _buildMetricStat('Height', '${user?.heightCm.toStringAsFixed(0) ?? "178"} cm', isDark),
-                    ],
-                  ),
+            // 4-COLUMN STATS CARD (Matching Screen 12 mockup: Goal | Current | Target | Height)
+            FitFlowCard(
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem('Goal', 'Weight Loss', isDark),
+                  _buildVerticalDivider(isDark),
+                  _buildStatItem('Current', '${progressProv.currentWeight.toStringAsFixed(0)} kg', isDark),
+                  _buildVerticalDivider(isDark),
+                  _buildStatItem('Target', '${progressProv.targetWeight.toStringAsFixed(0)} kg', isDark),
+                  _buildVerticalDivider(isDark),
+                  _buildStatItem('Height', "5'0\"", isDark),
                 ],
               ),
             ),
@@ -336,17 +335,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
 
-            // MENU ITEMS
-            const Text(
-              'ACCOUNT & ACTIVITIES',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 12),
-
+            // MENU ITEMS (Matching Screen 12: My Plans, My Membership, Measurements, Workout History, Notifications, Settings, Help & Support)
             Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
@@ -359,8 +348,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildMenuItem(
                     icon: Icons.assignment_outlined,
-                    title: 'My Plans & Trainer',
-                    subtitle: 'View workout & diet plans assigned by coach',
+                    title: 'My Plans',
                     isDark: isDark,
                     onTap: () {
                       Navigator.push(
@@ -373,7 +361,6 @@ class ProfileScreen extends StatelessWidget {
                   _buildMenuItem(
                     icon: Icons.card_membership_rounded,
                     title: 'My Membership',
-                    subtitle: '${user?.membershipDaysRemaining ?? 184} days remaining • Premium',
                     isDark: isDark,
                     onTap: () {
                       Navigator.push(
@@ -384,9 +371,20 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   _buildDivider(isDark),
                   _buildMenuItem(
-                    icon: Icons.military_tech_rounded,
-                    title: 'Achievements & Streaks',
-                    subtitle: '5 Badges unlocked • 5-day streak',
+                    icon: Icons.show_chart_rounded,
+                    title: 'Measurements',
+                    isDark: isDark,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProgressScreen()),
+                      );
+                    },
+                  ),
+                  _buildDivider(isDark),
+                  _buildMenuItem(
+                    icon: Icons.history_rounded,
+                    title: 'Workout History',
                     isDark: isDark,
                     onTap: () {
                       Navigator.push(
@@ -399,7 +397,6 @@ class ProfileScreen extends StatelessWidget {
                   _buildMenuItem(
                     icon: Icons.notifications_none_rounded,
                     title: 'Notifications',
-                    subtitle: 'Reminders and weekly progress logs',
                     isDark: isDark,
                     onTap: () {
                       Navigator.push(
@@ -412,7 +409,6 @@ class ProfileScreen extends StatelessWidget {
                   _buildMenuItem(
                     icon: Icons.settings_outlined,
                     title: 'Settings',
-                    subtitle: 'Appearance, units, security',
                     isDark: isDark,
                     onTap: () {
                       Navigator.push(
@@ -421,12 +417,23 @@ class ProfileScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  _buildDivider(isDark),
+                  _buildMenuItem(
+                    icon: Icons.help_outline_rounded,
+                    title: 'Help & Support',
+                    isDark: isDark,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Connecting to ProFit 24/7 Support Desk...')),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Sign Out
+            // Sign Out Button
             Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
@@ -464,17 +471,17 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricStat(String label, String value, bool isDark) {
+  Widget _buildStatItem(String label, String value, bool isDark) {
     return Column(
       children: [
         Text(
           value,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
@@ -486,34 +493,34 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildVerticalDivider(bool isDark) {
+    return Container(
+      width: 1,
+      height: 28,
+      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+    );
+  }
+
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
-    required String subtitle,
     required bool isDark,
     required VoidCallback onTap,
   }) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, size: 20, color: AppColors.primaryLime),
       ),
       title: Text(
         title,
         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 11,
-          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-        ),
       ),
       trailing: const Icon(Icons.chevron_right_rounded, size: 20),
     );
@@ -522,7 +529,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildDivider(bool isDark) {
     return Divider(
       height: 1,
-      indent: 64,
+      indent: 60,
       color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
     );
   }

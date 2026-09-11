@@ -1,36 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/progress_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/common/fit_flow_card.dart';
 import '../../widgets/charts/weight_line_chart.dart';
-import '../../core/utils/formatters.dart';
 import 'add_measurement_dialog.dart';
 
-class ProgressScreen extends StatelessWidget {
+class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
+
+  @override
+  State<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends State<ProgressScreen> {
+  int _selectedTab = 0; // 0: Weight, 1: Body Fat, 2: Measurements
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final progressProv = context.watch<ProgressProvider>();
-    final authProv = context.watch<AuthProvider>();
-    final user = authProv.user;
 
     final measurements = progressProv.measurements;
     final latest = measurements.isNotEmpty ? measurements.last : null;
+
+    final tabs = ['Weight', 'Body Fat', 'Measurements'];
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'Progress Analytics',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          'Your Journey',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
         ),
         actions: [
           IconButton(
-            tooltip: 'Record Measurements',
+            tooltip: 'Add Record',
             icon: const Icon(Icons.add_chart_rounded, color: AppColors.primaryLime, size: 24),
             onPressed: () => AddMeasurementDialog.show(context),
           ),
@@ -42,113 +46,117 @@ class ProgressScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // WEIGHT JOURNEY SECTION
+            // Segmented Pills: [Weight] [Body Fat] [Measurements] (Screen 8 in mockup)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'WEIGHT JOURNEY',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => AddMeasurementDialog.show(context),
-                  child: const Text(
-                    '+ Log Weight',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryLime,
+              children: List.generate(tabs.length, (idx) {
+                final isSelected = _selectedTab == idx;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTab = idx),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      margin: EdgeInsets.only(right: idx < tabs.length - 1 ? 8 : 0),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primaryLime
+                            : (isDark ? AppColors.darkSurface : Colors.white),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryLime
+                              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          tabs[idx],
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? const Color(0xFF0F172A)
+                                : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              }),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
 
-            // Line chart card
-            FitFlowCard(
+            // Weight Line Chart Card (Screen 8 in mockup)
+            Container(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Three weight targets summary: Current, Starting, Target
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildWeightBadge('Current', '${progressProv.currentWeight.toStringAsFixed(1)} kg', AppColors.primaryLime, isDark),
-                      _buildWeightBadge('Starting', '${progressProv.startingWeight.toStringAsFixed(1)} kg', isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, isDark),
-                      _buildWeightBadge('Target', '${progressProv.targetWeight.toStringAsFixed(1)} kg', AppColors.info, isDark),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  WeightLineChart(
-                    measurements: measurements,
-                    targetWeight: progressProv.targetWeight,
-                  ),
-                ],
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF161A20) : Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: WeightLineChart(
+                measurements: measurements,
+                targetWeight: progressProv.targetWeight,
               ),
             ),
             const SizedBox(height: 28),
 
-            // OVERALL STATS (Workouts, Training Time, Total Volume, Calories)
+            // Section: "This Month" (Screen 8 in mockup)
             const Text(
-              'TRAINING STATS',
+              'This Month',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
+                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
+
+            // 2x2 Grid of dark rounded cards (Screen 8 in mockup)
             Row(
               children: [
                 Expanded(
                   child: _buildMetricCard(
                     icon: Icons.fitness_center_rounded,
                     title: 'Workouts',
-                    value: '${user?.totalWorkouts ?? 28}',
-                    subtitle: 'Completed',
-                    accentColor: AppColors.primaryLime,
+                    value: '18',
+                    iconColor: AppColors.primaryLime,
                     isDark: isDark,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: _buildMetricCard(
                     icon: Icons.access_time_rounded,
                     title: 'Training Time',
-                    value: '${((user?.totalTrainingMinutes ?? 1140) / 60).toStringAsFixed(1)} hrs',
-                    subtitle: 'Active time',
-                    accentColor: AppColors.proteinColor,
+                    value: '12h 40m',
+                    iconColor: AppColors.primaryLime,
                     isDark: isDark,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
                   child: _buildMetricCard(
                     icon: Icons.shield_rounded,
                     title: 'Total Volume',
-                    value: '${((user?.totalVolumeKg ?? 18450) / 1000).toStringAsFixed(1)} t',
-                    subtitle: 'Total lifted',
-                    accentColor: AppColors.carbsColor,
+                    value: '24,580 kg',
+                    iconColor: AppColors.primaryLime,
                     isDark: isDark,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: _buildMetricCard(
                     icon: Icons.local_fire_department_rounded,
                     title: 'Calories',
-                    value: Formatters.formatCalories(user?.totalCaloriesBurned ?? 9800),
-                    subtitle: 'Burned total',
-                    accentColor: AppColors.fatColor,
+                    value: '8,420',
+                    iconColor: Colors.orange,
                     isDark: isDark,
                   ),
                 ),
@@ -156,109 +164,41 @@ class ProgressScreen extends StatelessWidget {
             ),
             const SizedBox(height: 28),
 
-            // BODY MEASUREMENTS TRACKING (Weight, Waist, Chest, Arms, Thighs)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'BODY MEASUREMENTS',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
+            // Measurements Details (if tab 2 selected)
+            if (_selectedTab == 2 && latest != null) ...[
+              const Text(
+                'Body Measurements',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
-                GestureDetector(
-                  onTap: () => AddMeasurementDialog.show(context),
-                  child: const Text(
-                    '+ Record',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryLime,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            if (latest != null)
+              ),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : Colors.white,
-                  borderRadius: BorderRadius.circular(22),
+                  color: isDark ? const Color(0xFF161A20) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                   ),
                 ),
-                child: Column(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Latest Record: ${Formatters.formatDate(latest.date)}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        if (latest.note != null)
-                          Text(
-                            latest.note!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildCircMeasure('Weight', '${latest.weightKg} kg', isDark),
-                        _buildCircMeasure('Waist', '${latest.waistCm} cm', isDark),
-                        _buildCircMeasure('Chest', '${latest.chestCm} cm', isDark),
-                        _buildCircMeasure('Arms', '${latest.armsCm} cm', isDark),
-                        _buildCircMeasure('Thighs', '${latest.thighsCm} cm', isDark),
-                      ],
-                    ),
+                    _buildCircMeasure('Weight', '${latest.weightKg} kg', isDark),
+                    _buildCircMeasure('Waist', '${latest.waistCm} cm', isDark),
+                    _buildCircMeasure('Chest', '${latest.chestCm} cm', isDark),
+                    _buildCircMeasure('Arms', '${latest.armsCm} cm', isDark),
+                    _buildCircMeasure('Thighs', '${latest.thighsCm} cm', isDark),
                   ],
                 ),
               ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 24),
+            ],
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildWeightBadge(String label, String value, Color color, bool isDark) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 
@@ -266,14 +206,13 @@ class ProgressScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String value,
-    required String subtitle,
-    required Color accentColor,
+    required Color iconColor,
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? const Color(0xFF161A20) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -282,34 +221,22 @@ class ProgressScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                ),
-              ),
-              Icon(icon, size: 18, color: accentColor),
-            ],
+          Icon(icon, size: 22, color: iconColor),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -321,8 +248,8 @@ class ProgressScreen extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 52,
-          height: 52,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
             shape: BoxShape.circle,

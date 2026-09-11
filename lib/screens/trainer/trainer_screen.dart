@@ -14,21 +14,20 @@ class TrainerScreen extends StatefulWidget {
 class _TrainerScreenState extends State<TrainerScreen> {
   final TrainerModel trainer = TrainerModel(
     id: 'tr_01',
-    name: 'Coach Marcus Vance',
-    avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400',
-    certification: 'CSCS • NASM Master Trainer • Precision Nutrition L2',
-    rating: 4.95,
-    reviewsCount: 142,
+    name: 'Ahmed Khan',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    certification: 'Certified Trainer',
+    rating: 4.9,
+    reviewsCount: 124,
     bio:
-        '10+ years coaching elite athletes and gym newcomers. Focused on biomechanics, progressive strength overload, and sustainable athletic conditioning.',
-    assignedWorkoutPlan: 'Upper / Lower 4-Day Hypertrophy & Power Split',
-    assignedDietPlan: 'High-Protein Muscle Building (2,400 kcal • 160g Protein)',
+        'Certified fitness and conditioning coach specializing in strength development, progressive hypertrophy, and sustainable weight loss nutrition.',
+    assignedWorkoutPlan: '4 days / week',
+    assignedDietPlan: '1500 kcal / day',
     weeklyTargets: [
-      'Complete 4 strength sessions with progressive overload',
-      'Hit 150g+ protein target every single day',
-      'Hit 8,000 to 10,000 active steps daily',
-      'Minimum 7.5 hours of uninterrupted sleep',
-      'Take post-workout dynamic mobility rest periods',
+      'Complete 4 strength sessions',
+      'Hit 1500 kcal diet target',
+      'Drink 2.5L water daily',
+      '10,000 daily steps',
     ],
   );
 
@@ -57,7 +56,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Message Coach Marcus',
+                'Message ${trainer.name}',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
@@ -83,9 +82,9 @@ class _TrainerScreenState extends State<TrainerScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Message sent to Coach Marcus! 💬'),
-                      backgroundColor: Color(0xFF1E293B),
+                    SnackBar(
+                      content: Text('Message sent to ${trainer.name}! 💬'),
+                      backgroundColor: const Color(0xFF1E293B),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -106,8 +105,8 @@ class _TrainerScreenState extends State<TrainerScreen> {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'Your Dedicated Trainer',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          'Trainer',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
       ),
       body: SingleChildScrollView(
@@ -132,10 +131,13 @@ class _TrainerScreenState extends State<TrainerScreen> {
                           child: Image.network(
                             trainer.avatarUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const Icon(
-                              Icons.person_rounded,
-                              size: 40,
-                              color: AppColors.primaryLime,
+                            errorBuilder: (_, _, _) => Container(
+                              color: AppColors.primaryLime.withOpacity(0.2),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                size: 44,
+                                color: AppColors.primaryLime,
+                              ),
                             ),
                           ),
                         ),
@@ -148,7 +150,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                             Text(
                               trainer.name,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 19,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -156,7 +158,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                             Text(
                               trainer.certification,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: isDark
                                     ? AppColors.darkTextSecondary
@@ -210,7 +212,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                           text: 'Message',
                           icon: Icons.chat_bubble_outline_rounded,
                           isOutlined: true,
-                          height: 48,
+                          height: 46,
                           onPressed: _showMessageSheet,
                         ),
                       ),
@@ -219,12 +221,12 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         child: FitFlowButton(
                           text: 'View Plan',
                           icon: Icons.assignment_outlined,
-                          height: 48,
+                          height: 46,
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Viewing Coach Marcus\'s full training roadmap'),
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text('Viewing ${trainer.name}\'s full training roadmap'),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           },
@@ -237,9 +239,9 @@ class _TrainerScreenState extends State<TrainerScreen> {
             ),
             const SizedBox(height: 28),
 
-            // ASSIGNED PLANS
+            // MY PLAN SECTION HEADER
             const Text(
-              'ASSIGNED PLANS',
+              'MY PLAN',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -279,7 +281,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Assigned Workout Plan',
+                          'Workout Plan',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -291,20 +293,21 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         Text(
                           trainer.assignedWorkoutPlan,
                           style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const Icon(Icons.chevron_right_rounded, size: 20),
                 ],
               ),
             ),
 
             // Diet Plan Card
             Container(
-              margin: const EdgeInsets.only(bottom: 24),
+              margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
@@ -333,7 +336,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Assigned Diet Plan',
+                          'Diet Plan',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -345,20 +348,101 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         Text(
                           trainer.assignedDietPlan,
                           style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, size: 20),
+                ],
+              ),
+            ),
+
+            // Weekly Targets Summary Card
+            Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.carbsColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.track_changes_rounded,
+                              color: AppColors.carbsColor,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Weekly Targets',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                  color: AppColors.carbsColor,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                '3 / 4 completed',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Text(
+                        '75%',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryLime,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: const LinearProgressIndicator(
+                      value: 0.75,
+                      minHeight: 6,
+                      backgroundColor: AppColors.gray200,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // WEEKLY TARGETS
+            // WEEKLY TARGETS DETAILS
             const Text(
-              'WEEKLY TARGETS',
+              'TARGET DETAILS',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -377,15 +461,16 @@ class _TrainerScreenState extends State<TrainerScreen> {
               ),
               child: Column(
                 children: List.generate(trainer.weeklyTargets.length, (index) {
+                  final isDone = index < 3;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.primaryLime,
-                          size: 20,
+                        Icon(
+                          isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                          color: isDone ? AppColors.primaryLime : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                          size: 22,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -393,13 +478,30 @@ class _TrainerScreenState extends State<TrainerScreen> {
                             trainer.weeklyTargets[index],
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? AppColors.darkTextPrimary
-                                  : AppColors.lightTextPrimary,
+                              fontWeight: FontWeight.w600,
+                              decoration: isDone ? TextDecoration.lineThrough : null,
+                              color: isDone
+                                  ? (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)
+                                  : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
                             ),
                           ),
                         ),
+                        if (isDone)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLime.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Done',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryLime,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   );
