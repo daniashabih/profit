@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/fit_flow_text_field.dart';
+import '../../widgets/common/profit_logo.dart';
 import '../main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -70,6 +71,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Brand Logo (Screen 7 in mockup)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 24),
+                    child: ProFitLogo(
+                      size: 64,
+                      showText: true,
+                      showTagline: true,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
                 const Text(
                   'Create Account 🚀',
                   style: TextStyle(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/membership_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
+import '../../widgets/common/profit_logo.dart';
 
 class MembershipScreen extends StatefulWidget {
   const MembershipScreen({super.key});
@@ -121,10 +122,12 @@ class _MembershipScreenState extends State<MembershipScreen> {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              '👑 ',
-                              style: TextStyle(fontSize: 14),
+                            ProFitLogo(
+                              size: 16,
+                              showText: false,
+                              logoColor: Color(0xFF111827),
                             ),
+                            SizedBox(width: 6),
                             Text(
                               'PREMIUM',
                               style: TextStyle(

@@ -67,3 +67,7 @@ class FitFlowCard extends StatelessWidget {
     return cardContent;
   }
 }
+
+/// PROFIT branded card alias
+typedef ProfitCard = FitFlowCard;
+

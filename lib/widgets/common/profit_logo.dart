@@ -1,56 +1,109 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 import '../../theme/app_colors.dart';
 
+/// Official PROFIT Logo Component
+/// Displays the official white/dark fitness silhouette with lightning bolt design
+/// preserving original shape and proportions across all screen sizes.
 class ProFitLogo extends StatelessWidget {
+  /// Width and height of the silhouette image
   final double size;
+
+  /// Whether to display the "PROFIT" brand name
   final bool showText;
+
+  /// Whether to display the official tagline "Your Fitness. Your Progress."
+  final bool showTagline;
+
+  /// Font size for the brand name
   final double fontSize;
+
+  /// Font size for the tagline (defaults to fontSize * 0.44)
+  final double? taglineFontSize;
+
+  /// Horizontal layout (side-by-side) vs Vertical layout (stacked)
   final bool isHorizontal;
+
+  /// Custom text color for the brand name
   final Color? textColor;
+
+  /// Custom logo tint color (defaults to white on dark themes, dark slate on light themes)
+  final Color? logoColor;
+
+  /// Whether to enclose the logo in a rounded badge container
+  final bool showContainer;
+
+  /// Safe padding inside container when showContainer is true
+  final EdgeInsetsGeometry? containerPadding;
 
   const ProFitLogo({
     super.key,
     this.size = 64,
     this.showText = true,
+    this.showTagline = false,
     this.fontSize = 28,
+    this.taglineFontSize,
     this.isHorizontal = false,
     this.textColor,
+    this.logoColor,
+    this.showContainer = false,
+    this.containerPadding,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = textColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
+    final effectiveLogoColor = logoColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
+    final effectiveTextColor = textColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
+    final effectiveTaglineColor = isDark ? Colors.white70 : const Color(0xFF64748B);
 
-    final iconWidget = Container(
+    Widget logoImage = Image.asset(
+      'assets/images/logo/profit_logo_white.png',
       width: size,
       height: size,
-      padding: EdgeInsets.all(size * 0.18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF161A20) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(size * 0.32),
-        border: Border.all(
-          color: AppColors.primaryLime.withOpacity(0.8),
-          width: size > 48 ? 2.5 : 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryLime.withOpacity(0.25),
-            blurRadius: size * 0.4,
-            offset: Offset(0, size * 0.08),
-          ),
-        ],
-      ),
-      child: CustomPaint(
-        painter: _PulseBarbellPainter(color: AppColors.primaryLime),
-      ),
+      fit: BoxFit.contain,
+      color: effectiveLogoColor,
+      colorBlendMode: BlendMode.srcIn,
+      filterQuality: FilterQuality.high,
     );
 
-    if (!showText) {
-      return iconWidget;
+    if (showContainer) {
+      logoImage = Container(
+        width: size,
+        height: size,
+        padding: containerPadding ?? EdgeInsets.all(size * 0.16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF161A20) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(size * 0.28),
+          border: Border.all(
+            color: AppColors.primaryLime.withOpacity(0.8),
+            width: size > 48 ? 2.0 : 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryLime.withOpacity(0.2),
+              blurRadius: size * 0.35,
+              offset: Offset(0, size * 0.06),
+            ),
+          ],
+        ),
+        child: Image.asset(
+          'assets/images/logo/profit_logo_white.png',
+          fit: BoxFit.contain,
+          color: effectiveLogoColor,
+          colorBlendMode: BlendMode.srcIn,
+          filterQuality: FilterQuality.high,
+        ),
+      );
     }
 
-    final textWidget = Row(
+    if (!showText) {
+      return logoImage;
+    }
+
+    final effectiveTaglineSize = taglineFontSize ?? (fontSize * 0.44).clamp(11.0, 16.0);
+
+    final titleText = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -59,8 +112,9 @@ class ProFitLogo extends StatelessWidget {
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
             letterSpacing: 1.0,
-            color: primaryColor,
+            color: effectiveTextColor,
           ),
         ),
         Text(
@@ -68,10 +122,32 @@ class ProFitLogo extends StatelessWidget {
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
             letterSpacing: 1.0,
-            color: AppColors.primaryLime,
+            color: effectiveTextColor,
           ),
         ),
+      ],
+    );
+
+    final textColumn = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: isHorizontal ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        titleText,
+        if (showTagline) ...[
+          const SizedBox(height: 4),
+          Text(
+            AppConstants.appTagline,
+            textAlign: isHorizontal ? TextAlign.left : TextAlign.center,
+            style: TextStyle(
+              fontSize: effectiveTaglineSize,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+              color: effectiveTaglineColor,
+            ),
+          ),
+        ],
       ],
     );
 
@@ -80,9 +156,9 @@ class ProFitLogo extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          iconWidget,
-          SizedBox(width: size * 0.25),
-          textWidget,
+          logoImage,
+          SizedBox(width: size * 0.22),
+          textColumn,
         ],
       );
     }
@@ -91,104 +167,10 @@ class ProFitLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        iconWidget,
-        SizedBox(height: size * 0.2),
-        textWidget,
+        logoImage,
+        SizedBox(height: size * 0.16),
+        textColumn,
       ],
     );
   }
-}
-
-class _PulseBarbellPainter extends CustomPainter {
-  final Color color;
-
-  _PulseBarbellPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.fill;
-
-    final barPaint = Paint()
-      ..color = color
-      ..strokeWidth = size.width * 0.12
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final centerY = size.height / 2;
-
-    // Horizontal center connector bar
-    canvas.drawLine(
-      Offset(size.width * 0.15, centerY),
-      Offset(size.width * 0.85, centerY),
-      barPaint,
-    );
-
-    // 4 vertical pulse bars: outer shorter, inner taller
-    final barWidth = size.width * 0.14;
-
-    // Outer Left bar
-    _drawRoundedBar(
-      canvas,
-      paint,
-      centerX: size.width * 0.18,
-      centerY: centerY,
-      width: barWidth,
-      height: size.height * 0.55,
-    );
-
-    // Inner Left bar (taller)
-    _drawRoundedBar(
-      canvas,
-      paint,
-      centerX: size.width * 0.38,
-      centerY: centerY,
-      width: barWidth,
-      height: size.height * 0.95,
-    );
-
-    // Inner Right bar (taller)
-    _drawRoundedBar(
-      canvas,
-      paint,
-      centerX: size.width * 0.62,
-      centerY: centerY,
-      width: barWidth,
-      height: size.height * 0.95,
-    );
-
-    // Outer Right bar
-    _drawRoundedBar(
-      canvas,
-      paint,
-      centerX: size.width * 0.82,
-      centerY: centerY,
-      width: barWidth,
-      height: size.height * 0.55,
-    );
-  }
-
-  void _drawRoundedBar(
-    Canvas canvas,
-    Paint paint, {
-    required double centerX,
-    required double centerY,
-    required double width,
-    required double height,
-  }) {
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(centerX, centerY),
-        width: width,
-        height: height,
-      ),
-      Radius.circular(width / 2),
-    );
-    canvas.drawRRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

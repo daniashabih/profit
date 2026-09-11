@@ -73,11 +73,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo (Screen 3 in mockup)
+                  // Logo (Screen 6 in mockup)
                   const Center(
                     child: ProFitLogo(
-                      size: 64,
+                      size: 72,
                       showText: true,
+                      showTagline: true,
                       fontSize: 26,
                     ),
                   ),

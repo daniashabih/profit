@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../onboarding/onboarding_screen.dart';
@@ -123,43 +122,13 @@ class _SplashScreenState extends State<SplashScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const ProFitLogo(
-                            size: 84,
-                            showText: false,
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Text(
-                                'PRO',
-                                style: TextStyle(
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.0,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                'FIT',
-                                style: TextStyle(
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.0,
-                                  color: AppColors.primaryLime,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Your Fitness. Your Progress.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: Colors.white.withOpacity(0.75),
-                            ),
+                            size: 96,
+                            showText: true,
+                            showTagline: true,
+                            fontSize: 38,
+                            taglineFontSize: 15,
+                            textColor: Colors.white,
+                            logoColor: Colors.white,
                           ),
                         ],
                       ),

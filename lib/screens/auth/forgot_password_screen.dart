@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/fit_flow_text_field.dart';
+import '../../widgets/common/profit_logo.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -96,6 +97,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Top Brand Logo
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 24),
+                          child: ProFitLogo(
+                            size: 64,
+                            showText: true,
+                            showTagline: true,
+                            fontSize: 24,
+                          ),
+                        ),
+                      ),
                       const Text(
                         'Reset Password 🔑',
                         style: TextStyle(

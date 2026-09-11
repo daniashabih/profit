@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/theme_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../widgets/common/profit_logo.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -209,10 +210,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                     ),
                   ),
+                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                  onTap: () => _showAboutProfitDialog(context),
                 ),
               ],
             ),
             const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAboutProfitDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ProFitLogo(
+              size: 72,
+              showText: true,
+              showTagline: true,
+              fontSize: 26,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Version ${AppConstants.appVersion}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'PROFIT is your all-in-one smart fitness ecosystem designed to elevate your training, nutrition, progress analytics, and AI coaching.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryLime,
+                  foregroundColor: const Color(0xFF111827),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                ),
+              ),
+            ),
           ],
         ),
       ),

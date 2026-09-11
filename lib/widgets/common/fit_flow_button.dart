@@ -127,3 +127,7 @@ class FitFlowButton extends StatelessWidget {
     );
   }
 }
+
+/// PROFIT branded button alias
+typedef ProfitButton = FitFlowButton;
+

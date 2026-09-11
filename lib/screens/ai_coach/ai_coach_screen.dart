@@ -5,6 +5,7 @@ import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/fit_flow_card.dart';
+import '../../widgets/common/profit_logo.dart';
 import '../workout/workout_screen.dart';
 import '../nutrition/nutrition_screen.dart';
 
@@ -54,9 +55,32 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: Text(
-          _showChat ? 'AI Coach Chat' : 'Daily Guidance',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ProFitLogo(size: 24, showText: false),
+            const SizedBox(width: 8),
+            Text(
+              _showChat ? 'AI Coach Chat' : 'AI Fitness Coach',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLime.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'BETA',
+                style: TextStyle(
+                  color: AppColors.primaryLime,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           // Toggle button between Daily Suggestion & Interactive Chat
@@ -82,6 +106,66 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Coach Greeting Card matching Mockup Screen 16
+          Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Column(
+              children: [
+                const ProFitLogo(
+                  size: 52,
+                  showText: false,
+                  showContainer: true,
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Hi Dania! 👋',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Based on your recent activity, you\'ve trained 3 days this week. Today would be a great day for a lower-body workout.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.45,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                FitFlowButton(
+                  text: 'View Recommendation',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                  label: const Text('Ask AI Coach', style: TextStyle(fontWeight: FontWeight.w700)),
+                  onPressed: () => setState(() => _showChat = true),
+                ),
+              ],
+            ),
+          ),
+
           // Header
           const Text(
             'What should I do today?',

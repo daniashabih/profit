@@ -97,7 +97,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               child: const Row(
                 children: [
-                  ProFitLogo(size: 38, showText: false),
+                  ProFitLogo(size: 40, showText: false, showContainer: true),
                   SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

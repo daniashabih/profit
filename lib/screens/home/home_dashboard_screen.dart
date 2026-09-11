@@ -6,6 +6,7 @@ import '../../providers/progress_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_card.dart';
 import '../../widgets/common/fit_flow_button.dart';
+import '../../widgets/common/profit_logo.dart';
 import '../workout/exercise_detail_screen.dart';
 import '../ai_coach/ai_coach_screen.dart';
 import '../notifications/notifications_screen.dart';
@@ -29,7 +30,18 @@ class HomeDashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        titleSpacing: 20,
+        titleSpacing: 12,
+        leadingWidth: 54,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: Center(
+            child: ProFitLogo(
+              size: 36,
+              showText: false,
+              showContainer: true,
+            ),
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

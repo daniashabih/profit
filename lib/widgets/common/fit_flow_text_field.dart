@@ -70,3 +70,7 @@ class FitFlowTextField extends StatelessWidget {
     );
   }
 }
+
+/// PROFIT branded text field alias
+typedef ProfitTextField = FitFlowTextField;
+

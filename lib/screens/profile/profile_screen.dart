@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/enums/user_role.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/role_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_card.dart';
+import '../../widgets/common/profit_logo.dart';
 import '../trainer/trainer_screen.dart';
 import '../membership/membership_screen.dart';
 import '../progress/progress_screen.dart';
@@ -462,6 +464,31 @@ class ProfileScreen extends StatelessWidget {
                     );
                   }
                 },
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // PROFIT Brand Footer
+            Center(
+              child: Column(
+                children: [
+                  const ProFitLogo(
+                    size: 36,
+                    showText: true,
+                    showTagline: true,
+                    fontSize: 16,
+                    taglineFontSize: 11,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Version ${AppConstants.appVersion}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
