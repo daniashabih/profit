@@ -42,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Experience ProFit as a Gym Member, Certified Trainer, or Club Administrator.',
+                'Experience PROFIT as a Gym Member, Certified Trainer, or Club Administrator.',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -424,7 +424,7 @@ class ProfileScreen extends StatelessWidget {
                     isDark: isDark,
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Connecting to ProFit 24/7 Support Desk...')),
+                        const SnackBar(content: Text('Connecting to PROFIT 24/7 Support Desk...')),
                       );
                     },
                   ),

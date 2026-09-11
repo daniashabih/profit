@@ -103,11 +103,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ProFit Admin',
+                        'PROFIT Admin',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                       ),
                       Text(
-                        'Gym Management Console',
+                        'PROFIT Management Console',
                         style: TextStyle(fontSize: 11, color: AppColors.primaryLime),
                       ),
                     ],

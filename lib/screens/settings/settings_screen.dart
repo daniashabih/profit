@@ -201,9 +201,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 ListTile(
                   leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('About ProFit', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  title: const Text('About PROFIT', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   subtitle: Text(
-                    'Version ${AppConstants.appVersion} • ProFit Fitness Ecosystem',
+                    'Version ${AppConstants.appVersion} • PROFIT - Your Fitness. Your Progress.',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,

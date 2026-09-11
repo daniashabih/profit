@@ -55,20 +55,20 @@ class ProFitLogo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'Fit',
+          'PRO',
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+            letterSpacing: 1.0,
             color: primaryColor,
           ),
         ),
         Text(
-          'Flow',
+          'FIT',
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+            letterSpacing: 1.0,
             color: AppColors.primaryLime,
           ),
         ),

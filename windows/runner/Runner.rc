@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.fitflow" "\0"
-            VALUE "FileDescription", "fitflow" "\0"
+            VALUE "CompanyName", "com.profit" "\0"
+            VALUE "FileDescription", "PROFIT" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "fitflow" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.fitflow. All rights reserved." "\0"
-            VALUE "OriginalFilename", "fitflow.exe" "\0"
-            VALUE "ProductName", "fitflow" "\0"
+            VALUE "InternalName", "profit" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 PROFIT. All rights reserved." "\0"
+            VALUE "OriginalFilename", "profit.exe" "\0"
+            VALUE "ProductName", "PROFIT" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

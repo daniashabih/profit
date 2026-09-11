@@ -70,7 +70,7 @@ class GamificationScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'You\'re performing better than 84% of FitFlow members this week!',
+                          'You\'re performing better than 84% of PROFIT members this week!',
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.4,

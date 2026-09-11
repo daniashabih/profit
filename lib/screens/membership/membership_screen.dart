@@ -29,7 +29,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
   final List<MembershipPlanModel> plans = const [
     MembershipPlanModel(
       id: 'plan_monthly',
-      name: 'ProFit Monthly',
+      name: 'PROFIT Monthly',
       price: '\$14.99',
       period: '/ month',
       billingDescription: 'Billed monthly, cancel anytime',
@@ -42,13 +42,13 @@ class _MembershipScreenState extends State<MembershipScreen> {
     ),
     MembershipPlanModel(
       id: 'plan_annual',
-      name: 'ProFit VIP Annual',
+      name: 'PROFIT VIP Annual',
       price: '\$99.99',
       period: '/ year',
       billingDescription: 'Save 45% • Equivalent to \$8.33/mo',
       isPopular: true,
       features: [
-        'All ProFit Monthly features',
+        'All PROFIT Monthly features',
         '1-on-1 Certified trainer consultation',
         'Customized nutrition & macro roadmaps',
         'All group fitness & HIIT classes',
@@ -57,15 +57,15 @@ class _MembershipScreenState extends State<MembershipScreen> {
     ),
     MembershipPlanModel(
       id: 'plan_lifetime',
-      name: 'ProFit Black Lifetime',
+      name: 'PROFIT Black Lifetime',
       price: '\$249.99',
       period: 'one-time',
       billingDescription: 'Pay once, lifetime unlimited VIP access',
       features: [
-        'Unlimited access to all ProFit clubs worldwide',
+        'Unlimited access to all PROFIT clubs worldwide',
         'Unlimited AI Coach & nutrition roadmap updates',
         'Dedicated VIP locker & trainer priority',
-        'ProFit performance welcome kit',
+        'PROFIT performance welcome kit',
       ],
     ),
   ];
@@ -230,7 +230,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('ProFit Premium Membership renewed! 🌟'),
+                          content: Text('PROFIT Premium Membership renewed! 🌟'),
                           backgroundColor: Color(0xFF1E293B),
                           behavior: SnackBarBehavior.floating,
                         ),

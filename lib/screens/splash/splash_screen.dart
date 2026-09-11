@@ -131,20 +131,20 @@ class _SplashScreenState extends State<SplashScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: const [
                               Text(
-                                'Fit',
+                                'PRO',
                                 style: TextStyle(
                                   fontSize: 38,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
+                                  letterSpacing: 1.0,
                                   color: Colors.white,
                                 ),
                               ),
                               Text(
-                                'Flow',
+                                'FIT',
                                 style: TextStyle(
                                   fontSize: 38,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
+                                  letterSpacing: 1.0,
                                   color: AppColors.primaryLime,
                                 ),
                               ),
@@ -152,7 +152,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your Fitness Journey Starts Here',
+                            'Your Fitness. Your Progress.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,

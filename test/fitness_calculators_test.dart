@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitflow/core/utils/fitness_calculators.dart';
-import 'package:fitflow/models/workout_model.dart';
-import 'package:fitflow/models/exercise_model.dart';
-import 'package:fitflow/core/enums/muscle_group.dart';
-import 'package:fitflow/core/enums/exercise_difficulty.dart';
-import 'package:fitflow/models/nutrition_model.dart';
-import 'package:fitflow/core/enums/meal_type.dart';
-import 'package:fitflow/repositories/exercise_repository.dart';
+import 'package:profit/core/utils/fitness_calculators.dart';
+import 'package:profit/models/workout_model.dart';
+import 'package:profit/models/exercise_model.dart';
+import 'package:profit/core/enums/muscle_group.dart';
+import 'package:profit/core/enums/exercise_difficulty.dart';
+import 'package:profit/models/nutrition_model.dart';
+import 'package:profit/core/enums/meal_type.dart';
+import 'package:profit/repositories/exercise_repository.dart';
 
 void main() {
   group('Fitness Calculators Tests', () {

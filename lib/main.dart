@@ -68,20 +68,20 @@ void main() async {
           create: (_) => AiCoachProvider(aiService: aiCoachService),
         ),
       ],
-      child: const FitFlowApp(),
+      child: const ProfitApp(),
     ),
   );
 }
 
-class FitFlowApp extends StatelessWidget {
-  const FitFlowApp({super.key});
+class ProfitApp extends StatelessWidget {
+  const ProfitApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
     return MaterialApp(
-      title: 'FitFlow',
+      title: 'PROFIT',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -90,3 +90,6 @@ class FitFlowApp extends StatelessWidget {
     );
   }
 }
+
+/// Alias for backwards compatibility
+typedef FitFlowApp = ProfitApp;

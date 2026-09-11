@@ -80,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Join FitFlow and jumpstart your fitness journey today.',
+                  'Join PROFIT and jumpstart your fitness journey today.',
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark

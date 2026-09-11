@@ -1,6 +1,6 @@
 class AppConstants {
-  static const String appName = 'ProFit';
-  static const String appTagline = 'Your Fitness Journey Starts Here';
+  static const String appName = 'PROFIT';
+  static const String appTagline = 'Your Fitness. Your Progress.';
   static const String appVersion = '1.0.0';
 
   // Equipment List for filters

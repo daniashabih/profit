@@ -227,7 +227,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'ProFit Daily Motivation',
+                        'PROFIT Daily Motivation',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
