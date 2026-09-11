@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../lib/main.dart';
+import '../lib/theme/theme_provider.dart';
+import '../lib/providers/auth_provider.dart';
+import '../lib/providers/workout_provider.dart';
+import '../lib/providers/nutrition_provider.dart';
+import '../lib/providers/progress_provider.dart';
+import '../lib/providers/ai_coach_provider.dart';
+import '../lib/providers/role_provider.dart';
 
-import 'package:fitflow/main.dart';
+import '../lib/services/auth_service.dart';
+import '../lib/services/ai_coach_service.dart';
+import '../lib/repositories/exercise_repository.dart';
+import '../lib/repositories/workout_repository.dart';
+import '../lib/repositories/nutrition_repository.dart';
+import '../lib/repositories/progress_repository.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUp(() {
+    SharedPreferences.setMockInitialValues({'profit_has_onboarded': true});
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('ProFitApp smoke test boots with MultiProvider and Splash', (WidgetTester tester) async {
+    final authService = MockAuthService();
+    final aiCoachService = ExtensibleAiCoachService();
+    final exerciseRepo = LocalExerciseRepository();
+    final workoutRepo = LocalWorkoutRepository(exerciseRepo: exerciseRepo);
+    final nutritionRepo = LocalNutritionRepository();
+    final progressRepo = LocalProgressRepository();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
+          ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider(authService: authService)),
+          ChangeNotifierProvider<WorkoutProvider>(
+            create: (_) => WorkoutProvider(workoutRepo: workoutRepo, exerciseRepo: exerciseRepo),
+          ),
+          ChangeNotifierProvider<NutritionProvider>(
+            create: (_) => NutritionProvider(nutritionRepo: nutritionRepo),
+          ),
+          ChangeNotifierProvider<ProgressProvider>(
+            create: (_) => ProgressProvider(progressRepo: progressRepo),
+          ),
+          ChangeNotifierProvider<AiCoachProvider>(
+            create: (_) => AiCoachProvider(aiService: aiCoachService),
+          ),
+        ],
+        child: const ProFitApp(),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Initial frame shows ProFit branding
+    expect(find.text('Pro'), findsOneWidget);
+    expect(find.text('Fit'), findsOneWidget);
+    expect(find.text('Your Fitness Journey Starts Here'), findsOneWidget);
   });
 }

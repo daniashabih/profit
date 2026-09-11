@@ -18,25 +18,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingData> _pages = [
     _OnboardingData(
-      title: 'Build Better Habits',
+      title: 'A Healthier You\nIs Possible',
       subtitle:
-          'Transform your daily routine with structured workouts and personalized reminders designed to keep you consistent without the burnout.',
-      icon: Icons.repeat_rounded,
-      imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800',
+          'Build better habits, reach your goals\nand become the best version of yourself.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800',
     ),
     _OnboardingData(
-      title: 'Train Smarter',
+      title: 'Train Smarter\nEvery Day',
       subtitle:
-          'Eliminate guesswork with clear numbered exercise journeys, interactive set tracking, and smart rest countdowns tailored to your recovery.',
-      icon: Icons.fitness_center_rounded,
-      imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800',
+          'Eliminate guesswork with numbered workout journeys,\ninteractive set tracking, and smart rest timers.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800',
     ),
     _OnboardingData(
-      title: 'Track Your Progress',
+      title: 'Track Your\nMilestones',
       subtitle:
-          'Celebrate every milestone with visual weight charts, body measurements, volume logs, and motivating gamified badges.',
-      icon: Icons.insights_rounded,
-      imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800',
+          'Monitor body measurements, volume lifted, and\nstay accountable with motivating daily streaks.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800',
     ),
   ];
 
@@ -60,31 +60,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      appBar: AppBar(
-        actions: [
-          TextButton(
-            onPressed: _finishOnboarding,
-            child: Text(
-              'Skip',
-              style: TextStyle(
-                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Page View
+            const SizedBox(height: 24),
+
+            // Page View with Headline on top, Image in center
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -95,53 +87,82 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final page = _pages[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Visual container
-                        Container(
-                          height: 280,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkSurfaceElevated
-                                : AppColors.gray100,
-                            borderRadius: BorderRadius.circular(28),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.lightBorder,
-                            ),
+                        // Headline
+                        Text(
+                          page.title,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            height: 1.2,
+                            letterSpacing: -0.5,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(28),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Subtitle
+                        Text(
+                          page.subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.45,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        const Spacer(),
+
+                        // Center Visual with Lime Graphic Shape Accent (matching Screen 2)
+                        Center(
+                          child: SizedBox(
+                            height: 300,
+                            width: double.infinity,
                             child: Stack(
-                              fit: StackFit.expand,
+                              alignment: Alignment.center,
                               children: [
-                                Image.network(
-                                  page.imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Center(
-                                    child: Icon(
-                                      page.icon,
-                                      size: 80,
-                                      color: AppColors.primaryLime,
+                                // Organic Lime blob background accent
+                                Container(
+                                  width: 240,
+                                  height: 240,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLime.withOpacity(isDark ? 0.25 : 0.8),
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(140),
+                                      topRight: Radius.circular(100),
+                                      bottomLeft: Radius.circular(110),
+                                      bottomRight: Radius.circular(160),
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.transparent,
-                                        (isDark
-                                                ? AppColors.darkBackground
-                                                : Colors.black)
-                                            .withOpacity(0.6),
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
+                                // Athlete photo
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Image.network(
+                                    page.imageUrl,
+                                    height: 280,
+                                    width: 260,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => Container(
+                                      height: 280,
+                                      width: 260,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.darkSurface
+                                            : AppColors.gray100,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.fitness_center_rounded,
+                                          size: 64,
+                                          color: AppColors.primaryLime,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -149,42 +170,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 36),
-                        // Title
-                        Text(
-                          page.title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        // Subtitle
-                        Text(
-                          page.subtitle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            height: 1.5,
-                            color: isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.lightTextSecondary,
-                          ),
-                        ),
+                        const Spacer(),
                       ],
                     ),
                   );
                 },
               ),
             ),
-            // Bottom bar with dots & Next button
+
+            // Bottom Controls: Dots, Next Button, Skip Link
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
               child: Column(
                 children: [
-                  // Progress Dots
+                  // 3 Progress Dots (Screen 2 mockup style)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(_pages.length, (idx) {
@@ -192,27 +191,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isSelected ? 28 : 8,
+                        width: isSelected ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.primaryLime
-                              : (isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.gray300),
+                              : (isDark ? AppColors.darkBorder : AppColors.gray300),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       );
                     }),
                   ),
-                  const SizedBox(height: 28),
-                  // Next / Get Started button
+                  const SizedBox(height: 24),
+
+                  // Next Pill Button
                   FitFlowButton(
-                    text: _currentPage == _pages.length - 1
-                        ? 'Get Started'
-                        : 'Next',
-                    icon: Icons.arrow_forward_rounded,
+                    text: _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
+                    height: 54,
+                    borderRadius: 27,
                     onPressed: _onNext,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Centered Skip Link
+                  TextButton(
+                    onPressed: _finishOnboarding,
+                    child: Text(
+                      'Skip',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -227,13 +238,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class _OnboardingData {
   final String title;
   final String subtitle;
-  final IconData icon;
   final String imageUrl;
 
   _OnboardingData({
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.imageUrl,
   });
 }

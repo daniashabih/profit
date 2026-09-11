@@ -11,6 +11,7 @@ class FitFlowButton extends StatelessWidget {
   final Color? textColor;
   final double height;
   final double? width;
+  final double borderRadius;
 
   const FitFlowButton({
     super.key,
@@ -23,6 +24,7 @@ class FitFlowButton extends StatelessWidget {
     this.textColor,
     this.height = 54,
     this.width,
+    this.borderRadius = 16.0,
   });
 
   @override
@@ -41,7 +43,7 @@ class FitFlowButton extends StatelessWidget {
               width: 1.5,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
           ),
           child: isLoading
@@ -90,7 +92,7 @@ class FitFlowButton extends StatelessWidget {
           foregroundColor: effectiveFg,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
         child: isLoading

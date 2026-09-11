@@ -214,7 +214,7 @@ class NutritionScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: meals.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (_, _) => Divider(
                 height: 1,
                 color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
               ),

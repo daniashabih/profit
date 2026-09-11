@@ -78,7 +78,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                         ? Image.network(
                             currentEx.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildFallbackHero(),
+                            errorBuilder: (_, _, _) => _buildFallbackHero(),
                           )
                         : _buildFallbackHero(),
                     // Overlay with play button

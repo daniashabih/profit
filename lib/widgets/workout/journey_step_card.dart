@@ -126,7 +126,7 @@ class JourneyStepCard extends StatelessWidget {
                                 ? Image.network(
                                     exercise.imageUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => _buildFallbackIcon(),
+                                    errorBuilder: (_, _, _) => _buildFallbackIcon(),
                                   )
                                 : _buildFallbackIcon(),
                           ),

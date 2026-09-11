@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/membership_model.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/common/fit_flow_card.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../core/utils/formatters.dart';
 

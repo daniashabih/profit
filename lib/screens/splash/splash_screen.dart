@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/common/profit_logo.dart';
+import '../../widgets/common/fit_flow_button.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../main_navigation.dart';
 
@@ -39,13 +41,10 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _animController.forward();
-    _navigateToNext();
   }
 
-  Future<void> _navigateToNext() async {
-    await Future.delayed(const Duration(milliseconds: 2200));
+  void _navigateToNext() {
     if (!mounted) return;
-
     final authProv = context.read<AuthProvider>();
 
     Widget nextScreen;
@@ -58,9 +57,9 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, __, ___) => nextScreen,
-        transitionsBuilder: (_, animation, __, child) {
+        transitionDuration: const Duration(milliseconds: 500),
+        pageBuilder: (_, _, _) => nextScreen,
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),
@@ -75,95 +74,116 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: ScaleTransition(
-            scale: _scaleAnim,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // FitFlow Modern Logo Symbol
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : AppColors.gray100,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: AppColors.primaryLime,
-                      width: 2.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryLime.withOpacity(0.25),
-                        blurRadius: 30,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.bolt_rounded,
-                      color: AppColors.primaryLime,
-                      size: 52,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // App Name
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Fit',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
-                      ),
-                    ),
-                    const Text(
-                      'Flow',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        color: AppColors.primaryLime,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Tagline
-                Text(
-                  'Your Fitness Journey Starts Here',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.2,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                // Minimal loading dot
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
-                  ),
-                ),
-              ],
+      backgroundColor: const Color(0xFF0D1117),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background Fitness Image (matching Mockup Screen 1)
+          Image.network(
+            'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1000',
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => Container(
+              color: const Color(0xFF0F1216),
             ),
           ),
-        ),
+
+          // Gradient overlay for dark cinematic effect
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.4),
+                  const Color(0xFF0F1216).withOpacity(0.85),
+                  const Color(0xFF0F1216),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.55, 0.9],
+              ),
+            ),
+          ),
+
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 3),
+
+                  // Brand Logo & Title
+                  FadeTransition(
+                    opacity: _fadeAnim,
+                    child: ScaleTransition(
+                      scale: _scaleAnim,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const ProFitLogo(
+                            size: 84,
+                            showText: false,
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                'Fit',
+                                style: TextStyle(
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                'Flow',
+                                style: TextStyle(
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.5,
+                                  color: AppColors.primaryLime,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your Fitness Journey Starts Here',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                              color: Colors.white.withOpacity(0.75),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // CTA Button: "Get Started →" (Screen 1 in mockup)
+                  FadeTransition(
+                    opacity: _fadeAnim,
+                    child: FitFlowButton(
+                      text: 'Get Started →',
+                      height: 56,
+                      borderRadius: 28,
+                      onPressed: _navigateToNext,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
