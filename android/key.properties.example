@@ -1,0 +1,4 @@
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=profit_release_key
+storeFile=profit-upload-key.jks

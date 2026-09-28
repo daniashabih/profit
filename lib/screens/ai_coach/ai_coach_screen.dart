@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_coach_provider.dart';
-import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/fit_flow_card.dart';

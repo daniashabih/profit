@@ -24,6 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _load() async {
     final list = await _notifService.getNotifications();
+    if (!mounted) return;
     setState(() {
       _items = list;
       _isLoading = false;
@@ -71,7 +72,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: () async {
               await _notifService.markAllAsRead();
               await _load();
-              if (!mounted) return;
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('All notifications marked as read'),

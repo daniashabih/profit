@@ -91,5 +91,3 @@ class ProfitApp extends StatelessWidget {
   }
 }
 
-/// Alias for backwards compatibility
-typedef FitFlowApp = ProfitApp;
