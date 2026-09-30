@@ -22,27 +22,19 @@ class LocalWorkoutRepository implements WorkoutRepository {
   void _initTodayWorkout() {
     final all = _exerciseRepo.getAllExercises();
 
-    // 7 numbered journey exercises as requested:
-    // 01 Bench Press, 02 Shoulder Press, 03 Lat Pulldown, 04 Dumbbell Row, 05 Squat, 06 Leg Press, 07 Plank
-    final journeyExercises = [
-      all[0].copyWith(isCompleted: true), // 01 Bench Press
-      all[1].copyWith(isCompleted: true), // 02 Shoulder Press
-      all[2].copyWith(isCompleted: true), // 03 Lat Pulldown
-      all[3].copyWith(isCompleted: true), // 04 Dumbbell Row
-      all[4].copyWith(isCompleted: true), // 05 Squat (making it ~70% overall progress: 5/7 = 71%)
-      all[5].copyWith(isCompleted: false), // 06 Leg Press
-      all[6].copyWith(isCompleted: false), // 07 Plank
-    ];
+    // Exact match to reference image mockup (Chest, January 20):
+    // 01 Bench Press, 02 Chest Dip, 03 Dumbbell Fly, 04 Incline Bench Press
+    final chestExercises = all.take(4).toList();
 
     _todayWorkout = WorkoutModel(
-      id: 'wk_today_upper_body',
-      title: 'Upper Body',
-      subtitle: 'Strength & Hypertrophy Focus',
-      durationMinutes: 38,
-      exercises: journeyExercises,
-      category: 'Strength',
+      id: 'wk_today_chest',
+      title: 'Chest',
+      subtitle: 'January 20',
+      durationMinutes: 45,
+      exercises: chestExercises,
+      category: 'Compound',
       intensity: 'High Intensity',
-      estimatedCalories: 340,
+      estimatedCalories: 380,
     );
   }
 

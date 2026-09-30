@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand Primary & Accent
-  static const Color primaryLime = Color(0xFFD4F63D); // Fresh electric lime
-  static const Color primaryLimeDark = Color(0xFFBCE023);
-  static const Color primaryLimeLight = Color(0xFFE4F973);
+  // Brand Primary & Accent (Exact match to reference image)
+  static const Color primaryLime = Color(0xFF76FF03); // Fluorescent neon lime
+  static const Color primaryLimeDark = Color(0xFF64DD17);
+  static const Color primaryLimeLight = Color(0xFFB2FF59);
 
-  // Dark Theme Colors
-  static const Color darkBackground = Color(0xFF0F1216); // Deep charcoal
-  static const Color darkSurface = Color(0xFF161A20);    // Card surface
-  static const Color darkSurfaceElevated = Color(0xFF1F242D);
-  static const Color darkBorder = Color(0xFF262C36);
-  static const Color darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
-  static const Color darkTextMuted = Color(0xFF64748B);
+  // Electric Cyan / Aqua Accent (Active capsule, hero play button, begin button)
+  static const Color electricCyan = Color(0xFF00E5FF);
+  static const Color electricCyanDark = Color(0xFF00B4D8);
+  static const Color electricCyanLight = Color(0xFF80F3FF);
+
+  // Dark Theme Colors (Deep dark petrol-slate / cyan-tinted charcoal from reference)
+  static const Color darkBackground = Color(0xFF0B1216); // Deep petrol-dark backdrop
+  static const Color darkSurface = Color(0xFF132228);    // Translucent petrol card surface
+  static const Color darkSurfaceElevated = Color(0xFF192B33);
+  static const Color darkBorder = Color(0xFF1D3540);
+  static const Color darkTextPrimary = Color(0xFFFFFFFF);
+  static const Color darkTextSecondary = Color(0xFF8E9CA5);
+  static const Color darkTextMuted = Color(0xFF5A6E78);
+  static const Color darkProgressUnfilled = Color(0xFF1B2B32);
 
   // Light Theme Colors
   static const Color lightBackground = Color(0xFFF8FAFC);

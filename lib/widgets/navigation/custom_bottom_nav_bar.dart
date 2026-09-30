@@ -24,22 +24,15 @@ class CustomBottomNavBar extends StatelessWidget {
     ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? AppColors.darkBackground : Colors.white,
         border: Border(
           top: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            color: isDark ? AppColors.darkBorder.withOpacity(0.4) : AppColors.lightBorder,
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
@@ -54,41 +47,26 @@ class CustomBottomNavBar extends StatelessWidget {
               onTap: () => onTap(index),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSelected ? 22 : 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? (isDark
-                          ? AppColors.primaryLime.withOpacity(0.15)
-                          : const Color(0xFF111827).withOpacity(0.08))
+                          ? AppColors.electricCyan
+                          : const Color(0xFF111827))
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      item.icon,
-                      size: 22,
-                      color: isSelected
-                          ? (isDark ? AppColors.primaryLime : const Color(0xFF111827))
-                          : (isDark
-                              ? AppColors.darkTextMuted
-                              : AppColors.lightTextMuted),
-                    ),
-                    if (isSelected) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.primaryLime
-                              : const Color(0xFF111827),
-                        ),
-                      ),
-                    ],
-                  ],
+                child: Icon(
+                  item.icon,
+                  size: 22,
+                  color: isSelected
+                      ? (isDark ? const Color(0xFF0B1216) : Colors.white)
+                      : (isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextMuted),
                 ),
               ),
             );

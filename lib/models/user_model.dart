@@ -108,10 +108,13 @@ class UserModel {
   final String membershipTier;
   final int membershipDaysRemaining;
   final DateTime membershipExpiryDate;
+  final bool fitnessSetupCompleted;
+  final int trainingDaysPerWeek;
 
   String get uid => id;
   String get fullName => name;
   String get profileImage => avatarUrl;
+  String get goalType => goal;
 
   /// Computed Body Mass Index (BMI) using standard formula: weight(kg) / height(m)^2
   double get bmi => FitnessCalculators.calculateBmi(currentWeightKg, heightCm);
@@ -161,6 +164,8 @@ class UserModel {
     this.membershipTier = 'PREMIUM',
     this.membershipDaysRemaining = 184,
     DateTime? membershipExpiryDate,
+    this.fitnessSetupCompleted = false,
+    this.trainingDaysPerWeek = 4,
   })  : createdAt = createdAt ?? DateTime.now(),
         membershipExpiryDate = membershipExpiryDate ??
             DateTime.now().add(const Duration(days: 184));
@@ -193,6 +198,8 @@ class UserModel {
     String? membershipTier,
     int? membershipDaysRemaining,
     DateTime? membershipExpiryDate,
+    bool? fitnessSetupCompleted,
+    int? trainingDaysPerWeek,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -225,6 +232,10 @@ class UserModel {
           membershipDaysRemaining ?? this.membershipDaysRemaining,
       membershipExpiryDate:
           membershipExpiryDate ?? this.membershipExpiryDate,
+      fitnessSetupCompleted:
+          fitnessSetupCompleted ?? this.fitnessSetupCompleted,
+      trainingDaysPerWeek:
+          trainingDaysPerWeek ?? this.trainingDaysPerWeek,
     );
   }
 
@@ -246,6 +257,7 @@ class UserModel {
       'updatedAt': DateTime.now().toIso8601String(),
       'fitnessLevel': fitnessLevel,
       'goal': goal,
+      'goalType': goal,
       if (age != null) 'age': age,
       if (gender != null) 'gender': gender,
       'activityLevel': activityLevel,
@@ -253,6 +265,10 @@ class UserModel {
       'startWeightKg': startWeightKg,
       'targetWeightKg': targetWeightKg,
       'heightCm': heightCm,
+      'bmi': bmi,
+      'bmiCategory': bmiCategory,
+      'fitnessSetupCompleted': fitnessSetupCompleted,
+      'trainingDaysPerWeek': trainingDaysPerWeek,
       'streakDays': streakDays,
       'totalWorkouts': totalWorkouts,
       'totalTrainingMinutes': totalTrainingMinutes,
@@ -292,7 +308,7 @@ class UserModel {
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       fitnessLevel: map['fitnessLevel']?.toString() ?? 'Intermediate',
-      goal: map['goal']?.toString() ?? 'Build Muscle',
+      goal: map['goalType']?.toString() ?? map['goal']?.toString() ?? 'Build Muscle',
       age: (map['age'] as num?)?.toInt(),
       gender: map['gender']?.toString(),
       activityLevel: map['activityLevel']?.toString() ?? 'moderately_active',
@@ -314,6 +330,8 @@ class UserModel {
           ? DateTime.tryParse(map['membershipExpiryDate'].toString()) ??
               DateTime.now()
           : DateTime.now(),
+      fitnessSetupCompleted: map['fitnessSetupCompleted'] == true,
+      trainingDaysPerWeek: (map['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
     );
   }
 }

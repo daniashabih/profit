@@ -17,9 +17,13 @@ class ExerciseModel {
   final List<String> instructions;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String exerciseType;
+  final int durationMinutes;
   bool isFavorite;
   bool isCompleted;
   List<WorkoutSetModel> setsList;
+
+  String get tagDisplay => exerciseType.toUpperCase();
 
   ExerciseModel({
     required this.id,
@@ -34,6 +38,8 @@ class ExerciseModel {
     this.imageUrl = '',
     this.videoUrl = '',
     this.instructions = const [],
+    this.exerciseType = 'Compound',
+    this.durationMinutes = 10,
     this.isFavorite = false,
     this.isCompleted = false,
     DateTime? createdAt,
@@ -69,6 +75,8 @@ class ExerciseModel {
     String? imageUrl,
     String? videoUrl,
     List<String>? instructions,
+    String? exerciseType,
+    int? durationMinutes,
     bool? isFavorite,
     bool? isCompleted,
     DateTime? createdAt,
@@ -88,6 +96,8 @@ class ExerciseModel {
       imageUrl: imageUrl ?? this.imageUrl,
       videoUrl: videoUrl ?? this.videoUrl,
       instructions: instructions ?? this.instructions,
+      exerciseType: exerciseType ?? this.exerciseType,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
       isFavorite: isFavorite ?? this.isFavorite,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
@@ -110,6 +120,8 @@ class ExerciseModel {
       'imageUrl': imageUrl,
       'videoUrl': videoUrl,
       'instructions': instructions,
+      'exerciseType': exerciseType,
+      'durationMinutes': durationMinutes,
       'isFavorite': isFavorite,
       'isCompleted': isCompleted,
       'setsList': setsList.map((s) => s.toMap()).toList(),
@@ -168,6 +180,8 @@ class ExerciseModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      exerciseType: map['exerciseType']?.toString() ?? 'Compound',
+      durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 10,
       isFavorite: map['isFavorite'] == true,
       isCompleted: map['isCompleted'] == true,
       createdAt: map['createdAt'] != null
