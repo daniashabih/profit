@@ -7,7 +7,7 @@ import '../../providers/role_provider.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../onboarding/onboarding_screen.dart';
-import '../auth/login_screen.dart';
+import '../auth/sign_in_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -45,9 +45,11 @@ class _SplashScreenState extends State<SplashScreen>
     _animController.forward();
   }
 
-  void _navigateToNext() {
+  Future<void> _navigateToNext() async {
     if (!mounted) return;
     final authProv = context.read<AuthProvider>();
+    await authProv.isInitialized;
+    if (!mounted) return;
 
     Widget nextScreen;
     if (!authProv.hasOnboarded) {
@@ -57,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
       context.read<RoleProvider>().setRole(role);
       nextScreen = getRoleBasedHomeScreen(role);
     } else {
-      nextScreen = const LoginScreen();
+      nextScreen = const SignInScreen();
     }
 
     Navigator.pushReplacement(

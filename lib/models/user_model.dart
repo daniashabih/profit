@@ -110,6 +110,8 @@ class UserModel {
   final DateTime membershipExpiryDate;
 
   String get uid => id;
+  String get fullName => name;
+  String get profileImage => avatarUrl;
 
   /// Computed Body Mass Index (BMI) using standard formula: weight(kg) / height(m)^2
   double get bmi => FitnessCalculators.calculateBmi(currentWeightKg, heightCm);
@@ -231,14 +233,17 @@ class UserModel {
       'id': id,
       'uid': id,
       'name': name,
+      'fullName': name,
       'email': email,
       'avatarUrl': avatarUrl,
+      'profileImage': avatarUrl,
       'role': role.name, // 'self', 'trainer', or 'admin'
       if (trainerProfile != null) 'trainerProfile': trainerProfile!.toMap(),
       if (trainerStatus != null) 'trainerStatus': trainerStatus,
       if (phoneNumber != null) 'phoneNumber': phoneNumber,
       if (gymLocation != null) 'gymLocation': gymLocation,
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
       'fitnessLevel': fitnessLevel,
       'goal': goal,
       if (age != null) 'age': age,
@@ -259,12 +264,21 @@ class UserModel {
     };
   }
 
+  /// Cloud Firestore payload adhering to 'self_trainer' role specification
+  Map<String, dynamic> toFirestoreMap() {
+    final map = toMap();
+    if (role == UserRole.self) {
+      map['role'] = 'self_trainer';
+    }
+    return map;
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       id: map['uid']?.toString() ?? map['id']?.toString() ?? '',
-      name: map['name']?.toString() ?? '',
+      name: map['fullName']?.toString() ?? map['name']?.toString() ?? '',
       email: map['email']?.toString() ?? '',
-      avatarUrl: map['avatarUrl']?.toString() ?? '',
+      avatarUrl: map['profileImage']?.toString() ?? map['avatarUrl']?.toString() ?? '',
       // Safe fallback: Missing, empty, or legacy 'member' safely maps to 'self'
       role: UserRole.fromString(map['role']?.toString()),
       trainerProfile: map['trainerProfile'] != null

@@ -1,10 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/trainer_member_model.dart';
 import '../core/enums/user_role.dart';
+import '../core/errors/app_error.dart';
 
-/// FirestoreService defines standard Firestore schemas, collection endpoints,
-/// and document structures for Cloud Firestore integration.
+/// FirestoreService provides production-ready Cloud Firestore integration for PROFIT,
+/// handling user documents, security validations, and collection access.
 class FirestoreService {
+  final FirebaseFirestore _firestore;
+
+  FirestoreService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
   static const String colUsers = 'users';
   static const String colWorkouts = 'workouts';
   static const String colExercises = 'exercises';
@@ -21,6 +28,53 @@ class FirestoreService {
 
   /// Standard path for trainer-member document: trainer_members/{docId}
   static String trainerMemberDocPath(String docId) => '$colTrainerMembers/$docId';
+
+  /// Fetches a user profile from Cloud Firestore: users/{uid}
+  Future<UserModel?> getUserProfile(String uid) async {
+    try {
+      final doc = await _firestore.collection(colUsers).doc(uid).get();
+      if (!doc.exists || doc.data() == null) {
+        return null;
+      }
+      return UserModel.fromMap(doc.data()!);
+    } catch (e) {
+      throw AppError.fromException(e);
+    }
+  }
+
+  /// Creates or updates a user document in Cloud Firestore: users/{uid}
+  Future<void> createUserProfile(UserModel user) async {
+    try {
+      final payload = user.toFirestoreMap();
+      await _firestore
+          .collection(colUsers)
+          .doc(user.id)
+          .set(payload, SetOptions(merge: true));
+    } catch (e) {
+      throw AppError.fromException(e);
+    }
+  }
+
+  /// Updates specific profile fields for a user in Cloud Firestore
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    try {
+      final updateData = Map<String, dynamic>.from(data);
+      updateData['updatedAt'] = DateTime.now().toIso8601String();
+      await _firestore.collection(colUsers).doc(uid).update(updateData);
+    } catch (e) {
+      throw AppError.fromException(e);
+    }
+  }
+
+  /// Checks if a user profile document exists in Cloud Firestore
+  Future<bool> userExists(String uid) async {
+    try {
+      final doc = await _firestore.collection(colUsers).doc(uid).get();
+      return doc.exists;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Creates a Firestore-compliant user document payload adhering to role requirements.
   /// Protects against unauthorized role escalation on the client side.
@@ -45,9 +99,12 @@ class FirestoreService {
     final payload = <String, dynamic>{
       'uid': uid,
       'id': uid,
+      'fullName': name,
       'name': name,
       'email': email,
-      'role': safeRole.name, // 'self' or 'trainer'
+      'role': safeRole.firestoreValue, // 'self_trainer' or 'trainer'
+      'profileImage': '',
+      'avatarUrl': '',
       'trainerStatus': safeRole == UserRole.trainer ? 'approved' : null,
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),

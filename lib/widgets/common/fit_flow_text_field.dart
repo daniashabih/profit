@@ -12,6 +12,8 @@ class FitFlowTextField extends StatelessWidget {
   final bool readOnly;
   final int maxLines;
   final TextInputType keyboardType;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onSubmitted;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
 
@@ -27,6 +29,8 @@ class FitFlowTextField extends StatelessWidget {
     this.readOnly = false,
     this.maxLines = 1,
     this.keyboardType = TextInputType.text,
+    this.textInputAction,
+    this.onSubmitted,
     this.validator,
     this.onChanged,
   });
@@ -55,6 +59,8 @@ class FitFlowTextField extends StatelessWidget {
           readOnly: readOnly,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onSubmitted,
           validator: validator,
           onChanged: onChanged,
           style: TextStyle(

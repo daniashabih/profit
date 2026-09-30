@@ -43,8 +43,18 @@ void main() async {
     ),
   );
 
-  // Initialize Core Services & Repositories
-  final authService = MockAuthService();
+  // Initialize Core Authentication: Production FirebaseAuthService with fallback if Firebase uninitialized
+  AuthService authService;
+  try {
+    if (Firebase.apps.isNotEmpty) {
+      authService = FirebaseAuthService();
+    } else {
+      authService = MockAuthService();
+    }
+  } catch (e) {
+    debugPrint('Firebase Auth initialization fallback notice: $e');
+    authService = MockAuthService();
+  }
   final aiCoachService = ExtensibleAiCoachService();
   final exerciseRepo = LocalExerciseRepository();
   final workoutRepo = LocalWorkoutRepository(exerciseRepo: exerciseRepo);

@@ -5,9 +5,9 @@ import '../../screens/trainer/trainer_dashboard_screen.dart';
 import '../../screens/admin/admin_dashboard_screen.dart';
 
 /// Returns the primary root dashboard screen based on authenticated user role.
-/// - [UserRole.self]: Opens the SELF athlete experience (workout tracking, nutrition, profile).
-/// - [UserRole.trainer]: Opens the TRAINER coach experience (client management, program design).
-/// - [UserRole.admin]: Opens the internal ADMIN console.
+/// - [UserRole.self] ('self_trainer'): Opens the Self Trainer athlete experience.
+/// - [UserRole.trainer] ('trainer'): Opens the Trainer coaching portal.
+/// - [UserRole.admin] ('admin'): Opens the internal Admin console.
 Widget getRoleBasedHomeScreen(UserRole role) {
   switch (role) {
     case UserRole.self:

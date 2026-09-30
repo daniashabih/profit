@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
@@ -13,6 +14,9 @@ class AuthProvider extends ChangeNotifier {
   bool _hasOnboarded = false;
   String? _errorMessage;
 
+  late final Future<void> isInitialized;
+  StreamSubscription? _authSubscription;
+
   UserModel? get user => _user;
   bool get isAuthenticated => _user != null;
   bool get isLoading => _isLoading;
@@ -20,7 +24,20 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   AuthProvider({required AuthService authService}) : _authService = authService {
-    _init();
+    isInitialized = _init();
+    _authSubscription = _authService.authStateChanges.listen((firebaseUser) async {
+      if (firebaseUser == null) {
+        if (_user != null) {
+          _user = null;
+          notifyListeners();
+        }
+      } else if (_user == null || _user!.id != firebaseUser.uid) {
+        try {
+          _user = await _authService.getCurrentUser();
+          notifyListeners();
+        } catch (_) {}
+      }
+    });
   }
 
   Future<void> _init() async {
@@ -176,8 +193,23 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _authService.signOut();
-    _user = null;
+    _isLoading = true;
     notifyListeners();
+    try {
+      await _authService.signOut();
+      _user = null;
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = AppError.fromException(e).message;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }

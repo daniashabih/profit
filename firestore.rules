@@ -9,19 +9,19 @@ service cloud.firestore {
     // Collection: users
     // Document ID: {userId} (matches Firebase Auth UID)
     // Fields:
-    //   - id, uid: string (optional, matches userId)
-    //   - name: string (required, 1-100 chars)
+    //   - id, uid: string (optional, matches userId, 1-128 chars)
+    //   - name, fullName: string (either or both present; non-empty string <= 100 chars)
     //   - email: string (required, valid email, <= 100 chars)
-    //   - role: string (required, 'self', 'trainer', 'admin', or legacy 'member')
+    //   - role: string (required, 'self_trainer', 'self', 'trainer', 'admin', or legacy 'member')
+    //   - avatarUrl, profileImage: string (optional, <= 1000 chars)
     //   - trainerStatus: string (optional, 'pending', 'approved', 'rejected')
     //   - trainerProfile: map (optional, trainer bio, specialties, certifications)
     //   - phoneNumber: string (optional, <= 30 chars)
     //   - gymLocation: string (optional, <= 120 chars)
-    //   - avatarUrl: string (optional, <= 1000 chars)
     //   - fitnessLevel: string (optional, <= 60 chars)
     //   - goal: string (optional, <= 200 chars)
-    //   - currentWeightKg, startWeightKg, targetWeightKg: number (optional, 0-500)
-    //   - heightCm: number (optional, 0-300)
+    //   - currentWeightKg, startWeightKg, targetWeightKg: number (optional, 0.1-500)
+    //   - heightCm: number (optional, 10-300)
     //   - age: number (optional, 5-120)
     //   - gender: string (optional, <= 40 chars)
     //   - activityLevel: string (optional, <= 60 chars)
@@ -30,7 +30,7 @@ service cloud.firestore {
     //   - membershipTier: string (optional, <= 60 chars)
     //   - membershipDaysRemaining: number (optional, >= 0)
     //   - membershipExpiryDate: string or timestamp (optional)
-    //   - trainerId, assignedTrainerId: string (optional, <= 128 chars)
+    //   - trainerId, assignedTrainerId: string (optional, 1-128 chars)
     //   - createdAt, updatedAt: string or timestamp (optional)
     //
     // Collection: trainer_members
@@ -199,26 +199,50 @@ service cloud.firestore {
       );
     }
 
+    // Name Validation Helper: Either 'name' or 'fullName' must be a valid non-empty string <= 100 characters.
+    function hasValidUserName(data) {
+      return (
+        ('name' in data && data.name is string && data.name.size() > 0 && data.name.size() <= 100) ||
+        ('fullName' in data && data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 100)
+      ) &&
+      (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
+      (!('fullName' in data) || (data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 100));
+    }
+
+    // Role Escalation Protection:
+    // Prevents unauthorized role changes by regular users:
+    // - Self / self_trainer users cannot elevate to trainer or admin.
+    // - Trainers cannot elevate to admin.
+    // - Transitions between 'self' and 'self_trainer' (and legacy 'member') are permitted.
+    function isAllowedRoleTransition(currentRole, newRole) {
+      return newRole != 'admin' && (
+        newRole == currentRole ||
+        (currentRole in ['self', 'self_trainer', 'member'] && newRole in ['self', 'self_trainer'])
+      );
+    }
+
     // ===============================================================
     // Domain Validators
     // ===============================================================
 
     function isValidUser(data) {
       return hasOnlyAllowedFields([
-        'id', 'uid', 'name', 'email', 'avatarUrl', 'role', 'trainerStatus', 'trainerProfile',
-        'phoneNumber', 'gymLocation', 'createdAt', 'updatedAt', 'fitnessLevel', 'goal',
-        'currentWeightKg', 'startWeightKg', 'targetWeightKg', 'heightCm', 'age', 'gender',
-        'activityLevel', 'streakDays', 'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg',
-        'totalCaloriesBurned', 'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
+        'id', 'uid', 'name', 'fullName', 'email', 'avatarUrl', 'profileImage', 'role',
+        'trainerStatus', 'trainerProfile', 'phoneNumber', 'gymLocation', 'createdAt',
+        'updatedAt', 'fitnessLevel', 'goal', 'currentWeightKg', 'startWeightKg',
+        'targetWeightKg', 'heightCm', 'age', 'gender', 'activityLevel', 'streakDays',
+        'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
+        'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
         'trainerId', 'assignedTrainerId'
       ]) &&
-      data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+      hasValidUserName(data) &&
       data.email is string && isValidEmail(data.email) && data.email.size() <= 100 &&
-      data.role is string && data.role in ['self', 'trainer', 'admin', 'member'] &&
+      data.role is string && data.role in ['self', 'trainer', 'admin', 'member', 'self_trainer'] &&
       (!('trainerStatus' in data) || (data.trainerStatus is string && data.trainerStatus in ['pending', 'approved', 'rejected'])) &&
       isValidOptionalString('phoneNumber', 0, 30) &&
       isValidOptionalString('gymLocation', 0, 120) &&
       isValidOptionalString('avatarUrl', 0, 1000) &&
+      isValidOptionalString('profileImage', 0, 1000) &&
       isValidOptionalString('fitnessLevel', 0, 60) &&
       isValidOptionalString('goal', 0, 200) &&
       isValidOptionalNumber('currentWeightKg', 0.1, 500) &&
@@ -341,6 +365,7 @@ service cloud.firestore {
     match /users/{userId} {
       // PII Protection: Private member data is readable only by the owner, an assigned trainer, or admin.
       // Approved trainers are readable by authenticated members to browse coaching profiles.
+      // A regular user cannot read another user's private profile.
       allow read: if isOwner(userId) ||
                      isAdmin() ||
                      isAssignedTrainer(userId) ||
@@ -348,37 +373,41 @@ service cloud.firestore {
 
       // Account Creation (Signup):
       // Users can only create their own user document.
-      // Must NOT self-assign the protected 'admin' role. Only 'self', 'trainer', or 'member' allowed at signup.
+      // Must NOT self-assign the protected 'admin' role. Only 'self', 'self_trainer', 'trainer', or 'member' allowed at signup.
       allow create: if isAuthenticated() &&
         isValidUser(request.resource.data) && (
           (
             isOwner(userId) &&
-            request.resource.data.role in ['self', 'trainer', 'member'] &&
+            request.resource.data.role in ['self', 'self_trainer', 'trainer', 'member'] &&
+            request.resource.data.role != 'admin' &&
+            (!('uid' in request.resource.data) || request.resource.data.uid == userId) &&
+            (!('id' in request.resource.data) || request.resource.data.id == userId) &&
             (!('trainerStatus' in request.resource.data) || request.resource.data.trainerStatus in ['pending', 'approved'])
           ) ||
           isAdmin()
         );
 
       // Profile Updates:
-      // Users can update their profile information, but role escalation is strictly prohibited.
-      // A member/self user cannot elevate to trainer or admin; a trainer cannot elevate to admin.
-      // Only an Admin can modify user roles. Document ID and UID are immutable.
+      // Users can update their profile information, but unauthorized role escalation is strictly prohibited:
+      // - self or self_trainer cannot change to trainer or admin.
+      // - trainer cannot change to admin.
+      // - transition between 'self' and 'self_trainer' is permitted.
+      // Only an Admin can grant administrative privileges or assign trainer roles.
+      // Document ID, UID, and creation timestamp are immutable.
       allow update: if isAuthenticated() &&
         isValidUser(request.resource.data) && (
           (
             isOwner(userId) &&
-            (
-              request.resource.data.role == resource.data.role ||
-              (resource.data.role == 'member' && request.resource.data.role == 'self') ||
-              (!('role' in resource.data) && request.resource.data.role in ['self', 'member'])
-            ) &&
-            request.resource.data.role != 'admin' &&
+            isAllowedRoleTransition(resource.data.get('role', 'self'), request.resource.data.role) &&
+            (!('uid' in request.resource.data) || request.resource.data.uid == userId) &&
+            (!('id' in request.resource.data) || request.resource.data.id == userId) &&
             areImmutableFieldsUnchanged(['id', 'uid', 'createdAt'])
           ) ||
           isAdmin()
         );
 
-      // Account Deletion: Owner or Admin only
+      // Account Deletion: Owner or Admin only.
+      // A user cannot delete or modify another user's profile.
       allow delete: if isOwner(userId) || isAdmin();
     }
 
