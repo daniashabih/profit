@@ -31,6 +31,11 @@ service cloud.firestore {
     //   - membershipDaysRemaining: number (optional, >= 0)
     //   - membershipExpiryDate: string or timestamp (optional)
     //   - trainerId, assignedTrainerId: string (optional, 1-128 chars)
+    //   - fitnessSetupCompleted: bool (optional)
+    //   - goalType: string (optional, <= 60 chars)
+    //   - bmi: number (optional, 0-100)
+    //   - bmiCategory: string (optional, <= 60 chars)
+    //   - trainingDaysPerWeek: number (optional, 1-7)
     //   - createdAt, updatedAt: string or timestamp (optional)
     //
     // Collection: trainer_members
@@ -103,6 +108,116 @@ service cloud.firestore {
     //   - armsCm: number (optional, 0-150)
     //   - note: string (optional, <= 500 chars)
     //   - date: string or timestamp (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: trainers
+    // Document ID: {trainerId} (matches trainer UID)
+    //
+    // Collection: memberships
+    // Document ID: {membershipId}
+    //
+    // Collection: achievements
+    // Document ID: {achievementId}
+    //
+    // Collection: notifications
+    // Document ID: {notificationId}
+    //
+    // Collection: fitnessProfiles
+    // Document ID: {profileId} (matches userId or custom ID)
+    // Fields:
+    //   - id, userId: string (required userId, 1-128 chars)
+    //   - heightCm, currentWeightKg, targetWeightKg: number
+    //   - goalType, bmiCategory, fitnessLevel, gender, activityLevel: string
+    //   - bmi, trainingDaysPerWeek, age: number
+    //   - fullName: string (optional)
+    //   - fitnessSetupCompleted: bool (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: bmiRecords
+    // Document ID: {recordId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - weight: number (required, > 0 and < 500)
+    //   - bmi: number (required, 0-100)
+    //   - height: number (optional, 10-300)
+    //   - category: string (optional, <= 60 chars)
+    //   - calculatedAt: string or timestamp (optional)
+    //
+    // Collection: workoutPlans
+    // Document ID: {planId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - monthId: string (optional, <= 30 chars)
+    //   - goalType: string (optional, <= 60 chars)
+    //   - trainingDaysPerWeek: number (optional, 1-7)
+    //   - startDate, endDate: string or timestamp (optional)
+    //   - status, splitType: string (optional)
+    //   - isTemplate: bool (optional)
+    //   - days: list (optional, max 30 items)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: workoutLogs
+    // Document ID: {logId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - workoutPlanId, dayId: string (optional, <= 128 chars)
+    //   - workoutTitle: string (optional, <= 150 chars)
+    //   - targetMuscles: list (optional, max 20 items)
+    //   - durationMinutes, completedExercises, totalExercises: number (optional)
+    //   - exercises: list (optional, max 100 items)
+    //   - completedAt, dateString: string or timestamp (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: mealPlans
+    // Document ID: {planId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - monthId: string (optional, <= 30 chars)
+    //   - targetCalories, targetProteinGrams, targetCarbsGrams, targetFatGrams: number (optional)
+    //   - meals: list (optional, max 50 items)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: proteinLogs
+    // Document ID: {logId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - date: string (optional, <= 30 chars)
+    //   - targetGrams, consumedGrams, remainingGrams: number (optional)
+    //   - mealsLoggedCount: number (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: progressRecords
+    // Document ID: {recordId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - monthId, monthName: string (optional, <= 30 chars)
+    //   - year: number (optional, 2000-2100)
+    //   - startDate, endDate: string or timestamp (optional)
+    //   - startingWeight, endingWeight, startingBmi, endingBmi: number (optional)
+    //   - workoutCompletionRate, proteinGoalCompletionRate: number (optional)
+    //   - calorieAverage: number (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: monthlyCycles
+    // Document ID: {cycleId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - monthId, monthName: string (optional, <= 30 chars)
+    //   - year: number (optional, 2000-2100)
+    //   - startDate, endDate: string or timestamp (optional)
+    //   - status, workoutPlanId, mealPlanId: string (optional)
+    //   - startingWeight, endingWeight, startingBmi, endingBmi: number (optional)
+    //   - workoutCompletionRate, proteinGoalCompletionRate: number (optional)
+    //   - isCurrent: bool (optional)
+    //   - reviewedAt: string or timestamp (optional)
+    //   - reviewNotes: string (optional, <= 1000 chars)
     //   - createdAt, updatedAt: string or timestamp (optional)
     //
     // ===============================================================
@@ -233,7 +348,8 @@ service cloud.firestore {
         'targetWeightKg', 'heightCm', 'age', 'gender', 'activityLevel', 'streakDays',
         'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
         'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
-        'trainerId', 'assignedTrainerId'
+        'trainerId', 'assignedTrainerId',
+        'fitnessSetupCompleted', 'goalType', 'bmi', 'bmiCategory', 'trainingDaysPerWeek'
       ]) &&
       hasValidUserName(data) &&
       data.email is string && isValidEmail(data.email) && data.email.size() <= 100 &&
@@ -263,7 +379,12 @@ service cloud.firestore {
       isValidOptionalString('trainerId', 1, 128) &&
       isValidOptionalString('assignedTrainerId', 1, 128) &&
       isValidOptionalString('id', 1, 128) &&
-      isValidOptionalString('uid', 1, 128);
+      isValidOptionalString('uid', 1, 128) &&
+      isValidOptionalBool('fitnessSetupCompleted') &&
+      isValidOptionalString('goalType', 0, 60) &&
+      isValidOptionalNumber('bmi', 0, 100) &&
+      isValidOptionalString('bmiCategory', 0, 60) &&
+      isValidOptionalNumber('trainingDaysPerWeek', 1, 7);
     }
 
     function isValidTrainerMember(data) {
@@ -355,6 +476,151 @@ service cloud.firestore {
       isValidOptionalNumber('armsCm', 0, 150) &&
       isValidOptionalNumber('thighsCm', 0, 200) &&
       isValidOptionalString('note', 0, 500);
+    }
+
+    function isValidFitnessProfile(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'heightCm', 'currentWeightKg', 'targetWeightKg', 'goalType',
+        'bmi', 'bmiCategory', 'trainingDaysPerWeek', 'fitnessLevel', 'age', 'gender',
+        'activityLevel', 'createdAt', 'updatedAt', 'fullName', 'fitnessSetupCompleted'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalNumber('heightCm', 10, 300) &&
+      isValidOptionalNumber('currentWeightKg', 0.1, 500) &&
+      isValidOptionalNumber('targetWeightKg', 0.1, 500) &&
+      isValidOptionalString('goalType', 0, 60) &&
+      isValidOptionalNumber('bmi', 0, 100) &&
+      isValidOptionalString('bmiCategory', 0, 60) &&
+      isValidOptionalNumber('trainingDaysPerWeek', 1, 7) &&
+      isValidOptionalString('fitnessLevel', 0, 60) &&
+      isValidOptionalNumber('age', 5, 120) &&
+      isValidOptionalString('gender', 0, 40) &&
+      isValidOptionalString('activityLevel', 0, 60) &&
+      isValidOptionalString('fullName', 0, 100) &&
+      isValidOptionalBool('fitnessSetupCompleted');
+    }
+
+    function isValidBmiRecord(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'weight', 'height', 'bmi', 'category', 'calculatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      data.bmi is number && data.bmi >= 0 && data.bmi <= 100 &&
+      data.weight is number && data.weight > 0 && data.weight < 500 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalNumber('height', 10, 300) &&
+      isValidOptionalString('category', 0, 60);
+    }
+
+    function isValidWorkoutPlan(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'monthId', 'goalType', 'trainingDaysPerWeek', 'startDate',
+        'endDate', 'status', 'splitType', 'days', 'isTemplate', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('monthId', 0, 30) &&
+      isValidOptionalString('goalType', 0, 60) &&
+      isValidOptionalNumber('trainingDaysPerWeek', 1, 7) &&
+      isValidOptionalString('status', 0, 30) &&
+      isValidOptionalString('splitType', 0, 60) &&
+      isValidOptionalBool('isTemplate') &&
+      isValidOptionalList('days', 30);
+    }
+
+    function isValidWorkoutLog(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'workoutPlanId', 'dayId', 'workoutTitle', 'targetMuscles',
+        'durationMinutes', 'completedExercises', 'totalExercises', 'exercises',
+        'completedAt', 'dateString', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('workoutPlanId', 0, 128) &&
+      isValidOptionalString('dayId', 0, 128) &&
+      isValidOptionalString('workoutTitle', 0, 150) &&
+      isValidOptionalList('targetMuscles', 20) &&
+      isValidOptionalNumber('durationMinutes', 0, 1440) &&
+      isValidOptionalNumber('completedExercises', 0, 100) &&
+      isValidOptionalNumber('totalExercises', 0, 100) &&
+      isValidOptionalList('exercises', 100) &&
+      isValidOptionalString('dateString', 0, 30);
+    }
+
+    function isValidMealPlan(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'monthId', 'targetCalories', 'targetProteinGrams',
+        'targetCarbsGrams', 'targetFatGrams', 'meals', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('monthId', 0, 30) &&
+      isValidOptionalNumber('targetCalories', 0, 20000) &&
+      isValidOptionalNumber('targetProteinGrams', 0, 2000) &&
+      isValidOptionalNumber('targetCarbsGrams', 0, 2000) &&
+      isValidOptionalNumber('targetFatGrams', 0, 2000) &&
+      isValidOptionalList('meals', 50);
+    }
+
+    function isValidProteinLog(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'date', 'targetGrams', 'consumedGrams', 'remainingGrams',
+        'mealsLoggedCount', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('date', 0, 30) &&
+      isValidOptionalNumber('targetGrams', 0, 2000) &&
+      isValidOptionalNumber('consumedGrams', 0, 2000) &&
+      isValidOptionalNumber('remainingGrams', 0, 2000) &&
+      isValidOptionalNumber('mealsLoggedCount', 0, 100);
+    }
+
+    function isValidProgressRecord(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'monthId', 'monthName', 'year', 'startDate', 'endDate',
+        'startingWeight', 'endingWeight', 'startingBmi', 'endingBmi',
+        'workoutCompletionRate', 'proteinGoalCompletionRate', 'calorieAverage',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('monthId', 0, 30) &&
+      isValidOptionalString('monthName', 0, 30) &&
+      isValidOptionalNumber('year', 2000, 2100) &&
+      isValidOptionalNumber('startingWeight', 0.1, 500) &&
+      isValidOptionalNumber('endingWeight', 0.1, 500) &&
+      isValidOptionalNumber('startingBmi', 0, 100) &&
+      isValidOptionalNumber('endingBmi', 0, 100) &&
+      isValidOptionalNumber('workoutCompletionRate', 0, 100) &&
+      isValidOptionalNumber('proteinGoalCompletionRate', 0, 100) &&
+      isValidOptionalNumber('calorieAverage', 0, 20000);
+    }
+
+    function isValidMonthlyCycle(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'monthId', 'monthName', 'year', 'startDate', 'endDate',
+        'status', 'workoutPlanId', 'mealPlanId', 'startingWeight', 'endingWeight',
+        'startingBmi', 'endingBmi', 'workoutCompletionRate', 'proteinGoalCompletionRate',
+        'isCurrent', 'reviewedAt', 'reviewNotes', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('monthId', 0, 30) &&
+      isValidOptionalString('monthName', 0, 30) &&
+      isValidOptionalNumber('year', 2000, 2100) &&
+      isValidOptionalString('status', 0, 30) &&
+      isValidOptionalString('workoutPlanId', 0, 128) &&
+      isValidOptionalString('mealPlanId', 0, 128) &&
+      isValidOptionalNumber('startingWeight', 0.1, 500) &&
+      isValidOptionalNumber('endingWeight', 0.1, 500) &&
+      isValidOptionalNumber('startingBmi', 0, 100) &&
+      isValidOptionalNumber('endingBmi', 0, 100) &&
+      isValidOptionalNumber('workoutCompletionRate', 0, 100) &&
+      isValidOptionalNumber('proteinGoalCompletionRate', 0, 100) &&
+      isValidOptionalBool('isCurrent') &&
+      isValidOptionalString('reviewNotes', 0, 1000);
     }
 
     // ===============================================================
@@ -656,6 +922,252 @@ service cloud.firestore {
           (resource != null && resource.data.userId == request.auth.uid)
         )
       );
+    }
+
+    // 11. Fitness Profiles Collection: /fitnessProfiles/{profileId}
+    match /fitnessProfiles/{profileId} {
+      // Document ID can be {userId} or auto-generated ID.
+      // Accessible by owner (by profileId or userId field) or admin.
+      allow read: if isAuthenticated() && (
+        isOwner(profileId) ||
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidFitnessProfile(request.resource.data) && (
+          isOwner(profileId) ||
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidFitnessProfile(request.resource.data) && (
+          (
+            (isOwner(profileId) || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isAuthenticated() && (
+        isOwner(profileId) ||
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // 12. BMI Records Collection: /bmiRecords/{recordId}
+    match /bmiRecords/{recordId} {
+      allow read, delete: if isOwner(resource.data.userId) || isAdmin();
+
+      allow create: if isAuthenticated() &&
+        isValidBmiRecord(request.resource.data) && (
+          (
+            request.resource.data.userId == request.auth.uid &&
+            request.resource.data.bmi is number &&
+            request.resource.data.weight is number
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidBmiRecord(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'calculatedAt'])
+          ) ||
+          isAdmin()
+        );
+    }
+
+    // 13. Workout Plans Collection: /workoutPlans/{planId}
+    match /workoutPlans/{planId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.get('isTemplate', false) == true ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidWorkoutPlan(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidWorkoutPlan(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+
+      match /days/{dayId} {
+        allow read, write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workoutPlans/$(planId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+        match /exercises/{exerciseId} {
+          allow read, write: if isAuthenticated() && (
+            get(/databases/$(database)/documents/workoutPlans/$(planId)).data.userId == request.auth.uid ||
+            isAdmin()
+          );
+        }
+      }
+
+      match /{allSubcollections=**} {
+        allow read, write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workoutPlans/$(planId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+      }
+    }
+
+    // 14. Workout Logs Collection: /workoutLogs/{logId}
+    match /workoutLogs/{logId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidWorkoutLog(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidWorkoutLog(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // 15. Meal Plans Collection: /mealPlans/{planId}
+    match /mealPlans/{planId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidMealPlan(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidMealPlan(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+
+      match /meals/{mealId} {
+        allow read, write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/mealPlans/$(planId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+      }
+
+      match /{allSubcollections=**} {
+        allow read, write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/mealPlans/$(planId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+      }
+    }
+
+    // 16. Protein Logs Collection: /proteinLogs/{logId}
+    match /proteinLogs/{logId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidProteinLog(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidProteinLog(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // 17. Progress Records Collection: /progressRecords/{recordId}
+    match /progressRecords/{recordId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        isAssignedTrainer(resource.data.userId)
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidProgressRecord(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidProgressRecord(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // 18. Monthly Cycles Collection: /monthlyCycles/{cycleId}
+    match /monthlyCycles/{cycleId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        isAssignedTrainer(resource.data.userId)
+      );
+
+      allow create: if isAuthenticated() &&
+        isValidMonthlyCycle(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isAuthenticated() &&
+        isValidMonthlyCycle(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
   }

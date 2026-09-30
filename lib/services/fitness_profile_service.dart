@@ -34,14 +34,14 @@ class FitnessProfileService {
 
     if (_firestore != null && profile.userId.isNotEmpty) {
       try {
-        final batch = _firestore!.batch();
+        final batch = _firestore.batch();
 
         // 1. Set fitnessProfiles/{uid}
-        final profileRef = _firestore!.collection('fitnessProfiles').doc(profile.userId);
+        final profileRef = _firestore.collection('fitnessProfiles').doc(profile.userId);
         batch.set(profileRef, profile.toMap(), SetOptions(merge: true));
 
         // 2. Sync to users/{uid}
-        final userRef = _firestore!.collection('users').doc(profile.userId);
+        final userRef = _firestore.collection('users').doc(profile.userId);
         final userUpdate = <String, dynamic>{
           'uid': profile.userId,
           'id': profile.userId,
@@ -79,7 +79,7 @@ class FitnessProfileService {
 
     if (_firestore != null) {
       try {
-        final doc = await _firestore!.collection('fitnessProfiles').doc(userId).get();
+        final doc = await _firestore.collection('fitnessProfiles').doc(userId).get();
         if (doc.exists && doc.data() != null) {
           final profile = FitnessProfile.fromMap(doc.data()!, fallbackUserId: userId);
           _localProfiles[userId] = profile;
@@ -87,7 +87,7 @@ class FitnessProfileService {
         }
 
         // Fallback: check users/{uid}
-        final userDoc = await _firestore!.collection('users').doc(userId).get();
+        final userDoc = await _firestore.collection('users').doc(userId).get();
         if (userDoc.exists && userDoc.data() != null) {
           final user = UserModel.fromMap(userDoc.data()!);
           if (user.fitnessSetupCompleted) {

@@ -9,6 +9,8 @@ import '../../widgets/auth/auth_widgets.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../auth/sign_in_screen.dart';
+import '../../providers/self_trainer_cycle_provider.dart';
+import '../self_trainer/fitness_setup_wizard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,9 +58,20 @@ class _SplashScreenState extends State<SplashScreen>
     if (!authProv.hasOnboarded) {
       nextScreen = const OnboardingScreen();
     } else if (authProv.isAuthenticated) {
-      final role = authProv.user?.role ?? UserRole.self;
+      final user = authProv.user!;
+      final role = user.role;
       context.read<RoleProvider>().setRole(role);
-      nextScreen = getRoleBasedHomeScreen(role);
+
+      if (role == UserRole.self) {
+        context.read<SelfTrainerCycleProvider>().initializeForUser(user);
+        if (!user.fitnessSetupCompleted) {
+          nextScreen = const FitnessSetupWizardScreen();
+        } else {
+          nextScreen = getRoleBasedHomeScreen(role);
+        }
+      } else {
+        nextScreen = getRoleBasedHomeScreen(role);
+      }
     } else {
       nextScreen = const SignInScreen();
     }

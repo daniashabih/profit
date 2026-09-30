@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:uuid/uuid.dart';
-import '../core/enums/muscle_group.dart';
 import '../models/workout_plan_model.dart';
-import '../models/exercise_model.dart';
 import '../repositories/exercise_repository.dart';
 
 /// Dynamic Workout Plan Generation and Progression Service
@@ -12,7 +9,6 @@ import '../repositories/exercise_repository.dart';
 class WorkoutPlanService {
   final FirebaseFirestore? _firestore;
   final ExerciseRepository _exerciseRepo;
-  static const _uuid = Uuid();
 
   // In-memory cache for offline/mock operations
   final Map<String, WorkoutPlan> _localPlans = {};
@@ -68,11 +64,11 @@ class WorkoutPlanService {
 
     if (_firestore != null && userId.isNotEmpty) {
       try {
-        final planRef = _firestore!.collection('workoutPlans').doc(planId);
+        final planRef = _firestore.collection('workoutPlans').doc(planId);
         await planRef.set(plan.toMap());
 
         // Also store days in subcollection: workoutPlans/{planId}/days/{dayId}
-        final batch = _firestore!.batch();
+        final batch = _firestore.batch();
         for (final day in days) {
           final dayRef = planRef.collection('days').doc(day.id);
           batch.set(dayRef, day.toMap());
@@ -508,7 +504,7 @@ class WorkoutPlanService {
   Future<WorkoutPlan?> getActivePlan(String userId) async {
     if (_firestore != null && userId.isNotEmpty) {
       try {
-        final query = await _firestore!
+        final query = await _firestore
             .collection('workoutPlans')
             .where('userId', isEqualTo: userId)
             .where('status', isEqualTo: 'active')

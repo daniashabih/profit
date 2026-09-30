@@ -21,6 +21,15 @@ import 'package:profit/core/enums/meal_type.dart';
 import 'package:profit/screens/trainer/trainer_dashboard_screen.dart';
 import 'package:profit/screens/nutrition/nutrition_screen.dart';
 import 'package:profit/screens/progress/progress_screen.dart';
+import 'package:profit/models/user_model.dart';
+import 'package:profit/models/fitness_profile_model.dart';
+import 'package:profit/models/bmi_record_model.dart';
+import 'package:profit/models/workout_plan_model.dart';
+import 'package:profit/models/workout_log_model.dart';
+import 'package:profit/models/meal_plan_model.dart';
+import 'package:profit/models/protein_log_model.dart';
+import 'package:profit/models/progress_record_model.dart';
+import 'package:profit/models/monthly_cycle_model.dart';
 
 void main() {
   group('Firestore Rules Schema & Serialization Compliance', () {
@@ -169,6 +178,271 @@ void main() {
       expect(map['chestCm'], 102.0);
       expect(map['waistCm'], 81.0);
       expect(map['note'], 'Feeling energized and leaner');
+    });
+
+    test('UserModel contains new self-trainer fields compliant with firestore.rules isValidUser', () {
+      const allowedUserFields = {
+        'id', 'uid', 'name', 'fullName', 'email', 'avatarUrl', 'profileImage', 'role',
+        'trainerStatus', 'trainerProfile', 'phoneNumber', 'gymLocation', 'createdAt',
+        'updatedAt', 'fitnessLevel', 'goal', 'currentWeightKg', 'startWeightKg',
+        'targetWeightKg', 'heightCm', 'age', 'gender', 'activityLevel', 'streakDays',
+        'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
+        'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
+        'trainerId', 'assignedTrainerId',
+        'fitnessSetupCompleted', 'goalType', 'bmi', 'bmiCategory', 'trainingDaysPerWeek'
+      };
+
+      final user = UserModel(
+        id: 'user_st_1',
+        name: 'Jordan Lee',
+        email: 'jordan@profit.app',
+        fitnessSetupCompleted: true,
+        trainingDaysPerWeek: 5,
+      );
+
+      final map = user.toFirestoreMap();
+      map['goalType'] = 'Build Muscle';
+      map['bmi'] = 23.5;
+      map['bmiCategory'] = 'Normal weight';
+      map['fitnessSetupCompleted'] = true;
+      map['trainingDaysPerWeek'] = 5;
+
+      for (final key in map.keys) {
+        expect(allowedUserFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidUser allowed fields');
+      }
+    });
+
+    test('FitnessProfile.toMap contains only allowed fields per firestore.rules isValidFitnessProfile', () {
+      const allowedFitnessProfileFields = {
+        'id', 'userId', 'heightCm', 'currentWeightKg', 'targetWeightKg', 'goalType',
+        'bmi', 'bmiCategory', 'trainingDaysPerWeek', 'fitnessLevel', 'age', 'gender',
+        'activityLevel', 'createdAt', 'updatedAt', 'fullName', 'fitnessSetupCompleted'
+      };
+
+      final profile = FitnessProfile(
+        userId: 'user_fp_1',
+        fullName: 'Jordan Lee',
+        age: 28,
+        gender: 'Male',
+        heightCm: 180,
+        currentWeightKg: 78,
+        targetWeightKg: 74,
+        goalType: 'Lose Weight',
+        bmi: 24.1,
+        bmiCategory: 'Normal weight',
+        trainingDaysPerWeek: 4,
+        fitnessLevel: 'Intermediate',
+        activityLevel: 'moderately_active',
+        fitnessSetupCompleted: true,
+        createdAt: DateTime(2026, 9, 30),
+        updatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = profile.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedFitnessProfileFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidFitnessProfile');
+      }
+    });
+
+    test('BmiRecord.toMap contains only allowed fields per firestore.rules isValidBmiRecord', () {
+      const allowedBmiFields = {
+        'id', 'userId', 'weight', 'height', 'bmi', 'category', 'calculatedAt'
+      };
+
+      final record = BmiRecord(
+        id: 'bmi_rec_1',
+        userId: 'user_fp_1',
+        weight: 78.0,
+        height: 180.0,
+        bmi: 24.1,
+        category: 'Normal weight',
+        calculatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = record.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedBmiFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidBmiRecord');
+      }
+    });
+
+    test('WorkoutPlan.toMap contains only allowed fields per firestore.rules isValidWorkoutPlan', () {
+      const allowedPlanFields = {
+        'id', 'userId', 'monthId', 'goalType', 'trainingDaysPerWeek', 'startDate',
+        'endDate', 'status', 'splitType', 'days', 'isTemplate', 'createdAt', 'updatedAt'
+      };
+
+      final plan = WorkoutPlan(
+        id: 'plan_1',
+        userId: 'user_fp_1',
+        monthId: '2026-10',
+        goalType: 'Build Muscle',
+        trainingDaysPerWeek: 4,
+        startDate: DateTime(2026, 10, 1),
+        endDate: DateTime(2026, 10, 31),
+        status: 'active',
+        splitType: 'Upper / Lower',
+        days: [],
+        createdAt: DateTime(2026, 9, 30),
+        updatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = plan.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedPlanFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidWorkoutPlan');
+      }
+    });
+
+    test('WorkoutLog.toMap contains only allowed fields per firestore.rules isValidWorkoutLog', () {
+      const allowedLogFields = {
+        'id', 'userId', 'workoutPlanId', 'dayId', 'workoutTitle', 'targetMuscles',
+        'durationMinutes', 'completedExercises', 'totalExercises', 'exercises',
+        'completedAt', 'dateString', 'createdAt', 'updatedAt'
+      };
+
+      final log = WorkoutLog(
+        id: 'log_1',
+        userId: 'user_fp_1',
+        workoutPlanId: 'plan_1',
+        dayId: 'day_1',
+        workoutTitle: 'Upper Body Power',
+        targetMuscles: ['Chest', 'Triceps'],
+        completedExercises: 5,
+        totalExercises: 5,
+        completedAt: DateTime(2026, 9, 30),
+        dateString: '2026-09-30',
+      );
+
+      final map = log.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedLogFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidWorkoutLog');
+      }
+    });
+
+    test('MealPlan.toMap contains only allowed fields per firestore.rules isValidMealPlan', () {
+      const allowedMealPlanFields = {
+        'id', 'userId', 'monthId', 'targetCalories', 'targetProteinGrams',
+        'targetCarbsGrams', 'targetFatGrams', 'meals', 'createdAt', 'updatedAt'
+      };
+
+      final mealPlan = MealPlan(
+        id: 'meal_plan_1',
+        userId: 'user_fp_1',
+        monthId: '2026-10',
+        targetCalories: 2200,
+        targetProteinGrams: 150.0,
+        targetCarbsGrams: 220.0,
+        targetFatGrams: 60.0,
+        meals: [],
+        createdAt: DateTime(2026, 9, 30),
+        updatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = mealPlan.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedMealPlanFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidMealPlan');
+      }
+    });
+
+    test('ProteinLog.toMap contains only allowed fields per firestore.rules isValidProteinLog', () {
+      const allowedProteinFields = {
+        'id', 'userId', 'date', 'targetGrams', 'consumedGrams', 'remainingGrams',
+        'mealsLoggedCount', 'createdAt', 'updatedAt'
+      };
+
+      final proteinLog = ProteinLog(
+        id: 'prot_1',
+        userId: 'user_fp_1',
+        date: '2026-09-30',
+        targetGrams: 150.0,
+        consumedGrams: 120.0,
+        remainingGrams: 30.0,
+        mealsLoggedCount: 3,
+        updatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = proteinLog.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedProteinFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidProteinLog');
+      }
+    });
+
+    test('ProgressRecord.toMap contains only allowed fields per firestore.rules isValidProgressRecord', () {
+      const allowedProgressFields = {
+        'id', 'userId', 'monthId', 'monthName', 'year', 'startDate', 'endDate',
+        'startingWeight', 'endingWeight', 'startingBmi', 'endingBmi',
+        'workoutCompletionRate', 'proteinGoalCompletionRate', 'calorieAverage',
+        'createdAt', 'updatedAt'
+      };
+
+      final rec = ProgressRecord(
+        id: 'prog_1',
+        userId: 'user_fp_1',
+        monthId: '2026-09',
+        monthName: 'September',
+        year: 2026,
+        startDate: DateTime(2026, 9, 1),
+        endDate: DateTime(2026, 9, 30),
+        startingWeight: 80.0,
+        endingWeight: 78.0,
+        startingBmi: 24.7,
+        endingBmi: 24.1,
+        workoutCompletionRate: 85.0,
+        proteinGoalCompletionRate: 80.0,
+        createdAt: DateTime(2026, 9, 30),
+      );
+
+      final map = rec.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedProgressFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidProgressRecord');
+      }
+    });
+
+    test('MonthlyCycle.toMap contains only allowed fields per firestore.rules isValidMonthlyCycle', () {
+      const allowedCycleFields = {
+        'id', 'userId', 'monthId', 'monthName', 'year', 'startDate', 'endDate',
+        'status', 'workoutPlanId', 'mealPlanId', 'startingWeight', 'endingWeight',
+        'startingBmi', 'endingBmi', 'workoutCompletionRate', 'proteinGoalCompletionRate',
+        'isCurrent', 'reviewedAt', 'reviewNotes', 'createdAt', 'updatedAt'
+      };
+
+      final cycle = MonthlyCycle(
+        id: 'cycle_1',
+        userId: 'user_fp_1',
+        monthId: '2026-10',
+        monthName: 'October',
+        year: 2026,
+        startDate: DateTime(2026, 10, 1),
+        endDate: DateTime(2026, 10, 31),
+        status: 'active',
+        workoutPlanId: 'plan_1',
+        mealPlanId: 'meal_plan_1',
+        startingWeight: 78.0,
+        startingBmi: 24.1,
+        createdAt: DateTime(2026, 9, 30),
+        updatedAt: DateTime(2026, 9, 30),
+      );
+
+      final map = cycle.toMap();
+
+      for (final key in map.keys) {
+        expect(allowedCycleFields.contains(key), isTrue,
+            reason: 'Field "$key" must be in firestore.rules isValidMonthlyCycle');
+      }
     });
   });
 

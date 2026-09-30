@@ -15,6 +15,7 @@ class AppColors {
   static const Color darkBackground = Color(0xFF0B1216); // Deep petrol-dark backdrop
   static const Color darkSurface = Color(0xFF132228);    // Translucent petrol card surface
   static const Color darkSurfaceElevated = Color(0xFF192B33);
+  static const Color darkCardBackground = darkSurface;
   static const Color darkBorder = Color(0xFF1D3540);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFF8E9CA5);
@@ -24,6 +25,7 @@ class AppColors {
   // Light Theme Colors
   static const Color lightBackground = Color(0xFFF8FAFC);
   static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightCardBackground = lightSurface;
   static const Color lightSurfaceElevated = Color(0xFFF1F5F9);
   static const Color lightBorder = Color(0xFFE2E8F0);
   static const Color lightTextPrimary = Color(0xFF0F172A);

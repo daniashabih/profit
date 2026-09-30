@@ -6,7 +6,8 @@ import '../../theme/app_colors.dart';
 import '../common/fit_flow_button.dart';
 
 class RestTimerDialog extends StatelessWidget {
-  const RestTimerDialog({super.key});
+  final int? initialSeconds;
+  const RestTimerDialog({super.key, this.initialSeconds});
 
   static void show(BuildContext context) {
     showModalBottomSheet(

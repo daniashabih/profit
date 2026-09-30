@@ -144,7 +144,7 @@ class BmiService {
 
     if (_firestore != null && userId.isNotEmpty) {
       try {
-        await _firestore!.collection('bmiRecords').doc(id).set(record.toMap());
+        await _firestore.collection('bmiRecords').doc(id).set(record.toMap());
       } catch (e) {
         // Keep in local cache if offline or unauthenticated in test environment
       }
@@ -159,7 +159,7 @@ class BmiService {
       return Stream.value(_localBmiHistory.where((r) => r.userId == userId).toList());
     }
 
-    return _firestore!
+    return _firestore
         .collection('bmiRecords')
         .where('userId', isEqualTo: userId)
         .orderBy('calculatedAt', descending: true)
@@ -178,7 +178,7 @@ class BmiService {
     }
 
     try {
-      final snapshot = await _firestore!
+      final snapshot = await _firestore
           .collection('bmiRecords')
           .where('userId', isEqualTo: userId)
           .orderBy('calculatedAt', descending: true)
