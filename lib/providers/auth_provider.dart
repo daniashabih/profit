@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
+import '../core/enums/user_role.dart';
+import '../core/errors/app_error.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
@@ -25,12 +27,16 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final prefs = await SharedPreferences.getInstance();
-    _hasOnboarded = prefs.getBool(AppConstants.keyHasOnboarded) ?? false;
-    _user = await _authService.getCurrentUser();
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _hasOnboarded = prefs.getBool(AppConstants.keyHasOnboarded) ?? false;
+      _user = await _authService.getCurrentUser();
+    } catch (e) {
+      _errorMessage = AppError.fromException(e).message;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> completeOnboarding() async {
@@ -51,25 +57,59 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppError.fromException(e).message;
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<bool> register(
+    String name,
+    String email,
+    String password, {
+    UserRole role = UserRole.self,
+  }) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      _user = await _authService.registerWithEmailPassword(name, email, password);
+      _user = await _authService.registerWithEmailPassword(
+        name,
+        email,
+        password,
+        role: role,
+      );
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppError.fromException(e).message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateTrainerProfile(TrainerProfile profile) async {
+    if (_user == null) return false;
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      await _authService.updateTrainerProfile(_user!.id, profile);
+      _user = _user!.copyWith(
+        trainerProfile: profile,
+        gymLocation: profile.gymLocation,
+        phoneNumber: profile.phoneNumber,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = AppError.fromException(e).message;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -87,7 +127,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppError.fromException(e).message;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -105,7 +145,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppError.fromException(e).message;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -123,7 +163,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppError.fromException(e).message;
       _isLoading = false;
       notifyListeners();
       return false;

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "726749633874",
+    "project_id": "profit-dc48b",
+    "storage_bucket": "profit-dc48b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726749633874:android:a78cee82271fa53222ae8b",
+        "android_client_info": {
+          "package_name": "com.profit.fitness"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "726749633874-av5tf7eoorsf9btco0fksfe03ng2j5j9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAL_bEFKjfPnFp0nsIWKiy7cv_jTLE0MRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "726749633874-av5tf7eoorsf9btco0fksfe03ng2j5j9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "726749633874-qu594dldf09jp093fa99lps2gidj3fkr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fitflow.fitflow"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

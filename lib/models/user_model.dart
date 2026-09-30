@@ -1,4 +1,84 @@
 import '../core/enums/user_role.dart';
+import '../core/utils/fitness_calculators.dart';
+
+class TrainerProfile {
+  final String bio;
+  final String specialization;
+  final int experienceYears;
+  final List<String> certifications;
+  final List<String> availability;
+  final List<String> trainingCategories;
+  final String? gymLocation;
+  final String? phoneNumber;
+
+  const TrainerProfile({
+    this.bio = '',
+    this.specialization = '',
+    this.experienceYears = 0,
+    this.certifications = const [],
+    this.availability = const [],
+    this.trainingCategories = const [],
+    this.gymLocation,
+    this.phoneNumber,
+  });
+
+  TrainerProfile copyWith({
+    String? bio,
+    String? specialization,
+    int? experienceYears,
+    List<String>? certifications,
+    List<String>? availability,
+    List<String>? trainingCategories,
+    String? gymLocation,
+    String? phoneNumber,
+  }) {
+    return TrainerProfile(
+      bio: bio ?? this.bio,
+      specialization: specialization ?? this.specialization,
+      experienceYears: experienceYears ?? this.experienceYears,
+      certifications: certifications ?? this.certifications,
+      availability: availability ?? this.availability,
+      trainingCategories: trainingCategories ?? this.trainingCategories,
+      gymLocation: gymLocation ?? this.gymLocation,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'bio': bio,
+      'specialization': specialization,
+      'experienceYears': experienceYears,
+      'certifications': certifications,
+      'availability': availability,
+      'trainingCategories': trainingCategories,
+      'gymLocation': gymLocation,
+      'phoneNumber': phoneNumber,
+    };
+  }
+
+  factory TrainerProfile.fromMap(Map<String, dynamic> map) {
+    return TrainerProfile(
+      bio: map['bio']?.toString() ?? '',
+      specialization: map['specialization']?.toString() ?? '',
+      experienceYears: (map['experienceYears'] as num?)?.toInt() ?? 0,
+      certifications: (map['certifications'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      availability: (map['availability'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      trainingCategories: (map['trainingCategories'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      gymLocation: map['gymLocation']?.toString(),
+      phoneNumber: map['phoneNumber']?.toString(),
+    );
+  }
+}
 
 class UserModel {
   final String id;
@@ -6,8 +86,16 @@ class UserModel {
   final String email;
   final String avatarUrl;
   final UserRole role;
+  final TrainerProfile? trainerProfile;
+  final String? trainerStatus; // "pending", "approved", "rejected"
+  final String? phoneNumber;
+  final String? gymLocation;
+  final DateTime createdAt;
   final String fitnessLevel;
   final String goal;
+  final int? age;
+  final String? gender;
+  final String activityLevel; // sedentary, lightly_active, moderately_active, very_active
   final double currentWeightKg;
   final double startWeightKg;
   final double targetWeightKg;
@@ -21,14 +109,44 @@ class UserModel {
   final int membershipDaysRemaining;
   final DateTime membershipExpiryDate;
 
+  String get uid => id;
+
+  /// Computed Body Mass Index (BMI) using standard formula: weight(kg) / height(m)^2
+  double get bmi => FitnessCalculators.calculateBmi(currentWeightKg, heightCm);
+
+  /// Human-readable BMI category
+  String get bmiCategory => FitnessCalculators.getBmiCategory(bmi);
+
+  /// Full BMI evaluation object including healthy boundary ranges
+  BmiResult get bmiResult => FitnessCalculators.evaluateBmi(
+        weightKg: currentWeightKg,
+        heightCm: heightCm,
+      );
+
+  /// Evidence-based daily protein recommendation based on body weight, goal, and activity
+  ProteinRecommendation get proteinRecommendation =>
+      FitnessCalculators.calculateDailyProteinRecommendation(
+        weightKg: currentWeightKg,
+        fitnessGoal: goal,
+        activityLevel: activityLevel,
+      );
+
   UserModel({
     required this.id,
     required this.name,
     required this.email,
     this.avatarUrl = '',
-    this.role = UserRole.member,
+    this.role = UserRole.self,
+    this.trainerProfile,
+    this.trainerStatus,
+    this.phoneNumber,
+    this.gymLocation,
+    DateTime? createdAt,
     this.fitnessLevel = 'Intermediate',
     this.goal = 'Build Lean Muscle & Strength',
+    this.age,
+    this.gender,
+    this.activityLevel = 'moderately_active',
     this.currentWeightKg = 74.5,
     this.startWeightKg = 81.0,
     this.targetWeightKg = 72.0,
@@ -41,7 +159,8 @@ class UserModel {
     this.membershipTier = 'PREMIUM',
     this.membershipDaysRemaining = 184,
     DateTime? membershipExpiryDate,
-  }) : membershipExpiryDate = membershipExpiryDate ??
+  })  : createdAt = createdAt ?? DateTime.now(),
+        membershipExpiryDate = membershipExpiryDate ??
             DateTime.now().add(const Duration(days: 184));
 
   UserModel copyWith({
@@ -50,8 +169,16 @@ class UserModel {
     String? email,
     String? avatarUrl,
     UserRole? role,
+    TrainerProfile? trainerProfile,
+    String? trainerStatus,
+    String? phoneNumber,
+    String? gymLocation,
+    DateTime? createdAt,
     String? fitnessLevel,
     String? goal,
+    int? age,
+    String? gender,
+    String? activityLevel,
     double? currentWeightKg,
     double? startWeightKg,
     double? targetWeightKg,
@@ -71,8 +198,16 @@ class UserModel {
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       role: role ?? this.role,
+      trainerProfile: trainerProfile ?? this.trainerProfile,
+      trainerStatus: trainerStatus ?? this.trainerStatus,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      gymLocation: gymLocation ?? this.gymLocation,
+      createdAt: createdAt ?? this.createdAt,
       fitnessLevel: fitnessLevel ?? this.fitnessLevel,
       goal: goal ?? this.goal,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      activityLevel: activityLevel ?? this.activityLevel,
       currentWeightKg: currentWeightKg ?? this.currentWeightKg,
       startWeightKg: startWeightKg ?? this.startWeightKg,
       targetWeightKg: targetWeightKg ?? this.targetWeightKg,
@@ -94,12 +229,21 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'uid': id,
       'name': name,
       'email': email,
       'avatarUrl': avatarUrl,
-      'role': role.name,
+      'role': role.name, // 'self', 'trainer', or 'admin'
+      if (trainerProfile != null) 'trainerProfile': trainerProfile!.toMap(),
+      if (trainerStatus != null) 'trainerStatus': trainerStatus,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+      if (gymLocation != null) 'gymLocation': gymLocation,
+      'createdAt': createdAt.toIso8601String(),
       'fitnessLevel': fitnessLevel,
       'goal': goal,
+      if (age != null) 'age': age,
+      if (gender != null) 'gender': gender,
+      'activityLevel': activityLevel,
       'currentWeightKg': currentWeightKg,
       'startWeightKg': startWeightKg,
       'targetWeightKg': targetWeightKg,
@@ -117,29 +261,44 @@ class UserModel {
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      avatarUrl: map['avatarUrl'] ?? '',
-      role: UserRole.values.firstWhere(
-        (r) => r.name == map['role'],
-        orElse: () => UserRole.member,
-      ),
-      fitnessLevel: map['fitnessLevel'] ?? 'Intermediate',
-      goal: map['goal'] ?? 'Build Muscle',
+      id: map['uid']?.toString() ?? map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      email: map['email']?.toString() ?? '',
+      avatarUrl: map['avatarUrl']?.toString() ?? '',
+      // Safe fallback: Missing, empty, or legacy 'member' safely maps to 'self'
+      role: UserRole.fromString(map['role']?.toString()),
+      trainerProfile: map['trainerProfile'] != null
+          ? TrainerProfile.fromMap(
+              Map<String, dynamic>.from(map['trainerProfile'] as Map))
+          : null,
+      trainerStatus: map['trainerStatus']?.toString(),
+      phoneNumber: map['phoneNumber']?.toString(),
+      gymLocation: map['gymLocation']?.toString(),
+      createdAt: map['createdAt'] != null
+          ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      fitnessLevel: map['fitnessLevel']?.toString() ?? 'Intermediate',
+      goal: map['goal']?.toString() ?? 'Build Muscle',
+      age: (map['age'] as num?)?.toInt(),
+      gender: map['gender']?.toString(),
+      activityLevel: map['activityLevel']?.toString() ?? 'moderately_active',
       currentWeightKg: (map['currentWeightKg'] as num?)?.toDouble() ?? 70.0,
       startWeightKg: (map['startWeightKg'] as num?)?.toDouble() ?? 75.0,
       targetWeightKg: (map['targetWeightKg'] as num?)?.toDouble() ?? 68.0,
       heightCm: (map['heightCm'] as num?)?.toDouble() ?? 175.0,
-      streakDays: map['streakDays'] ?? 0,
-      totalWorkouts: map['totalWorkouts'] ?? 0,
-      totalTrainingMinutes: map['totalTrainingMinutes'] ?? 0,
+      streakDays: (map['streakDays'] as num?)?.toInt() ?? 0,
+      totalWorkouts: (map['totalWorkouts'] as num?)?.toInt() ?? 0,
+      totalTrainingMinutes:
+          (map['totalTrainingMinutes'] as num?)?.toInt() ?? 0,
       totalVolumeKg: (map['totalVolumeKg'] as num?)?.toDouble() ?? 0.0,
-      totalCaloriesBurned: map['totalCaloriesBurned'] ?? 0,
-      membershipTier: map['membershipTier'] ?? 'FREE',
-      membershipDaysRemaining: map['membershipDaysRemaining'] ?? 0,
+      totalCaloriesBurned:
+          (map['totalCaloriesBurned'] as num?)?.toInt() ?? 0,
+      membershipTier: map['membershipTier']?.toString() ?? 'FREE',
+      membershipDaysRemaining:
+          (map['membershipDaysRemaining'] as num?)?.toInt() ?? 0,
       membershipExpiryDate: map['membershipExpiryDate'] != null
-          ? DateTime.parse(map['membershipExpiryDate'])
+          ? DateTime.tryParse(map['membershipExpiryDate'].toString()) ??
+              DateTime.now()
           : DateTime.now(),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/enums/user_role.dart';
+import '../../core/responsive/breakpoints.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/role_provider.dart';
@@ -15,89 +16,12 @@ import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
 import '../gamification/gamification_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../trainer/trainer_dashboard_screen.dart';
 import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  void _showRoleSelector(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        final currentRole = ctx.watch<RoleProvider>().currentRole;
-
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Switch Active Role (Demo / Testing)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Experience PROFIT as a Gym Member, Certified Trainer, or Club Administrator.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                ),
-              ),
-              const SizedBox(height: 18),
-              ...UserRole.values.map((role) {
-                final isSelected = currentRole == role;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    tileColor: isSelected
-                        ? AppColors.primaryLime.withOpacity(0.12)
-                        : Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.primaryLime
-                            : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      ),
-                    ),
-                    leading: Icon(
-                      role == UserRole.member
-                          ? Icons.person_rounded
-                          : (role == UserRole.trainer
-                              ? Icons.sports_gymnastics_rounded
-                              : Icons.admin_panel_settings_rounded),
-                      color: isSelected ? AppColors.primaryLime : null,
-                    ),
-                    title: Text(
-                      role.displayName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? AppColors.primaryLime : null,
-                      ),
-                    ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primaryLime)
-                        : null,
-                    onTap: () {
-                      ctx.read<RoleProvider>().setRole(role);
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   void _showEditProfileDialog(BuildContext context) {
     final authProv = context.read<AuthProvider>();
@@ -158,6 +82,7 @@ class ProfileScreen extends StatelessWidget {
     final progressProv = context.watch<ProgressProvider>();
     final roleProv = context.watch<RoleProvider>();
     final user = authProv.user;
+    final isTrainer = (user?.role ?? roleProv.currentRole).isTrainer;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -167,10 +92,9 @@ class ProfileScreen extends StatelessWidget {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
         actions: [
-          // Role switch badge button
-          GestureDetector(
-            onTap: () => _showRoleSelector(context),
-            child: Container(
+          // Verified user role badge (only shown for trainer role, hidden for self)
+          if (isTrainer)
+            Container(
               margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -180,10 +104,14 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.primaryLime),
+                  const Icon(
+                    Icons.sports_gymnastics_rounded,
+                    size: 14,
+                    color: AppColors.primaryLime,
+                  ),
                   const SizedBox(width: 4),
                   Text(
-                    roleProv.currentRole.displayName,
+                    'TRAINER',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -193,7 +121,6 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
@@ -206,9 +133,17 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(width: 4),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: ResponsiveBreakpoints.maxContentWidth,
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: ResponsiveBreakpoints.horizontalPadding(context),
+              vertical: 12,
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // PROFILE HERO SECTION (Matching Screen 12 mockup)
@@ -243,13 +178,35 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Beginner • Fitness',
+                    user?.fitnessLevel.isNotEmpty == true
+                        ? user!.fitnessLevel
+                        : 'Beginner • Fitness',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                     ),
                   ),
+                  if (isTrainer) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLime.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primaryLime.withOpacity(0.4)),
+                      ),
+                      child: const Text(
+                        'ROLE: TRAINER',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: AppColors.primaryLime,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   // "Edit Profile" Pill Button
                   GestureDetector(
@@ -305,10 +262,143 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // RESPONSIVE FITNESS FOUNDATION (BMI & PROTEIN ESTIMATES)
+            FitFlowCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.analytics_outlined,
+                          size: 18, color: AppColors.primaryLime),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Body Metrics & Nutrition Estimates',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.gray100,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'BMI',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${user?.bmi ?? 29.7}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.primaryLime,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                user?.bmiCategory ?? 'Overweight',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.gray100,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Daily Protein',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${user?.proteinRecommendation.targetGrams.toInt() ?? 138}g',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.primaryLime,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Target (${user?.proteinRecommendation.minGrams.toInt() ?? 124}-${user?.proteinRecommendation.maxGrams.toInt() ?? 166}g)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'General fitness estimate based on body weight and activity level. Not medical advice.',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontStyle: FontStyle.italic,
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
 
             // Trainer / Admin Portal Access (if active role or available)
-            if (!roleProv.isMember) ...[
+            if (user?.role == UserRole.trainer || roleProv.isTrainer) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 20),
                 child: ListTile(
@@ -317,14 +407,41 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                     side: const BorderSide(color: AppColors.primaryLime),
                   ),
-                  leading: const Icon(Icons.dashboard_customize_rounded, color: AppColors.primaryLime),
-                  title: Text(
-                    roleProv.isTrainer ? 'Open Trainer Portal' : 'Open Admin Operations',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  leading: const Icon(Icons.sports_gymnastics_rounded, color: AppColors.primaryLime),
+                  title: const Text(
+                    'Open Trainer Dashboard',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                   ),
-                  subtitle: Text(
-                    roleProv.isTrainer ? 'Manage clients and diet routines' : 'Manage memberships, staff & analytics',
-                    style: const TextStyle(fontSize: 11),
+                  subtitle: const Text(
+                    'Manage clients, workout splits & member progress',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TrainerDashboardScreen()),
+                    );
+                  },
+                ),
+              ),
+            ] else if (user?.role == UserRole.admin || roleProv.isAdmin) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: ListTile(
+                  tileColor: AppColors.primaryLime.withOpacity(0.15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    side: const BorderSide(color: AppColors.primaryLime),
+                  ),
+                  leading: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.primaryLime),
+                  title: const Text(
+                    'Open Admin Operations',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                    'Manage memberships, staff & analytics',
+                    style: TextStyle(fontSize: 11),
                   ),
                   trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
                   onTap: () {
@@ -495,7 +612,9 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildStatItem(String label, String value, bool isDark) {

@@ -1,0 +1,633 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches Firebase Auth UID)
+    // Fields:
+    //   - id, uid: string (optional, matches userId)
+    //   - name: string (required, 1-100 chars)
+    //   - email: string (required, valid email, <= 100 chars)
+    //   - role: string (required, 'self', 'trainer', 'admin', or legacy 'member')
+    //   - trainerStatus: string (optional, 'pending', 'approved', 'rejected')
+    //   - trainerProfile: map (optional, trainer bio, specialties, certifications)
+    //   - phoneNumber: string (optional, <= 30 chars)
+    //   - gymLocation: string (optional, <= 120 chars)
+    //   - avatarUrl: string (optional, <= 1000 chars)
+    //   - fitnessLevel: string (optional, <= 60 chars)
+    //   - goal: string (optional, <= 200 chars)
+    //   - currentWeightKg, startWeightKg, targetWeightKg: number (optional, 0-500)
+    //   - heightCm: number (optional, 0-300)
+    //   - age: number (optional, 5-120)
+    //   - gender: string (optional, <= 40 chars)
+    //   - activityLevel: string (optional, <= 60 chars)
+    //   - streakDays, totalWorkouts, totalTrainingMinutes, totalCaloriesBurned: number (optional, >= 0)
+    //   - totalVolumeKg: number (optional, >= 0)
+    //   - membershipTier: string (optional, <= 60 chars)
+    //   - membershipDaysRemaining: number (optional, >= 0)
+    //   - membershipExpiryDate: string or timestamp (optional)
+    //   - trainerId, assignedTrainerId: string (optional, <= 128 chars)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: trainer_members
+    // Document ID: {docId} (e.g. {trainerId}_{memberId} or auto-id)
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - trainerId: string (required, UID of trainer, <= 128 chars)
+    //   - memberId or clientId: string (required, UID of client, <= 128 chars)
+    //   - memberName: string (optional, <= 100 chars)
+    //   - memberEmail: string (optional, <= 100 chars)
+    //   - memberAvatarUrl: string (optional, <= 1000 chars)
+    //   - memberGoal: string (optional, <= 200 chars)
+    //   - assignedPlan: string (optional, <= 200 chars)
+    //   - status: string (optional, 'active', 'pending', 'inactive')
+    //   - progressPercent: number (optional, 0.0 - 1.0)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: workouts
+    // Document ID: {workoutId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required for user workouts, UID of owner)
+    //   - title: string (required, 1-150 chars)
+    //   - subtitle: string (optional, <= 250 chars)
+    //   - durationMinutes: number (optional, 0-1440)
+    //   - category: string (optional, <= 60 chars)
+    //   - intensity: string (optional, <= 60 chars)
+    //   - estimatedCalories: number (optional, 0-10000)
+    //   - isCompletedToday: bool (optional)
+    //   - isTemplate: bool (optional)
+    //   - exercises: list (optional, max 100 items)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: exercises
+    // Document ID: {exerciseId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (optional, present for user custom exercises)
+    //   - name: string (required, 1-120 chars)
+    //   - muscleGroup: string (optional, <= 60 chars)
+    //   - equipment: string (optional, <= 60 chars)
+    //   - difficulty: string (optional, <= 60 chars)
+    //   - sets: number (optional, 0-100)
+    //   - reps: number (optional, 0-1000)
+    //   - restTimeSeconds: number (optional, 0-3600)
+    //   - imageUrl, videoUrl: string (optional, <= 1000 chars)
+    //   - instructions: list (optional, max 40 strings)
+    //   - isFavorite, isCompleted: bool (optional)
+    //   - setsList: list (optional, max 50 items)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: nutrition_logs
+    // Document ID: {logId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - targetCalories, consumedCalories: number (optional, 0-20000)
+    //   - targetProteinGrams, targetCarbsGrams, targetFatGrams: number (optional, 0-2000)
+    //   - meals: list (optional, max 100 items)
+    //   - date: string or timestamp (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: measurements
+    // Document ID: {measurementId}
+    // Fields:
+    //   - id: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of owner, <= 128 chars)
+    //   - weightKg: number (required, > 0 and < 500)
+    //   - waistCm, chestCm, thighsCm: number (optional, 0-300)
+    //   - armsCm: number (optional, 0-150)
+    //   - note: string (optional, <= 500 chars)
+    //   - date: string or timestamp (optional)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is string &&
+         request.resource.data[field].size() >= minLen &&
+         request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidOptionalNumber(field, minVal, maxVal) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is number &&
+         request.resource.data[field] >= minVal &&
+         request.resource.data[field] <= maxVal);
+    }
+
+    function isValidOptionalBool(field) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] is bool;
+    }
+
+    function isValidOptionalList(field, maxSize) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is list &&
+         request.resource.data[field].size() <= maxSize);
+    }
+
+    function isValidOptionalMap(field) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] is map;
+    }
+
+    // Role Resolution Helpers
+    function isAdmin() {
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == 'admin') ||
+        ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        ('email' in request.auth.token && request.auth.token.email == 'admin@profit.app') ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin'
+        )
+      );
+    }
+
+    function isTrainer() {
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == 'trainer') ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'trainer'
+        )
+      );
+    }
+
+    // Relationship Lookup Helper: Verifies that the authenticated trainer is assigned to targetUserId
+    function isAssignedTrainer(targetUserId) {
+      return isTrainer() && (
+        exists(/databases/$(database)/documents/trainer_members/$(request.auth.uid + '_' + targetUserId)) ||
+        exists(/databases/$(database)/documents/trainer_members/$(targetUserId + '_' + request.auth.uid)) ||
+        (
+          exists(/databases/$(database)/documents/users/$(targetUserId)) && (
+            get(/databases/$(database)/documents/users/$(targetUserId)).data.get('trainerId', '') == request.auth.uid ||
+            get(/databases/$(database)/documents/users/$(targetUserId)).data.get('assignedTrainerId', '') == request.auth.uid
+          )
+        )
+      );
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields([
+        'id', 'uid', 'name', 'email', 'avatarUrl', 'role', 'trainerStatus', 'trainerProfile',
+        'phoneNumber', 'gymLocation', 'createdAt', 'updatedAt', 'fitnessLevel', 'goal',
+        'currentWeightKg', 'startWeightKg', 'targetWeightKg', 'heightCm', 'age', 'gender',
+        'activityLevel', 'streakDays', 'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg',
+        'totalCaloriesBurned', 'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
+        'trainerId', 'assignedTrainerId'
+      ]) &&
+      data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+      data.email is string && isValidEmail(data.email) && data.email.size() <= 100 &&
+      data.role is string && data.role in ['self', 'trainer', 'admin', 'member'] &&
+      (!('trainerStatus' in data) || (data.trainerStatus is string && data.trainerStatus in ['pending', 'approved', 'rejected'])) &&
+      isValidOptionalString('phoneNumber', 0, 30) &&
+      isValidOptionalString('gymLocation', 0, 120) &&
+      isValidOptionalString('avatarUrl', 0, 1000) &&
+      isValidOptionalString('fitnessLevel', 0, 60) &&
+      isValidOptionalString('goal', 0, 200) &&
+      isValidOptionalNumber('currentWeightKg', 0.1, 500) &&
+      isValidOptionalNumber('startWeightKg', 0.1, 500) &&
+      isValidOptionalNumber('targetWeightKg', 0.1, 500) &&
+      isValidOptionalNumber('heightCm', 10, 300) &&
+      isValidOptionalNumber('age', 5, 120) &&
+      isValidOptionalString('gender', 0, 40) &&
+      isValidOptionalString('activityLevel', 0, 60) &&
+      isValidOptionalNumber('streakDays', 0, 10000) &&
+      isValidOptionalNumber('totalWorkouts', 0, 100000) &&
+      isValidOptionalNumber('totalTrainingMinutes', 0, 1000000) &&
+      isValidOptionalNumber('totalVolumeKg', 0, 10000000) &&
+      isValidOptionalNumber('totalCaloriesBurned', 0, 10000000) &&
+      isValidOptionalString('membershipTier', 0, 60) &&
+      isValidOptionalNumber('membershipDaysRemaining', 0, 10000) &&
+      isValidOptionalMap('trainerProfile') &&
+      isValidOptionalString('trainerId', 1, 128) &&
+      isValidOptionalString('assignedTrainerId', 1, 128) &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('uid', 1, 128);
+    }
+
+    function isValidTrainerMember(data) {
+      return hasOnlyAllowedFields([
+        'id', 'trainerId', 'memberId', 'clientId', 'memberName', 'memberEmail', 'memberAvatarUrl',
+        'memberGoal', 'assignedPlan', 'status', 'createdAt', 'updatedAt', 'progressPercent'
+      ]) &&
+      data.trainerId is string && data.trainerId.size() > 0 && data.trainerId.size() <= 128 &&
+      (
+        ('memberId' in data && data.memberId is string && data.memberId.size() > 0 && data.memberId.size() <= 128) ||
+        ('clientId' in data && data.clientId is string && data.clientId.size() > 0 && data.clientId.size() <= 128)
+      ) &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('memberName', 0, 100) &&
+      isValidOptionalString('memberEmail', 0, 100) &&
+      isValidOptionalString('memberAvatarUrl', 0, 1000) &&
+      isValidOptionalString('memberGoal', 0, 200) &&
+      isValidOptionalString('assignedPlan', 0, 200) &&
+      (!('status' in data) || (data.status is string && data.status in ['active', 'pending', 'inactive'])) &&
+      isValidOptionalNumber('progressPercent', 0.0, 1.0);
+    }
+
+    function isValidWorkout(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'title', 'subtitle', 'durationMinutes', 'category', 'intensity',
+        'estimatedCalories', 'isCompletedToday', 'isTemplate', 'exercises', 'createdAt', 'updatedAt'
+      ]) &&
+      data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('userId', 1, 128) &&
+      isValidOptionalString('subtitle', 0, 250) &&
+      isValidOptionalNumber('durationMinutes', 0, 1440) &&
+      isValidOptionalString('category', 0, 60) &&
+      isValidOptionalString('intensity', 0, 60) &&
+      isValidOptionalNumber('estimatedCalories', 0, 10000) &&
+      isValidOptionalBool('isCompletedToday') &&
+      isValidOptionalBool('isTemplate') &&
+      isValidOptionalList('exercises', 100);
+    }
+
+    function isValidExercise(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'name', 'muscleGroup', 'equipment', 'difficulty', 'sets', 'reps',
+        'restTimeSeconds', 'imageUrl', 'videoUrl', 'instructions', 'isFavorite', 'isCompleted',
+        'setsList', 'createdAt', 'updatedAt'
+      ]) &&
+      data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('userId', 1, 128) &&
+      isValidOptionalString('muscleGroup', 0, 60) &&
+      isValidOptionalString('equipment', 0, 60) &&
+      isValidOptionalString('difficulty', 0, 60) &&
+      isValidOptionalNumber('sets', 0, 100) &&
+      isValidOptionalNumber('reps', 0, 1000) &&
+      isValidOptionalNumber('restTimeSeconds', 0, 3600) &&
+      isValidOptionalString('imageUrl', 0, 1000) &&
+      isValidOptionalString('videoUrl', 0, 1000) &&
+      isValidOptionalList('instructions', 40) &&
+      isValidOptionalBool('isFavorite') &&
+      isValidOptionalBool('isCompleted') &&
+      isValidOptionalList('setsList', 50);
+    }
+
+    function isValidNutritionLog(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'targetCalories', 'targetProteinGrams', 'targetCarbsGrams', 'targetFatGrams',
+        'consumedCalories', 'meals', 'date', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalNumber('targetCalories', 0, 20000) &&
+      isValidOptionalNumber('targetProteinGrams', 0, 2000) &&
+      isValidOptionalNumber('targetCarbsGrams', 0, 2000) &&
+      isValidOptionalNumber('targetFatGrams', 0, 2000) &&
+      isValidOptionalNumber('consumedCalories', 0, 20000) &&
+      isValidOptionalList('meals', 100);
+    }
+
+    function isValidMeasurement(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'date', 'weightKg', 'waistCm', 'chestCm', 'armsCm', 'thighsCm',
+        'note', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      data.weightKg is number && data.weightKg > 0 && data.weightKg < 500 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalNumber('waistCm', 0, 300) &&
+      isValidOptionalNumber('chestCm', 0, 300) &&
+      isValidOptionalNumber('armsCm', 0, 150) &&
+      isValidOptionalNumber('thighsCm', 0, 200) &&
+      isValidOptionalString('note', 0, 500);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Users Collection: /users/{userId}
+    match /users/{userId} {
+      // PII Protection: Private member data is readable only by the owner, an assigned trainer, or admin.
+      // Approved trainers are readable by authenticated members to browse coaching profiles.
+      allow read: if isOwner(userId) ||
+                     isAdmin() ||
+                     isAssignedTrainer(userId) ||
+                     (isAuthenticated() && resource.data.get('role', '') == 'trainer');
+
+      // Account Creation (Signup):
+      // Users can only create their own user document.
+      // Must NOT self-assign the protected 'admin' role. Only 'self', 'trainer', or 'member' allowed at signup.
+      allow create: if isAuthenticated() &&
+        isValidUser(request.resource.data) && (
+          (
+            isOwner(userId) &&
+            request.resource.data.role in ['self', 'trainer', 'member'] &&
+            (!('trainerStatus' in request.resource.data) || request.resource.data.trainerStatus in ['pending', 'approved'])
+          ) ||
+          isAdmin()
+        );
+
+      // Profile Updates:
+      // Users can update their profile information, but role escalation is strictly prohibited.
+      // A member/self user cannot elevate to trainer or admin; a trainer cannot elevate to admin.
+      // Only an Admin can modify user roles. Document ID and UID are immutable.
+      allow update: if isAuthenticated() &&
+        isValidUser(request.resource.data) && (
+          (
+            isOwner(userId) &&
+            (
+              request.resource.data.role == resource.data.role ||
+              (resource.data.role == 'member' && request.resource.data.role == 'self') ||
+              (!('role' in resource.data) && request.resource.data.role in ['self', 'member'])
+            ) &&
+            request.resource.data.role != 'admin' &&
+            areImmutableFieldsUnchanged(['id', 'uid', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Account Deletion: Owner or Admin only
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // 2. Trainer-Member Relationships: /trainer_members/{docId}
+    match /trainer_members/{docId} {
+      // Read: Only the assigned trainer, the member/client themselves, or an admin
+      allow read: if isAuthenticated() && (
+        resource.data.trainerId == request.auth.uid ||
+        resource.data.get('memberId', '') == request.auth.uid ||
+        resource.data.get('clientId', '') == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Create: Only the assigned trainer or admin
+      allow create: if isAuthenticated() &&
+        isValidTrainerMember(request.resource.data) && (
+          (isTrainer() && request.resource.data.trainerId == request.auth.uid) ||
+          isAdmin()
+        );
+
+      // Update: Only the assigned trainer or admin; immutable relationship links
+      allow update: if isAuthenticated() &&
+        isValidTrainerMember(request.resource.data) && (
+          (
+            isTrainer() &&
+            resource.data.trainerId == request.auth.uid &&
+            areImmutableFieldsUnchanged(['trainerId', 'memberId', 'clientId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Only the assigned trainer or admin
+      allow delete: if isAuthenticated() && (
+        (isTrainer() && resource.data.trainerId == request.auth.uid) ||
+        isAdmin()
+      );
+    }
+
+    // 3. Workouts Collection: /workouts/{workoutId}
+    match /workouts/{workoutId} {
+      // Read: Self-owner, their assigned trainer, admin, or global templates
+      allow read: if isAuthenticated() && (
+        (!('userId' in resource.data) && resource.data.get('isTemplate', false) == true) ||
+        (resource.data.userId == request.auth.uid) ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Create: Self-owner for their own workouts, assigned trainer for client workouts, or admin
+      allow create: if isAuthenticated() &&
+        isValidWorkout(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAssignedTrainer(request.resource.data.userId) ||
+          isAdmin()
+        );
+
+      // Update: Self-owner, assigned trainer, or admin; userId cannot be hijacked
+      allow update: if isAuthenticated() &&
+        isValidWorkout(request.resource.data) && (
+          (
+            (resource.data.userId == request.auth.uid || isAssignedTrainer(resource.data.userId)) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Self-owner, assigned trainer, or admin
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Nested subcollections (e.g. workout sets or custom routines)
+      match /{allSubcollections=**} {
+        allow read: if isAuthenticated() && (
+          (get(/databases/$(database)/documents/workouts/$(workoutId)).data.userId == request.auth.uid) ||
+          isAssignedTrainer(get(/databases/$(database)/documents/workouts/$(workoutId)).data.userId) ||
+          isAdmin()
+        );
+        allow write: if isAuthenticated() && (
+          (get(/databases/$(database)/documents/workouts/$(workoutId)).data.userId == request.auth.uid) ||
+          isAssignedTrainer(get(/databases/$(database)/documents/workouts/$(workoutId)).data.userId) ||
+          isAdmin()
+        );
+      }
+    }
+
+    // 4. Exercises Collection: /exercises/{exerciseId}
+    match /exercises/{exerciseId} {
+      // Read: Global exercise library (no userId) is readable by all authenticated users.
+      // Custom exercises (with userId) are restricted to self-owner, assigned trainer, or admin.
+      allow read: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Create: Self-owner creates custom exercises, assigned trainer creates for client, or admin creates global/custom
+      allow create: if isAuthenticated() &&
+        isValidExercise(request.resource.data) && (
+          (
+            'userId' in request.resource.data && (
+              request.resource.data.userId == request.auth.uid ||
+              isAssignedTrainer(request.resource.data.userId)
+            )
+          ) ||
+          isAdmin()
+        );
+
+      // Update: Self-owner, assigned trainer, or admin
+      allow update: if isAuthenticated() &&
+        isValidExercise(request.resource.data) && (
+          (
+            'userId' in resource.data &&
+            (resource.data.userId == request.auth.uid || isAssignedTrainer(resource.data.userId)) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Self-owner, assigned trainer, or admin
+      allow delete: if isAuthenticated() && (
+        (
+          'userId' in resource.data && (
+            resource.data.userId == request.auth.uid ||
+            isAssignedTrainer(resource.data.userId)
+          )
+        ) ||
+        isAdmin()
+      );
+    }
+
+    // 5. Nutrition Logs Collection: /nutrition_logs/{logId}
+    match /nutrition_logs/{logId} {
+      // Read: Self-owner, assigned trainer, or admin only (no arbitrary trainers)
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Create: Self-owner, assigned trainer, or admin
+      allow create: if isAuthenticated() &&
+        isValidNutritionLog(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAssignedTrainer(request.resource.data.userId) ||
+          isAdmin()
+        );
+
+      // Update: Self-owner, assigned trainer, or admin; userId is immutable
+      allow update: if isAuthenticated() &&
+        isValidNutritionLog(request.resource.data) && (
+          (
+            (resource.data.userId == request.auth.uid || isAssignedTrainer(resource.data.userId)) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Self-owner, assigned trainer, or admin
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+    }
+
+    // 6. Measurements Collection: /measurements/{measurementId}
+    match /measurements/{measurementId} {
+      // Read: Self-owner, assigned trainer, or admin only (no arbitrary trainers)
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Create: Self-owner, assigned trainer, or admin
+      allow create: if isAuthenticated() &&
+        isValidMeasurement(request.resource.data) && (
+          request.resource.data.userId == request.auth.uid ||
+          isAssignedTrainer(request.resource.data.userId) ||
+          isAdmin()
+        );
+
+      // Update: Self-owner, assigned trainer, or admin; userId is immutable
+      allow update: if isAuthenticated() &&
+        isValidMeasurement(request.resource.data) && (
+          (
+            (resource.data.userId == request.auth.uid || isAssignedTrainer(resource.data.userId)) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Self-owner, assigned trainer, or admin
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+    }
+
+    // 7. Trainers Public Directory Collection: /trainers/{trainerId}
+    match /trainers/{trainerId} {
+      // Authenticated users can browse trainer profiles
+      allow read: if isAuthenticated();
+      // Only the trainer themselves or admin can modify the trainer card
+      allow write: if (isOwner(trainerId) && isTrainer()) || isAdmin();
+    }
+
+    // 8. Memberships Collection: /memberships/{membershipId}
+    match /memberships/{membershipId} {
+      allow read: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isAdmin() || (
+        isAuthenticated() && request.resource.data.userId == request.auth.uid
+      );
+    }
+
+    // 9. Achievements Collection: /achievements/{achievementId}
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isAdmin() || (
+        isAuthenticated() && request.resource.data.userId == request.auth.uid
+      );
+    }
+
+    // 10. Notifications Collection: /notifications/{notificationId}
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isAdmin() || (
+        isAuthenticated() && (
+          ('userId' in request.resource.data && request.resource.data.userId == request.auth.uid) ||
+          (resource != null && resource.data.userId == request.auth.uid)
+        )
+      );
+    }
+
+  }
+}

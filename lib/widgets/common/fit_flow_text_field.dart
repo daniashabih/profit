@@ -5,9 +5,12 @@ class FitFlowTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String hintText;
   final String? labelText;
+  final String? label;
   final IconData? prefixIcon;
   final Widget? suffixIcon;
   final bool obscureText;
+  final bool readOnly;
+  final int maxLines;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
@@ -17,9 +20,12 @@ class FitFlowTextField extends StatelessWidget {
     this.controller,
     required this.hintText,
     this.labelText,
+    this.label,
     this.prefixIcon,
     this.suffixIcon,
     this.obscureText = false,
+    this.readOnly = false,
+    this.maxLines = 1,
     this.keyboardType = TextInputType.text,
     this.validator,
     this.onChanged,
@@ -32,9 +38,9 @@ class FitFlowTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (labelText != null) ...[
+        if (label != null || labelText != null) ...[
           Text(
-            labelText!,
+            label ?? labelText!,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -46,6 +52,8 @@ class FitFlowTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           obscureText: obscureText,
+          readOnly: readOnly,
+          maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
           onChanged: onChanged,
@@ -73,4 +81,3 @@ class FitFlowTextField extends StatelessWidget {
 
 /// PROFIT branded text field alias
 typedef ProfitTextField = FitFlowTextField;
-

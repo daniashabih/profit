@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/enums/user_role.dart';
+import '../../core/utils/role_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/role_provider.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../onboarding/onboarding_screen.dart';
-import '../main_navigation.dart';
+import '../auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,8 +52,12 @@ class _SplashScreenState extends State<SplashScreen>
     Widget nextScreen;
     if (!authProv.hasOnboarded) {
       nextScreen = const OnboardingScreen();
+    } else if (authProv.isAuthenticated) {
+      final role = authProv.user?.role ?? UserRole.self;
+      context.read<RoleProvider>().setRole(role);
+      nextScreen = getRoleBasedHomeScreen(role);
     } else {
-      nextScreen = const MainNavigation();
+      nextScreen = const LoginScreen();
     }
 
     Navigator.pushReplacement(

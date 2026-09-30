@@ -1,10 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:profit/core/enums/user_role.dart';
 import 'package:profit/core/utils/fitness_calculators.dart';
 import 'package:profit/models/workout_model.dart';
 import 'package:profit/models/exercise_model.dart';
 import 'package:profit/core/enums/muscle_group.dart';
 import 'package:profit/core/enums/exercise_difficulty.dart';
 import 'package:profit/models/nutrition_model.dart';
+import 'package:profit/models/user_model.dart';
+import 'package:profit/models/trainer_member_model.dart';
 import 'package:profit/core/enums/meal_type.dart';
 import 'package:profit/repositories/exercise_repository.dart';
 
@@ -24,6 +27,49 @@ void main() {
 
       final overweightBmi = FitnessCalculators.calculateBmi(90.0, 175.0);
       expect(FitnessCalculators.getBmiCategory(overweightBmi), equals('Overweight'));
+
+      final underweightBmi = FitnessCalculators.calculateBmi(45.0, 170.0);
+      expect(FitnessCalculators.getBmiCategory(underweightBmi), equals('Underweight'));
+
+      final obeseBmi = FitnessCalculators.calculateBmi(110.0, 175.0);
+      expect(FitnessCalculators.getBmiCategory(obeseBmi), equals('Obese'));
+    });
+
+    test('evaluateBmi returns healthy weight boundaries and interpretation', () {
+      final result = FitnessCalculators.evaluateBmi(weightKg: 70.0, heightCm: 175.0);
+      expect(result.value, closeTo(22.9, 0.1));
+      expect(result.category, equals('Healthy Weight'));
+      expect(result.isHealthy, isTrue);
+      expect(result.minHealthyWeightKg, closeTo(56.7, 0.2));
+      expect(result.maxHealthyWeightKg, closeTo(76.3, 0.2));
+      expect(result.disclaimer, contains('general screening indicator'));
+    });
+
+    test('calculateDailyProteinRecommendation provides accurate goals and disclaimers', () {
+      // Muscle gain for 80kg individual (~2.0 g/kg)
+      final muscleRec = FitnessCalculators.calculateDailyProteinRecommendation(
+        weightKg: 80.0,
+        fitnessGoal: 'Build Muscle',
+        activityLevel: 'moderately_active',
+      );
+      expect(muscleRec.minGrams, equals(128.0)); // 80 * 1.6
+      expect(muscleRec.maxGrams, equals(176.0)); // 80 * 2.2
+      expect(muscleRec.targetGrams, equals(160.0)); // 80 * 2.0
+      expect(muscleRec.disclaimer, contains('general fitness estimate'));
+      expect(muscleRec.disclaimer, contains('medical'));
+
+      // Fat loss for 70kg individual (~2.0 g/kg)
+      final fatLossRec = FitnessCalculators.calculateDailyProteinRecommendation(
+        weightKg: 70.0,
+        fitnessGoal: 'Weight Loss',
+        activityLevel: 'moderately_active',
+      );
+      expect(fatLossRec.targetGrams, equals(140.0)); // 70 * 2.0
+      expect(fatLossRec.minGrams, equals(126.0)); // 70 * 1.8
+
+      // Zero weight edge case
+      final zeroRec = FitnessCalculators.calculateDailyProteinRecommendation(weightKg: 0);
+      expect(zeroRec.targetGrams, equals(0.0));
     });
 
     test('calculateCaloriesFromMacros accurately computes energy balance', () {
@@ -44,6 +90,69 @@ void main() {
   });
 
   group('Domain Models Tests', () {
+    test('UserModel integrates BMI, Protein recommendations, and profile fields', () {
+      final user = UserModel(
+        id: 'user_test_01',
+        name: 'Jordan Lee',
+        email: 'jordan@profit.app',
+        role: UserRole.self,
+        age: 26,
+        gender: 'male',
+        activityLevel: 'moderately_active',
+        goal: 'Build Muscle',
+        currentWeightKg: 75.0,
+        heightCm: 180.0,
+      );
+
+      // BMI integration
+      expect(user.bmi, closeTo(23.1, 0.1));
+      expect(user.bmiCategory, equals('Healthy Weight'));
+      expect(user.bmiResult.isHealthy, isTrue);
+
+      // Protein recommendation integration
+      expect(user.proteinRecommendation.targetGrams, equals(150.0)); // 75 * 2.0
+
+      // Serialization
+      final map = user.toMap();
+      expect(map['role'], equals('self'));
+      expect(map['age'], equals(26));
+      expect(map['gender'], equals('male'));
+      expect(map['activityLevel'], equals('moderately_active'));
+
+      final fromMap = UserModel.fromMap(map);
+      expect(fromMap.role, equals(UserRole.self));
+      expect(fromMap.age, equals(26));
+      expect(fromMap.gender, equals('male'));
+    });
+
+    test('TrainerMemberModel supports client metrics and authorized client BMI', () {
+      final clientRel = TrainerMemberModel(
+        id: 'rel_123',
+        trainerId: 'trainer_001',
+        memberId: 'client_001',
+        memberName: 'Chris Taylor',
+        memberGoal: 'Weight Loss',
+        clientWeightKg: 85.0,
+        clientHeightCm: 175.0,
+        clientAge: 29,
+        clientGender: 'male',
+      );
+
+      expect(clientRel.clientId, equals('client_001'));
+      expect(clientRel.clientBmi, closeTo(27.8, 0.1));
+      expect(clientRel.clientBmiCategory, equals('Overweight'));
+      expect(clientRel.clientProteinRecommendation, isNotNull);
+      expect(clientRel.clientProteinRecommendation!.targetGrams, equals(170.0)); // 85 * 2.0
+
+      final map = clientRel.toMap();
+      expect(map['clientWeightKg'], equals(85.0));
+      expect(map['clientHeightCm'], equals(175.0));
+
+      final fromMap = TrainerMemberModel.fromMap(map);
+      expect(fromMap.clientWeightKg, equals(85.0));
+      expect(fromMap.clientBmi, closeTo(27.8, 0.1));
+    });
+
     test('WorkoutModel computes progress percentage correctly', () {
       final ex1 = ExerciseModel(
         id: '1',
