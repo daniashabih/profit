@@ -127,9 +127,15 @@ void main() {
     }
 
     testWidgets('SignInScreen renders all fields, toggles, and CTAs', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(createTestApp(const SignInScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Welcome Back'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
@@ -141,9 +147,15 @@ void main() {
     });
 
     testWidgets('SignUpScreen renders fields, role cards, and validates input', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(createTestApp(const SignUpScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Create Account 🚀'), findsOneWidget);
       expect(find.text('Full Name'), findsOneWidget);
@@ -156,17 +168,22 @@ void main() {
 
       // Tap submit with empty fields to trigger validation
       await tester.tap(find.text('Create Account'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Please enter your full name'), findsOneWidget);
       expect(find.text('Please enter your email'), findsOneWidget);
     });
 
     testWidgets('ForgotPasswordScreen renders input, back link, and success message on submit', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(createTestApp(const ForgotPasswordScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Reset Password 🔑'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
@@ -175,8 +192,7 @@ void main() {
       // Enter valid email and submit
       await tester.enterText(find.byType(TextFormField), 'athlete@profit.app');
       await tester.tap(find.text('Send Reset Link'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Password Reset Email Sent'), findsOneWidget);
       expect(find.textContaining('Password reset email has been sent'), findsOneWidget);

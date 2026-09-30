@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
+export '../auth/primary_button.dart';
+export '../auth/loading_button.dart';
+
 class FitFlowButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;

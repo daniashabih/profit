@@ -6,11 +6,11 @@ import '../../core/utils/role_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/common/profit_logo.dart';
-import '../../widgets/common/fit_flow_button.dart';
-import '../../widgets/common/fit_flow_text_field.dart';
+import '../../widgets/auth/auth_widgets.dart';
 import '../trainer/trainer_onboarding_screen.dart';
 
+/// Clean, minimal, premium Sign Up screen for PROFIT.
+/// Keeps registration simple, intuitive, and comfortable across devices.
 class SignUpScreen extends StatefulWidget {
   final UserRole initialRole;
 
@@ -30,14 +30,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
+
   late UserRole _selectedRole;
 
   @override
   void initState() {
     super.initState();
-    // Newly registered user defaults to role: 'self_trainer' (represented by UserRole.self)
     _selectedRole = widget.initialRole;
   }
 
@@ -47,13 +48,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignUp() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
     final authProv = context.read<AuthProvider>();
+    if (authProv.isLoading) return;
+
     final roleProv = context.read<RoleProvider>();
 
     final success = await authProv.register(
@@ -71,15 +79,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (_selectedRole == UserRole.trainer) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (_) => TrainerOnboardingScreen(user: authProv.user),
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 350),
+            pageBuilder: (_, _, _) =>
+                TrainerOnboardingScreen(user: authProv.user),
+            transitionsBuilder: (_, animation, _, child) =>
+                FadeTransition(opacity: animation, child: child),
           ),
           (route) => false,
         );
       } else {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => getRoleBasedHomeScreen(_selectedRole)),
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 350),
+            pageBuilder: (_, _, _) =>
+                getRoleBasedHomeScreen(_selectedRole),
+            transitionsBuilder: (_, animation, _, child) =>
+                FadeTransition(opacity: animation, child: child),
+          ),
           (route) => false,
         );
       }
@@ -101,277 +119,238 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authProv = context.watch<AuthProvider>();
     final horizontalPadding = ResponsiveBreakpoints.horizontalPadding(context);
+    final textSecondaryColor =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: 'Back',
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: ResponsiveBreakpoints.maxContentWidth,
-            ),
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: 12,
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: ResponsiveBreakpoints.maxContentWidth,
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top Brand Logo
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: 20),
-                        child: ProFitLogo(
-                          size: 64,
-                          showText: true,
-                          showTagline: true,
-                          fontSize: 26,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 12,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      const Center(
+                        child: AuthHeader(
+                          title: 'Create Account 🚀',
+                          subtitle:
+                              'Start your fitness journey with Profit.',
+                          logoSize: 64,
+                          centerContent: false,
+                          showTagline: false,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
 
-                    // Header
-                    const Text(
-                      'Create Account 🚀',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                      // Error message banner
+                      ErrorMessage(
+                        error: authProv.errorMessage,
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Join PROFIT and take full control of your fitness progress',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : AppColors.lightTextSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
 
-                    // Error banner
-                    if (authProv.errorMessage != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.error.withOpacity(0.4)),
+                      // Role Selection (Athlete vs Trainer)
+                      Text(
+                        'Account Type',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.1,
+                          color: textSecondaryColor,
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline_rounded,
-                              color: AppColors.error,
-                              size: 20,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildRoleCard(
+                              title: 'Self Trainer',
+                              subtitle: 'Track your own fitness',
+                              role: UserRole.self,
+                              icon: Icons.person_rounded,
+                              isDark: isDark,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                authProv.errorMessage!,
-                                style: const TextStyle(
-                                  color: AppColors.error,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildRoleCard(
+                              title: 'Trainer',
+                              subtitle: 'Manage client athletes',
+                              role: UserRole.trainer,
+                              icon: Icons.sports_rounded,
+                              isDark: isDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Full Name Field
+                      AppTextField(
+                        controller: _nameController,
+                        label: 'Full Name',
+                        hintText: 'e.g. Alex Rivera',
+                        prefixIcon: Icons.person_outline_rounded,
+                        textCapitalization: TextCapitalization.words,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_emailFocusNode);
+                        },
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter your full name';
+                          }
+                          if (val.trim().length < 2) {
+                            return 'Name must be at least 2 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Email Field
+                      AppTextField(
+                        controller: _emailController,
+                        focusNode: _emailFocusNode,
+                        label: 'Email Address',
+                        hintText: 'name@example.com',
+                        prefixIcon: Icons.mail_outline_rounded,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_passwordFocusNode);
+                        },
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          final emailRegex = RegExp(
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                          );
+                          if (!emailRegex.hasMatch(val.trim())) {
+                            return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Password Field
+                      PasswordField(
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        label: 'Password',
+                        hintText: 'Minimum 6 characters',
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_confirmPasswordFocusNode);
+                        },
+                        validator: (val) {
+                          if (val == null || val.isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          if (val.length < 6) {
+                            return 'Password must be at least 6 characters long';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Confirm Password Field
+                      PasswordField(
+                        controller: _confirmPasswordController,
+                        focusNode: _confirmPasswordFocusNode,
+                        label: 'Confirm Password',
+                        hintText: 'Re-enter your password',
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleSignUp(),
+                        validator: (val) {
+                          if (val == null || val.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (val != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Submit Button
+                      PrimaryButton(
+                        text: 'Create Account',
+                        isLoading: authProv.isLoading,
+                        onPressed:
+                            authProv.isLoading ? null : _handleSignUp,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Already have an account -> Sign In
+                      Center(
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              'Already have an account? ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: textSecondaryColor,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: 2,
+                                ),
+                                child: Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? AppColors.primaryLime
+                                        : const Color(0xFF111827),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 20),
                     ],
-
-                    // Role Selection Cards (Self Trainer vs Trainer)
-                    const Text(
-                      'Account Type',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildRoleCard(
-                            title: 'Self Trainer',
-                            subtitle: 'Track your own fitness',
-                            role: UserRole.self,
-                            icon: Icons.person_rounded,
-                            isDark: isDark,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildRoleCard(
-                            title: 'Trainer',
-                            subtitle: 'Manage client athletes',
-                            role: UserRole.trainer,
-                            icon: Icons.sports_rounded,
-                            isDark: isDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Full Name Field
-                    FitFlowTextField(
-                      controller: _nameController,
-                      label: 'Full Name',
-                      hintText: 'e.g. Alex Rivera',
-                      textInputAction: TextInputAction.next,
-                      prefixIcon: Icons.person_outline_rounded,
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) {
-                          return 'Please enter your full name';
-                        }
-                        if (val.trim().length < 2) {
-                          return 'Name must be at least 2 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email Field
-                    FitFlowTextField(
-                      controller: _emailController,
-                      label: 'Email Address',
-                      hintText: 'name@example.com',
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      prefixIcon: Icons.mail_outline_rounded,
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        final emailRegex = RegExp(
-                          r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                        );
-                        if (!emailRegex.hasMatch(val.trim())) {
-                          return 'Please enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password Field
-                    FitFlowTextField(
-                      controller: _passwordController,
-                      label: 'Password',
-                      hintText: 'Minimum 6 characters',
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.next,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      validator: (val) {
-                        if (val == null || val.isEmpty) {
-                          return 'Please enter a password';
-                        }
-                        if (val.length < 6) {
-                          return 'Password must be at least 6 characters long';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Confirm Password Field
-                    FitFlowTextField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirm Password',
-                      hintText: 'Re-enter your password',
-                      obscureText: _obscureConfirmPassword,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _handleSignUp(),
-                      prefixIcon: Icons.lock_clock_outlined,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                        ),
-                      ),
-                      validator: (val) {
-                        if (val == null || val.isEmpty) {
-                          return 'Please confirm your password';
-                        }
-                        if (val != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 28),
-
-                    // Create Account Button with Loading State & Disabled when processing
-                    FitFlowButton(
-                      text: 'Create Account',
-                      isLoading: authProv.isLoading,
-                      onPressed: authProv.isLoading ? null : _handleSignUp,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Already have an account -> Sign In
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account? ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryLime,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -389,6 +368,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required bool isDark,
   }) {
     final isSelected = _selectedRole == role;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedRole = role),
       child: AnimatedContainer(
@@ -396,14 +376,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryLime.withOpacity(0.12)
-              : (isDark ? AppColors.darkSurface : Colors.grey.shade50),
+              ? AppColors.primaryLime.withOpacity(isDark ? 0.12 : 0.15)
+              : (isDark ? AppColors.darkSurfaceElevated : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? AppColors.primaryLime
                 : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 1.8 : 1.0,
           ),
         ),
         child: Column(
@@ -415,8 +395,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Icon(
                   icon,
                   color: isSelected
-                      ? AppColors.primaryLime
-                      : (isDark ? Colors.white70 : Colors.black87),
+                      ? (isDark
+                          ? AppColors.primaryLime
+                          : const Color(0xFF111827))
+                      : (isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted),
                   size: 22,
                 ),
                 if (isSelected)
@@ -431,11 +415,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Text(
               title,
               style: TextStyle(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 fontSize: 14,
                 color: isSelected
-                    ? AppColors.primaryLime
-                    : (isDark ? Colors.white : Colors.black87),
+                    ? (isDark ? Colors.white : const Color(0xFF111827))
+                    : (isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary),
               ),
             ),
             const SizedBox(height: 2),

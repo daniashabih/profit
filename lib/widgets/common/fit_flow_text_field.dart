@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
+export '../auth/app_text_field.dart';
+export '../auth/password_field.dart';
+
 class FitFlowTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String hintText;

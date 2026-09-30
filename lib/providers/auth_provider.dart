@@ -41,9 +41,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
       final prefs = await SharedPreferences.getInstance();
       _hasOnboarded = prefs.getBool(AppConstants.keyHasOnboarded) ?? false;
@@ -51,7 +48,6 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = AppError.fromException(e).message;
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
