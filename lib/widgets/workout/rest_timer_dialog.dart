@@ -5,17 +5,36 @@ import '../../core/utils/formatters.dart';
 import '../../theme/app_colors.dart';
 import '../common/fit_flow_button.dart';
 
-class RestTimerDialog extends StatelessWidget {
+class RestTimerDialog extends StatefulWidget {
   final int? initialSeconds;
   const RestTimerDialog({super.key, this.initialSeconds});
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, {int? initialSeconds}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const RestTimerDialog(),
+      builder: (_) => RestTimerDialog(initialSeconds: initialSeconds),
     );
+  }
+
+  @override
+  State<RestTimerDialog> createState() => _RestTimerDialogState();
+}
+
+class _RestTimerDialogState extends State<RestTimerDialog> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final workoutProv = context.read<WorkoutProvider>();
+      if (widget.initialSeconds != null && widget.initialSeconds! > 0) {
+        workoutProv.startRestTimer(seconds: widget.initialSeconds);
+      } else if (!workoutProv.isRestTimerActive) {
+        workoutProv.startRestTimer();
+      }
+    });
   }
 
   @override
@@ -28,13 +47,15 @@ class RestTimerDialog extends StatelessWidget {
         final progress = workoutProv.restTimerProgress;
         final isActive = workoutProv.isRestTimerActive;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Handle bar
@@ -167,10 +188,11 @@ class RestTimerDialog extends StatelessWidget {
               ),
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildQuickAddChip(
     BuildContext context, {

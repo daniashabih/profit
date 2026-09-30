@@ -77,10 +77,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
     // If set was marked completed, trigger rest timer
     if (_exerciseSets[exerciseId]![setIndex].isCompleted) {
       final ex = widget.workoutDay.exercises.firstWhere((e) => e.id == exerciseId);
-      showDialog(
-        context: context,
-        builder: (_) => RestTimerDialog(initialSeconds: ex.restTimeSeconds),
-      );
+      RestTimerDialog.show(context, initialSeconds: ex.restTimeSeconds);
     }
   }
 
@@ -408,10 +405,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                 IconButton(
                   icon: const Icon(Icons.timer_outlined, color: AppColors.primaryLime),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => RestTimerDialog(initialSeconds: ex.restTimeSeconds),
-                    );
+                    RestTimerDialog.show(context, initialSeconds: ex.restTimeSeconds);
                   },
                 ),
               ],

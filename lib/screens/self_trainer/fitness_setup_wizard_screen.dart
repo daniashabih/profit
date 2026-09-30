@@ -209,27 +209,21 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
       body: SafeArea(
         child: _isGenerating
             ? _buildGeneratingState(isDark)
-            : Column(
+            : PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (step) => setState(() => _currentStep = step),
                 children: [
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (step) => setState(() => _currentStep = step),
-                      children: [
-                        _buildStep1BasicInfo(isDark),
-                        _buildStep2Measurements(isDark),
-                        _buildStep3Goal(isDark),
-                        _buildStep4BmiCalculation(isDark),
-                        _buildStep5TargetWeight(isDark),
-                        _buildStep6TrainingDays(isDark),
-                      ],
-                    ),
-                  ),
-                  _buildBottomBar(isDark),
+                  _buildStep1BasicInfo(isDark),
+                  _buildStep2Measurements(isDark),
+                  _buildStep3Goal(isDark),
+                  _buildStep4BmiCalculation(isDark),
+                  _buildStep5TargetWeight(isDark),
+                  _buildStep6TrainingDays(isDark),
                 ],
               ),
       ),
+      bottomNavigationBar: _isGenerating ? null : _buildBottomBar(isDark),
     );
   }
 
@@ -408,7 +402,9 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Height', style: _labelStyle(isDark)),
+              Expanded(
+                child: Text('Height', style: _labelStyle(isDark)),
+              ),
               Container(
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
@@ -794,9 +790,9 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatCol('Height', '${_heightCm.toStringAsFixed(1)} cm', isDark),
-                    _buildStatCol('Weight', '${_currentWeightKg.toStringAsFixed(1)} kg', isDark),
-                    _buildStatCol('Healthy Span', '${healthyRange.minKg}–${healthyRange.maxKg} kg', isDark),
+                    Expanded(child: _buildStatCol('Height', '${_heightCm.toStringAsFixed(1)} cm', isDark)),
+                    Expanded(child: _buildStatCol('Weight', '${_currentWeightKg.toStringAsFixed(1)} kg', isDark)),
+                    Expanded(child: _buildStatCol('Healthy Span', '${healthyRange.minKg}–${healthyRange.maxKg} kg', isDark)),
                   ],
                 ),
               ],
@@ -817,6 +813,8 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
       children: [
         Text(
           title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 12,
             color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -825,6 +823,9 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
         const SizedBox(height: 4),
         Text(
           value,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ],
@@ -860,7 +861,9 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Current Weight', style: _labelStyle(isDark)),
+                    Expanded(
+                      child: Text('Current Weight', style: _labelStyle(isDark)),
+                    ),
                     Text(
                       '${_currentWeightKg.toStringAsFixed(1)} kg',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
@@ -871,7 +874,14 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Suggested Healthy Range', style: _labelStyle(isDark)),
+                    Expanded(
+                      child: Text(
+                        'Suggested Healthy Range',
+                        style: _labelStyle(isDark),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     Text(
                       '${healthyRange.minKg} – ${healthyRange.maxKg} kg',
                       style: const TextStyle(
@@ -1070,52 +1080,60 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
   Widget _buildBottomBar(bool isDark) {
     final isLastStep = _currentStep == _totalSteps - 1;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
-        border: Border(
-          top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
+          border: Border(
+            top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          if (_currentStep > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: OutlinedButton(
-                onPressed: _prevPage,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ),
-                child: Text(
-                  'Back',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : Colors.black,
+        child: Row(
+          children: [
+            if (_currentStep > 0)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: OutlinedButton(
+                  onPressed: _prevPage,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  ),
+                  child: Text(
+                    'Back',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
               ),
-            ),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: isLastStep ? _generatePlanAndFinish : _nextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryLime,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 0,
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isLastStep ? _generatePlanAndFinish : _nextPage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryLime,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  isLastStep ? 'Generate My Fitness Plan' : 'Continue',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                ),
               ),
-              child: Text(
-                isLastStep ? 'Generate My Fitness Plan' : 'Continue',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
