@@ -4,8 +4,9 @@ import '../../core/enums/user_role.dart';
 import '../../core/utils/role_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/auth/auth_widgets.dart';
 import '../../widgets/common/profit_logo.dart';
-import '../../widgets/common/fit_flow_button.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../auth/sign_in_screen.dart';
 
@@ -83,85 +84,49 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1117),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background Fitness Image (matching Mockup Screen 1)
-          Image.network(
-            'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1000',
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              color: const Color(0xFF0F1216),
-            ),
-          ),
+      backgroundColor: AppColors.darkBackground,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Spacer(flex: 3),
 
-          // Gradient overlay for dark cinematic effect
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.black.withOpacity(0.4),
-                  const Color(0xFF0F1216).withOpacity(0.85),
-                  const Color(0xFF0F1216),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: const [0.0, 0.55, 0.9],
-              ),
-            ),
-          ),
-
-          // Content
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(flex: 3),
-
-                  // Brand Logo & Title
-                  FadeTransition(
-                    opacity: _fadeAnim,
-                    child: ScaleTransition(
-                      scale: _scaleAnim,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const ProFitLogo(
-                            size: 96,
-                            showText: true,
-                            showTagline: true,
-                            fontSize: 38,
-                            taglineFontSize: 15,
-                            textColor: Colors.white,
-                            logoColor: Colors.white,
-                          ),
-                        ],
-                      ),
-                    ),
+              // Brand Logo & Title
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: ScaleTransition(
+                  scale: _scaleAnim,
+                  child: const ProFitLogo(
+                    size: 96,
+                    showText: true,
+                    showTagline: true,
+                    fontSize: 38,
+                    taglineFontSize: 15,
+                    textColor: Colors.white,
+                    logoColor: Colors.white,
                   ),
-
-                  const Spacer(flex: 2),
-
-                  // CTA Button: "Get Started →" (Screen 1 in mockup)
-                  FadeTransition(
-                    opacity: _fadeAnim,
-                    child: FitFlowButton(
-                      text: 'Get Started →',
-                      height: 56,
-                      borderRadius: 28,
-                      onPressed: _navigateToNext,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                ),
               ),
-            ),
+
+              const Spacer(flex: 2),
+
+              // CTA Button: "Get Started →"
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: PrimaryButton(
+                  text: 'Get Started →',
+                  height: 56,
+                  borderRadius: 28,
+                  onPressed: _navigateToNext,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

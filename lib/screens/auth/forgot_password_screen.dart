@@ -185,15 +185,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header with logo
-          const Center(
-            child: AuthHeader(
-              title: 'Reset Password 🔑',
-              subtitle:
-                  'Enter your email and we\'ll send you a link to reset your password.',
-              logoSize: 64,
-              centerContent: false,
-              showTagline: false,
-            ),
+          const AuthHeader(
+            title: 'Reset Password 🔑',
+            subtitle:
+                'Enter your email and we\'ll send you a link to reset your password.',
+            logoSize: 64,
+            centerContent: false,
+            showTagline: false,
           ),
           const SizedBox(height: 28),
 

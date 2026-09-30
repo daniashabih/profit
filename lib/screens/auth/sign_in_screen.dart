@@ -105,15 +105,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 8),
 
                       // Brand Header: Logo, Title, and Subtitle
-                      const Center(
-                        child: AuthHeader(
-                          title: 'Welcome Back',
-                          subtitle:
-                              'Sign in to continue your fitness journey.',
-                          logoSize: 72,
-                          centerContent: false,
-                          showTagline: false,
-                        ),
+                      const AuthHeader(
+                        title: 'Welcome Back',
+                        subtitle:
+                            'Sign in to continue your fitness journey.',
+                        logoSize: 68,
+                        centerContent: false,
+                        showTagline: false,
                       ),
                       const SizedBox(height: 28),
 

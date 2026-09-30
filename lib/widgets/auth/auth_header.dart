@@ -35,15 +35,13 @@ class AuthHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showLogo) ...[
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: ProFitLogo(
-                size: logoSize,
-                showText: true,
-                showTagline: showTagline,
-                fontSize: 26,
-              ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: ProFitLogo(
+              size: logoSize,
+              showText: true,
+              showTagline: showTagline,
+              fontSize: 26,
             ),
           ),
         ],

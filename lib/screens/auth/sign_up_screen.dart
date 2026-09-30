@@ -156,15 +156,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header
-                      const Center(
-                        child: AuthHeader(
-                          title: 'Create Account 🚀',
-                          subtitle:
-                              'Start your fitness journey with Profit.',
-                          logoSize: 64,
-                          centerContent: false,
-                          showTagline: false,
-                        ),
+                      const AuthHeader(
+                        title: 'Create Account 🚀',
+                        subtitle:
+                            'Start your fitness journey with Profit.',
+                        logoSize: 64,
+                        centerContent: false,
+                        showTagline: false,
                       ),
                       const SizedBox(height: 24),
 
