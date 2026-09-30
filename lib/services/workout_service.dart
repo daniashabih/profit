@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/workout_model.dart';
 import '../models/workout_set_model.dart';
@@ -6,15 +7,16 @@ import '../core/errors/app_error.dart';
 /// WorkoutService provides full dynamic Cloud Firestore CRUD and streams for the
 /// 'workouts' collection, adhering to firestore.rules isValidWorkout validator.
 class WorkoutService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestore;
 
   WorkoutService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? (Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null);
 
   static const String colWorkouts = 'workouts';
 
   /// Streams workouts owned by a specific athlete or created for a client
   Stream<List<WorkoutModel>> streamUserWorkouts(String userId) {
+    if (_firestore == null) return const Stream.empty();
     return _firestore
         .collection(colWorkouts)
         .where('userId', isEqualTo: userId)
@@ -32,6 +34,7 @@ class WorkoutService {
 
   /// Fetches workouts owned by a specific user once
   Future<List<WorkoutModel>> getUserWorkouts(String userId) async {
+    if (_firestore == null) return [];
     try {
       final snapshot = await _firestore
           .collection(colWorkouts)
@@ -52,6 +55,7 @@ class WorkoutService {
 
   /// Streams workout plan templates available across the app
   Stream<List<WorkoutModel>> streamTemplateWorkouts() {
+    if (_firestore == null) return const Stream.empty();
     return _firestore
         .collection(colWorkouts)
         .where('isTemplate', isEqualTo: true)
@@ -69,6 +73,7 @@ class WorkoutService {
 
   /// Creates a new workout or plan in Firestore
   Future<void> createWorkout(WorkoutModel workout) async {
+    if (_firestore == null) return;
     try {
       final docRef = workout.id.isNotEmpty
           ? _firestore.collection(colWorkouts).doc(workout.id)
@@ -85,6 +90,7 @@ class WorkoutService {
 
   /// Updates an existing workout
   Future<void> updateWorkout(WorkoutModel workout) async {
+    if (_firestore == null) return;
     try {
       final payload = workout.toFirestoreMap();
       payload['updatedAt'] = DateTime.now().toIso8601String();
@@ -96,6 +102,7 @@ class WorkoutService {
 
   /// Deletes a workout from Firestore
   Future<void> deleteWorkout(String workoutId) async {
+    if (_firestore == null) return;
     try {
       await _firestore.collection(colWorkouts).doc(workoutId).delete();
     } catch (e) {
@@ -105,6 +112,7 @@ class WorkoutService {
 
   /// Toggles today's completion status for a workout
   Future<void> toggleWorkoutComplete(String workoutId, bool isCompleted) async {
+    if (_firestore == null) return;
     try {
       await _firestore.collection(colWorkouts).doc(workoutId).update({
         'isCompletedToday': isCompleted,
@@ -122,6 +130,7 @@ class WorkoutService {
     int setIndex,
     WorkoutSetModel updatedSet,
   ) async {
+    if (_firestore == null) return;
     try {
       final doc = await _firestore.collection(colWorkouts).doc(workoutId).get();
       if (!doc.exists || doc.data() == null) return;
@@ -143,6 +152,7 @@ class WorkoutService {
 
   /// Adds an exercise set in a workout
   Future<void> addExerciseSet(String workoutId, String exerciseId) async {
+    if (_firestore == null) return;
     try {
       final doc = await _firestore.collection(colWorkouts).doc(workoutId).get();
       if (!doc.exists || doc.data() == null) return;
@@ -170,6 +180,7 @@ class WorkoutService {
 
   /// Marks an exercise complete within a workout
   Future<void> markExerciseComplete(String workoutId, String exerciseId) async {
+    if (_firestore == null) return;
     try {
       final doc = await _firestore.collection(colWorkouts).doc(workoutId).get();
       if (!doc.exists || doc.data() == null) return;

@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/trainer_member_model.dart';
 import '../models/user_model.dart';
@@ -9,10 +10,10 @@ import '../core/errors/app_error.dart';
 /// ClientService handles dynamic Cloud Firestore CRUD and streams for the
 /// 'trainer_members' collection and authorized trainer access to client metrics.
 class ClientService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestore;
 
   ClientService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? (Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null);
 
   static const String colTrainerMembers = 'trainer_members';
   static const String colUsers = 'users';
@@ -22,6 +23,7 @@ class ClientService {
 
   /// Streams active trainer-member relationships for a specific trainer
   Stream<List<ClientModel>> streamClientsForTrainer(String trainerId) {
+    if (_firestore == null) return const Stream.empty();
     return _firestore
         .collection(colTrainerMembers)
         .where('trainerId', isEqualTo: trainerId)
@@ -39,6 +41,7 @@ class ClientService {
 
   /// Fetches the client roster for a trainer once
   Future<List<ClientModel>> getClientsForTrainer(String trainerId) async {
+    if (_firestore == null) return [];
     try {
       final snapshot = await _firestore
           .collection(colTrainerMembers)
@@ -59,6 +62,7 @@ class ClientService {
 
   /// Adds a new client to the trainer's roster
   Future<void> addClient(ClientModel client) async {
+    if (_firestore == null) return;
     try {
       final docRef = client.id.isNotEmpty
           ? _firestore.collection(colTrainerMembers).doc(client.id)
@@ -75,6 +79,7 @@ class ClientService {
 
   /// Updates an existing client's relationship data (plan, status, progress)
   Future<void> updateClient(ClientModel client) async {
+    if (_firestore == null) return;
     try {
       final docId = client.id.isNotEmpty
           ? client.id
@@ -91,6 +96,7 @@ class ClientService {
 
   /// Assigns a workout plan to an athlete
   Future<void> assignPlanToClient(String relationshipId, String planTitle) async {
+    if (_firestore == null) return;
     try {
       await _firestore.collection(colTrainerMembers).doc(relationshipId).update({
         'assignedPlan': planTitle,
@@ -104,6 +110,7 @@ class ClientService {
 
   /// Deletes a client relationship from Firestore
   Future<void> deleteClient(String relationshipId) async {
+    if (_firestore == null) return;
     try {
       await _firestore.collection(colTrainerMembers).doc(relationshipId).delete();
     } catch (e) {
@@ -113,6 +120,7 @@ class ClientService {
 
   /// Fetches the client's underlying UserModel profile (weight, height, BMI)
   Future<UserModel?> getClientFullProfile(String clientUid) async {
+    if (_firestore == null) return null;
     try {
       final doc = await _firestore.collection(colUsers).doc(clientUid).get();
       if (!doc.exists || doc.data() == null) return null;
@@ -124,6 +132,7 @@ class ClientService {
 
   /// Fetches client's measurement history for trainer progress monitoring
   Future<List<BodyMeasurementModel>> getClientMeasurements(String clientUid) async {
+    if (_firestore == null) return [];
     try {
       final snapshot = await _firestore
           .collection(colMeasurements)
@@ -133,7 +142,7 @@ class ClientService {
       final list = snapshot.docs.map((d) {
         final data = Map<String, dynamic>.from(d.data());
         if (!data.containsKey('id') || (data['id']?.toString().isEmpty ?? true)) {
-          data['id'] = d.id;
+          data['id'] = docIdOrDefault(d.id);
         }
         return BodyMeasurementModel.fromMap(data);
       }).toList();
@@ -145,8 +154,11 @@ class ClientService {
     }
   }
 
+  static String docIdOrDefault(String id) => id;
+
   /// Fetches client's today nutrition log for trainer macro monitoring
   Future<DailyNutritionModel?> getClientTodayNutrition(String clientUid) async {
+    if (_firestore == null) return null;
     try {
       final todayStr = DateTime.now().toIso8601String().split('T').first;
       final snapshot = await _firestore
@@ -167,6 +179,7 @@ class ClientService {
 
   /// Fetches client's assigned workouts
   Future<List<WorkoutModel>> getClientWorkouts(String clientUid) async {
+    if (_firestore == null) return [];
     try {
       final snapshot = await _firestore
           .collection(colWorkouts)

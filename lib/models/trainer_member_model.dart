@@ -15,6 +15,7 @@ class TrainerMemberModel {
   final String status; // 'active', 'pending', 'inactive'
   final DateTime createdAt;
   final double progressPercent;
+  final int streakDays;
   final double? clientWeightKg;
   final double? clientHeightCm;
   final int? clientAge;
@@ -61,6 +62,7 @@ class TrainerMemberModel {
     this.status = 'active',
     DateTime? createdAt,
     this.progressPercent = 0.75,
+    this.streakDays = 0,
     this.clientWeightKg,
     this.clientHeightCm,
     this.clientAge,
@@ -83,6 +85,7 @@ class TrainerMemberModel {
     String? status,
     DateTime? createdAt,
     double? progressPercent,
+    int? streakDays,
     double? clientWeightKg,
     double? clientHeightCm,
     int? clientAge,
@@ -104,6 +107,7 @@ class TrainerMemberModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       progressPercent: progressPercent ?? this.progressPercent,
+      streakDays: streakDays ?? this.streakDays,
       clientWeightKg: clientWeightKg ?? this.clientWeightKg,
       clientHeightCm: clientHeightCm ?? this.clientHeightCm,
       clientAge: clientAge ?? this.clientAge,
@@ -129,6 +133,7 @@ class TrainerMemberModel {
       'status': status,
       'createdAt': createdAt.toIso8601String(),
       'progressPercent': progressPercent,
+      'streakDays': streakDays,
       if (clientWeightKg != null) 'clientWeightKg': clientWeightKg,
       if (clientHeightCm != null) 'clientHeightCm': clientHeightCm,
       if (clientAge != null) 'clientAge': clientAge,
@@ -174,6 +179,7 @@ class TrainerMemberModel {
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       progressPercent: (map['progressPercent'] as num?)?.toDouble() ?? 0.0,
+      streakDays: (map['streakDays'] as num?)?.toInt() ?? 0,
       clientWeightKg: (map['clientWeightKg'] as num?)?.toDouble(),
       clientHeightCm: (map['clientHeightCm'] as num?)?.toDouble(),
       clientAge: (map['clientAge'] as num?)?.toInt(),

@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/trainer_member_model.dart';
@@ -12,14 +13,14 @@ import 'progress_service.dart';
 /// FirestoreService provides production-ready Cloud Firestore integration for PROFIT,
 /// handling user documents, security validations, and collection access.
 class FirestoreService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestore;
   late final ClientService clients;
   late final WorkoutService workouts;
   late final MealService meals;
   late final ProgressService progress;
 
   FirestoreService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance {
+      : _firestore = firestore ?? (Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null) {
     clients = ClientService(firestore: _firestore);
     workouts = WorkoutService(firestore: _firestore);
     meals = MealService(firestore: _firestore);
@@ -45,6 +46,7 @@ class FirestoreService {
 
   /// Fetches a user profile from Cloud Firestore: users/{uid}
   Future<UserModel?> getUserProfile(String uid) async {
+    if (_firestore == null) return null;
     try {
       final doc = await _firestore.collection(colUsers).doc(uid).get();
       if (!doc.exists || doc.data() == null) {
@@ -58,6 +60,7 @@ class FirestoreService {
 
   /// Creates or updates a user document in Cloud Firestore: users/{uid}
   Future<void> createUserProfile(UserModel user) async {
+    if (_firestore == null) return;
     try {
       final payload = user.toFirestoreMap();
       await _firestore
@@ -71,6 +74,7 @@ class FirestoreService {
 
   /// Updates specific profile fields for a user in Cloud Firestore
   Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    if (_firestore == null) return;
     try {
       final updateData = Map<String, dynamic>.from(data);
       updateData['updatedAt'] = DateTime.now().toIso8601String();
@@ -82,6 +86,7 @@ class FirestoreService {
 
   /// Checks if a user profile document exists in Cloud Firestore
   Future<bool> userExists(String uid) async {
+    if (_firestore == null) return false;
     try {
       final doc = await _firestore.collection(colUsers).doc(uid).get();
       return doc.exists;

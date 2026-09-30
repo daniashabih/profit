@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/charts/weight_line_chart.dart';
@@ -14,6 +15,16 @@ class ProgressScreen extends StatefulWidget {
 
 class _ProgressScreenState extends State<ProgressScreen> {
   int _selectedTab = 0; // 0: Weight, 1: Body Fat, 2: Measurements
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authProv = Provider.of<AuthProvider?>(context, listen: false);
+    final progressProv = Provider.of<ProgressProvider?>(context, listen: false);
+    if (authProv?.user != null && progressProv != null) {
+      progressProv.bindUser(authProv!.user!.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,10 +206,103 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              const Text(
+                'Recent Log Entries',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+              ...measurements.reversed.take(5).map((m) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF161A20) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.monitor_weight_outlined, size: 20, color: AppColors.primaryLime),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${m.weightKg.toStringAsFixed(1)} kg',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                            ),
+                            Text(
+                              '${m.date.day}/${m.date.month}/${m.date.year}${m.note != null ? ' • ${m.note}' : ''}',
+                              style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                        onPressed: () => _confirmDeleteMeasurement(context, m.id, m.weightKg),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 24),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  void _confirmDeleteMeasurement(BuildContext context, String measurementId, double weightKg) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+              SizedBox(width: 8),
+              Text('Delete Record?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to remove the ${weightKg.toStringAsFixed(1)} kg measurement entry? This action cannot be undone.',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.read<ProgressProvider>().deleteMeasurement(measurementId);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Measurement record deleted.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
     );
   }
 

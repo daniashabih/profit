@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/trainer_provider.dart';
+import '../../models/trainer_member_model.dart';
+import '../../models/workout_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../../widgets/common/fit_flow_card.dart';
@@ -19,100 +22,151 @@ class TrainerDashboardScreen extends StatefulWidget {
 
 class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
   late int _currentIndex;
+  bool _initializedTrainer = false;
 
-  // Local state for interactive demo data
-  int _pendingCount = 2;
-  final List<_TrainerMemberItem> _members = [
-    _TrainerMemberItem(
+  // Local fallback items in case TrainerProvider is not registered in the widget tree (e.g. tests)
+  final List<ClientModel> _fallbackClients = [
+    ClientModel(
       id: 'm_01',
-      name: 'Alex Rivera',
-      email: 'alex.rivera@example.com',
-      goal: 'Build Muscle & Bulk',
+      trainerId: 'trainer_01',
+      memberId: 'usr_alex',
+      memberName: 'Alex Rivera',
+      memberEmail: 'alex.rivera@example.com',
+      memberGoal: 'Build Muscle & Bulk',
       assignedPlan: 'Upper/Lower 4-Day Split',
       streakDays: 8,
       progressPercent: 0.85,
-      status: 'Active',
-      statusColor: AppColors.primaryLime,
-      avatarChar: 'A',
+      status: 'active',
+      clientWeightKg: 82.5,
+      clientHeightCm: 180.0,
+      clientAge: 26,
+      clientGender: 'Male',
+      clientActivityLevel: 'very_active',
+      phone: '+1 (555) 234-5678',
+      notes: 'Targeting 200g protein daily. Solid bench progression.',
     ),
-    _TrainerMemberItem(
+    ClientModel(
       id: 'm_02',
-      name: 'Sarah Connor',
-      email: 'sarah.c@example.com',
-      goal: 'Fat Loss & Conditioning',
+      trainerId: 'trainer_01',
+      memberId: 'usr_sarah',
+      memberName: 'Sarah Connor',
+      memberEmail: 'sarah.c@example.com',
+      memberGoal: 'Fat Loss & Conditioning',
       assignedPlan: 'Metabolic HIIT & Cardio',
       streakDays: 12,
       progressPercent: 0.92,
-      status: 'Active',
-      statusColor: AppColors.primaryLime,
-      avatarChar: 'S',
+      status: 'active',
+      clientWeightKg: 64.0,
+      clientHeightCm: 168.0,
+      clientAge: 29,
+      clientGender: 'Female',
+      clientActivityLevel: 'moderately_active',
+      phone: '+1 (555) 345-6789',
+      notes: 'High compliance. Preparing for 10k run.',
     ),
-    _TrainerMemberItem(
+    ClientModel(
       id: 'm_03',
-      name: 'James Wilson',
-      email: 'j.wilson@example.com',
-      goal: 'Strength & 1RM Gains',
+      trainerId: 'trainer_01',
+      memberId: 'usr_james',
+      memberName: 'James Wilson',
+      memberEmail: 'j.wilson@example.com',
+      memberGoal: 'Strength & 1RM Gains',
       assignedPlan: 'Push / Pull / Legs',
       streakDays: 4,
       progressPercent: 0.65,
-      status: 'Active',
-      statusColor: AppColors.primaryLime,
-      avatarChar: 'J',
+      status: 'active',
+      clientWeightKg: 91.0,
+      clientHeightCm: 185.0,
+      clientAge: 32,
+      clientGender: 'Male',
+      clientActivityLevel: 'very_active',
+      phone: '+1 (555) 456-7890',
+      notes: 'Squat 1RM increasing steadily. Focus on mobility.',
     ),
-    _TrainerMemberItem(
+    ClientModel(
       id: 'm_04',
-      name: 'Maya Lin',
-      email: 'maya.lin@example.com',
-      goal: 'General Health & Tone',
+      trainerId: 'trainer_01',
+      memberId: 'usr_maya',
+      memberName: 'Maya Lin',
+      memberEmail: 'maya.lin@example.com',
+      memberGoal: 'General Health & Tone',
       assignedPlan: 'Full Body 3x Weekly',
       streakDays: 1,
       progressPercent: 0.30,
-      status: 'Pending',
-      statusColor: Colors.amber,
-      avatarChar: 'M',
+      status: 'pending',
+      clientWeightKg: 58.5,
+      clientHeightCm: 162.0,
+      clientAge: 24,
+      clientGender: 'Female',
+      clientActivityLevel: 'lightly_active',
+      phone: '+1 (555) 567-8901',
+      notes: 'Requested onboarding call.',
     ),
-    _TrainerMemberItem(
+    ClientModel(
       id: 'm_05',
-      name: 'David Chen',
-      email: 'd.chen@example.com',
-      goal: 'Hypertrophy & Mobility',
+      trainerId: 'trainer_01',
+      memberId: 'usr_david',
+      memberName: 'David Chen',
+      memberEmail: 'd.chen@example.com',
+      memberGoal: 'Hypertrophy & Mobility',
       assignedPlan: 'Custom Routine',
       streakDays: 0,
       progressPercent: 0.10,
-      status: 'Pending',
-      statusColor: Colors.amber,
-      avatarChar: 'D',
+      status: 'pending',
+      clientWeightKg: 76.0,
+      clientHeightCm: 175.0,
+      clientAge: 30,
+      clientGender: 'Male',
+      clientActivityLevel: 'moderately_active',
+      phone: '+1 (555) 678-9012',
+      notes: 'Needs custom nutrition macro target.',
     ),
   ];
 
-  final List<_WorkoutPlanItem> _workoutPlans = [
-    _WorkoutPlanItem(
+  final List<WorkoutModel> _fallbackPlans = [
+    WorkoutModel(
+      id: 'plan_01',
       title: 'Upper/Lower 4-Day Split',
+      subtitle: 'Optimal for hypertrophy and strength',
+      durationMinutes: 45,
       category: 'Hypertrophy',
-      daysPerWeek: 4,
-      assignedMembers: 8,
-      difficulty: 'Intermediate',
+      intensity: 'Intermediate',
+      estimatedCalories: 380,
+      isTemplate: true,
+      exercises: [],
     ),
-    _WorkoutPlanItem(
+    WorkoutModel(
+      id: 'plan_02',
       title: 'Metabolic HIIT & Fat Burn',
+      subtitle: 'High energy conditioning',
+      durationMinutes: 30,
       category: 'Cardio & Conditioning',
-      daysPerWeek: 3,
-      assignedMembers: 6,
-      difficulty: 'All Levels',
+      intensity: 'All Levels',
+      estimatedCalories: 410,
+      isTemplate: true,
+      exercises: [],
     ),
-    _WorkoutPlanItem(
+    WorkoutModel(
+      id: 'plan_03',
       title: 'Push / Pull / Legs Strength',
+      subtitle: 'Max volume 5-day cycle',
+      durationMinutes: 55,
       category: 'Power & Mass',
-      daysPerWeek: 5,
-      assignedMembers: 5,
-      difficulty: 'Advanced',
+      intensity: 'Advanced',
+      estimatedCalories: 450,
+      isTemplate: true,
+      exercises: [],
     ),
-    _WorkoutPlanItem(
+    WorkoutModel(
+      id: 'plan_04',
       title: 'Beginner Full Body Foundation',
+      subtitle: 'Core compound movement mechanics',
+      durationMinutes: 35,
       category: 'Mobility & Habit',
-      daysPerWeek: 3,
-      assignedMembers: 4,
-      difficulty: 'Beginner',
+      intensity: 'Beginner',
+      estimatedCalories: 290,
+      isTemplate: true,
+      exercises: [],
     ),
   ];
 
@@ -122,11 +176,265 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
     _currentIndex = widget.initialIndex;
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedTrainer) {
+      _initializedTrainer = true;
+      final authProv = Provider.of<AuthProvider?>(context, listen: false);
+      final trainerProv = Provider.of<TrainerProvider?>(context, listen: false);
+      if (authProv?.user != null && trainerProv != null) {
+        trainerProv.bindTrainer(authProv!.user!.id);
+      }
+    }
+  }
+
   void _onTabChanged(int index) {
     setState(() => _currentIndex = index);
   }
 
-  void _showCreatePlanDialog() {
+  List<ClientModel> _getClients(TrainerProvider? prov) =>
+      prov != null ? prov.clients : _fallbackClients;
+
+  List<WorkoutModel> _getPlans(TrainerProvider? prov) =>
+      prov != null ? prov.workoutPlans : _fallbackPlans;
+
+  int _getTotalMembers(TrainerProvider? prov) =>
+      prov != null ? prov.totalMembers : _fallbackClients.length;
+
+  int _getActiveMembers(TrainerProvider? prov) => prov != null
+      ? prov.activeMembers
+      : _fallbackClients.where((c) => c.status.toLowerCase() == 'active').length;
+
+  int _getPendingMembers(TrainerProvider? prov) => prov != null
+      ? prov.pendingMembers
+      : _fallbackClients.where((c) => c.status.toLowerCase() == 'pending').length;
+
+  // -------------------------------------------------------------
+  // DESTRUCTIVE ACTION: Delete Client Confirmation Dialog
+  // -------------------------------------------------------------
+  void _confirmDeleteClient(ClientModel client, TrainerProvider? trainerProv) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+              SizedBox(width: 8),
+              Text('Delete Client?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to remove "${client.memberName}" from your client roster? This action cannot be undone.',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (trainerProv != null) {
+                  trainerProv.deleteClient(client.id);
+                } else {
+                  setState(() {
+                    _fallbackClients.removeWhere((c) => c.id == client.id);
+                  });
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Removed ${client.memberName} from client roster.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // -------------------------------------------------------------
+  // DIALOG: Add Client
+  // -------------------------------------------------------------
+  void _showAddClientDialog(TrainerProvider? trainerProv) {
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final goalCtrl = TextEditingController(text: 'Build Lean Muscle');
+    final weightCtrl = TextEditingController(text: '75');
+    final heightCtrl = TextEditingController(text: '175');
+    final phoneCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkBorder : AppColors.gray300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Add New Client',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Enter client details to monitor workouts, BMI, and nutrition.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Client Full Name *', hintText: 'e.g. Marcus Vance'),
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Enter client name' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'Email Address *', hintText: 'client@example.com'),
+                    validator: (v) => v == null || !v.contains('@') ? 'Enter valid email' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: goalCtrl,
+                    decoration: const InputDecoration(labelText: 'Fitness Goal', hintText: 'e.g. Fat Loss & Hypertrophy'),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: weightCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Weight (kg)', hintText: '75'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: heightCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Height (cm)', hintText: '175'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(labelText: 'Phone Number (optional)', hintText: '+1 (555) 000-0000'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: notesCtrl,
+                    decoration: const InputDecoration(labelText: 'Coaching Notes', hintText: 'Injuries, dietary requirements...'),
+                  ),
+                  const SizedBox(height: 20),
+                  FitFlowButton(
+                    text: 'Add Client to Roster',
+                    onPressed: () {
+                      if (!formKey.currentState!.validate()) return;
+                      final authProv = Provider.of<AuthProvider?>(context, listen: false);
+                      final trainerId = authProv?.user?.id ?? 'trainer_01';
+                      final clientWeight = double.tryParse(weightCtrl.text.trim()) ?? 75.0;
+                      final clientHeight = double.tryParse(heightCtrl.text.trim()) ?? 175.0;
+
+                      final newClient = ClientModel(
+                        id: 'cm_${DateTime.now().millisecondsSinceEpoch}',
+                        trainerId: trainerId,
+                        memberId: 'usr_${DateTime.now().millisecondsSinceEpoch}',
+                        memberName: nameCtrl.text.trim(),
+                        memberEmail: emailCtrl.text.trim(),
+                        memberGoal: goalCtrl.text.trim().isNotEmpty ? goalCtrl.text.trim() : 'General Fitness',
+                        assignedPlan: 'Upper/Lower 4-Day Split',
+                        status: 'active',
+                        clientWeightKg: clientWeight,
+                        clientHeightCm: clientHeight,
+                        phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
+                        notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
+                        progressPercent: 0.1,
+                      );
+
+                      if (trainerProv != null) {
+                        trainerProv.addClient(newClient);
+                      } else {
+                        setState(() {
+                          _fallbackClients.insert(0, newClient);
+                        });
+                      }
+
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Client ${newClient.memberName} added successfully! 🚀'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // -------------------------------------------------------------
+  // DIALOG: Create Workout Plan
+  // -------------------------------------------------------------
+  void _showCreatePlanDialog(TrainerProvider? trainerProv) {
     final titleController = TextEditingController();
     final categoryController = TextEditingController(text: 'Hypertrophy');
     final daysController = TextEditingController(text: '4');
@@ -188,23 +496,32 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: () {
-                if (titleController.text.trim().isNotEmpty) {
-                  setState(() {
-                    _workoutPlans.insert(
-                      0,
-                      _WorkoutPlanItem(
-                        title: titleController.text.trim(),
-                        category: categoryController.text.trim(),
-                        daysPerWeek: int.tryParse(daysController.text.trim()) ?? 4,
-                        assignedMembers: 0,
-                        difficulty: 'Intermediate',
-                      ),
-                    );
-                  });
+                final title = titleController.text.trim();
+                if (title.isNotEmpty) {
+                  final newPlan = WorkoutModel(
+                    id: 'plan_${DateTime.now().millisecondsSinceEpoch}',
+                    title: title,
+                    subtitle: '${categoryController.text.trim()} Program',
+                    durationMinutes: 45,
+                    category: categoryController.text.trim(),
+                    intensity: 'Intermediate',
+                    estimatedCalories: 350,
+                    isTemplate: true,
+                    exercises: [],
+                  );
+
+                  if (trainerProv != null) {
+                    trainerProv.createWorkoutPlan(newPlan);
+                  } else {
+                    setState(() {
+                      _fallbackPlans.insert(0, newPlan);
+                    });
+                  }
+
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Plan "${titleController.text.trim()}" created successfully! 📋'),
+                      content: Text('Plan "$title" created successfully! 📋'),
                       backgroundColor: const Color(0xFF1E293B),
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -219,7 +536,12 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
     );
   }
 
-  void _showAssignPlanDialog(_TrainerMemberItem member) {
+  // -------------------------------------------------------------
+  // DIALOG: Assign Plan to Client
+  // -------------------------------------------------------------
+  void _showAssignPlanDialog(ClientModel member, TrainerProvider? trainerProv) {
+    final plans = _getPlans(trainerProv);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -236,19 +558,19 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Assign Plan to ${member.name}',
+                'Assign Plan to ${member.memberName}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
               Text(
-                'Select a workout plan tailored for ${member.name}\'s goal: ${member.goal}',
+                'Select a routine tailored for ${member.memberName}\'s goal: ${member.memberGoal}',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                 ),
               ),
               const SizedBox(height: 16),
-              ..._workoutPlans.map((plan) {
+              ...plans.map((plan) {
                 final isCurrent = member.assignedPlan == plan.title;
                 return ListTile(
                   dense: true,
@@ -256,18 +578,23 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                   tileColor: isCurrent ? AppColors.primaryLime.withOpacity(0.12) : null,
                   leading: const Icon(Icons.fitness_center_rounded, color: AppColors.primaryLime, size: 20),
                   title: Text(plan.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                  subtitle: Text('${plan.category} • ${plan.daysPerWeek} days/wk', style: const TextStyle(fontSize: 11)),
+                  subtitle: Text('${plan.category} • ${plan.durationMinutes} min', style: const TextStyle(fontSize: 11)),
                   trailing: isCurrent ? const Icon(Icons.check_circle_rounded, color: AppColors.primaryLime) : null,
                   onTap: () {
-                    setState(() {
-                      member.assignedPlan = plan.title;
-                      member.status = 'Active';
-                      member.statusColor = AppColors.primaryLime;
-                    });
+                    if (trainerProv != null) {
+                      trainerProv.assignPlanToClient(member.id, plan.title);
+                    } else {
+                      setState(() {
+                        final idx = _fallbackClients.indexWhere((c) => c.id == member.id);
+                        if (idx != -1) {
+                          _fallbackClients[idx] = member.copyWith(assignedPlan: plan.title, status: 'active');
+                        }
+                      });
+                    }
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Assigned "${plan.title}" to ${member.name}! 💪'),
+                        content: Text('Assigned "${plan.title}" to ${member.memberName}! 💪'),
                         backgroundColor: const Color(0xFF1E293B),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -282,15 +609,193 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
     );
   }
 
+  // -------------------------------------------------------------
+  // MODAL: Client Details (BMI, Protein, Notes, Progress)
+  // -------------------------------------------------------------
+  void _showClientDetailsModal(ClientModel client, TrainerProvider? trainerProv) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final bmiVal = client.clientBmi;
+        final bmiCategory = client.clientBmiCategory ?? 'Normal Weight';
+        final proteinRec = client.clientProteinRecommendation;
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBorder : AppColors.gray300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: AppColors.primaryLime.withOpacity(0.2),
+                    child: Text(
+                      client.memberName.isNotEmpty ? client.memberName[0].toUpperCase() : 'C',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primaryLime),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(client.memberName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                        Text(client.memberEmail, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
+                        if (client.phone != null && client.phone!.isNotEmpty)
+                          Text(client.phone!, style: const TextStyle(fontSize: 11, color: AppColors.primaryLime)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: client.status.toLowerCase() == 'active' ? AppColors.primaryLime.withOpacity(0.15) : Colors.amber.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      client.status.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: client.status.toLowerCase() == 'active' ? AppColors.primaryLime : Colors.amber,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Health & Metrics Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildClientMetricCell('Weight', '${client.clientWeightKg?.toStringAsFixed(1) ?? '75'} kg', isDark),
+                        _buildClientMetricCell('Height', '${client.clientHeightCm?.toStringAsFixed(0) ?? '175'} cm', isDark),
+                        _buildClientMetricCell('BMI', bmiVal?.toStringAsFixed(1) ?? '24.5', isDark, accentColor: AppColors.primaryLime),
+                        _buildClientMetricCell('Category', bmiCategory, isDark),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    Row(
+                      children: [
+                        const Icon(Icons.restaurant_rounded, size: 16, color: AppColors.primaryLime),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Daily Protein Target: ${proteinRec?.targetGrams.toInt() ?? 140}g',
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '(${proteinRec?.minGrams.toInt() ?? 120}-${proteinRec?.maxGrams.toInt() ?? 160}g)',
+                          style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              if (client.notes != null && client.notes!.isNotEmpty) ...[
+                Text('Coaching Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                const SizedBox(height: 4),
+                Text(client.notes!, style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+                const SizedBox(height: 16),
+              ],
+
+              Row(
+                children: [
+                  Expanded(
+                    child: FitFlowButton(
+                      text: 'Change Plan',
+                      icon: Icons.assignment_outlined,
+                      isOutlined: true,
+                      height: 44,
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showAssignPlanDialog(client, trainerProv);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                    tooltip: 'Remove Client',
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _confirmDeleteClient(client, trainerProv);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildClientMetricCell(String label, String value, bool isDark, {Color? accentColor}) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            color: accentColor ?? (isDark ? Colors.white : Colors.black87),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final trainerProv = Provider.of<TrainerProvider?>(context);
 
     final tabs = [
-      _buildHomeTab(isDark),
-      _buildMembersTab(isDark),
-      _buildPlansTab(isDark),
-      _buildProgressTab(isDark),
+      _buildHomeTab(isDark, trainerProv),
+      _buildMembersTab(isDark, trainerProv),
+      _buildPlansTab(isDark, trainerProv),
+      _buildProgressTab(isDark, trainerProv),
       _buildProfileTab(isDark),
     ];
 
@@ -360,11 +865,14 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
   }
 
   // ================= TAB 0: HOME =================
-  Widget _buildHomeTab(bool isDark) {
-    final authProv = context.watch<AuthProvider>();
-    final user = authProv.user;
+  Widget _buildHomeTab(bool isDark, TrainerProvider? trainerProv) {
+    final authProv = Provider.of<AuthProvider?>(context);
+    final user = authProv?.user;
     final trainerName = user?.name.isNotEmpty == true ? user!.name : 'Coach';
     final profile = user?.trainerProfile;
+
+    final clients = _getClients(trainerProv);
+    final pendingClients = clients.where((c) => c.status.toLowerCase() == 'pending').toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -397,12 +905,9 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No new alerts. All members up to date!')),
-              );
-            },
+            icon: const Icon(Icons.person_add_rounded, color: AppColors.primaryLime),
+            tooltip: 'Add Client',
+            onPressed: () => _showAddClientDialog(trainerProv),
           ),
           const SizedBox(width: 4),
         ],
@@ -510,7 +1015,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 Expanded(
                   child: _buildMetricCard(
                     title: 'Total Members',
-                    value: '${_members.length}',
+                    value: '${_getTotalMembers(trainerProv)}',
                     subtext: '+2 this month',
                     icon: Icons.groups_rounded,
                     accentColor: AppColors.primaryLime,
@@ -521,8 +1026,8 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 Expanded(
                   child: _buildMetricCard(
                     title: 'Active Members',
-                    value: '${_members.where((m) => m.status == 'Active').length}',
-                    subtext: '80% adherence',
+                    value: '${_getActiveMembers(trainerProv)}',
+                    subtext: 'High compliance',
                     icon: Icons.check_circle_outline_rounded,
                     accentColor: AppColors.proteinColor,
                     isDark: isDark,
@@ -536,8 +1041,8 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 Expanded(
                   child: _buildMetricCard(
                     title: 'Workout Plans',
-                    value: '${_workoutPlans.length}',
-                    subtext: '4 active splits',
+                    value: '${_getPlans(trainerProv).length}',
+                    subtext: 'Active programs',
                     icon: Icons.assignment_outlined,
                     accentColor: AppColors.carbsColor,
                     isDark: isDark,
@@ -547,7 +1052,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 Expanded(
                   child: _buildMetricCard(
                     title: 'Pending Requests',
-                    value: '$_pendingCount',
+                    value: '${_getPendingMembers(trainerProv)}',
                     subtext: 'Needs review',
                     icon: Icons.person_add_alt_rounded,
                     accentColor: Colors.amber,
@@ -576,7 +1081,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                     title: 'Create Plan',
                     subtitle: 'New routine',
                     isDark: isDark,
-                    onTap: _showCreatePlanDialog,
+                    onTap: () => _showCreatePlanDialog(trainerProv),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -617,8 +1122,8 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
             ),
             const SizedBox(height: 24),
 
-            // PENDING REQUESTS WIDGET (if any)
-            if (_pendingCount > 0) ...[
+            // PENDING REQUESTS SECTION (if any)
+            if (pendingClients.isNotEmpty) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -637,7 +1142,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '$_pendingCount New',
+                      '${pendingClients.length} New',
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.amber),
                     ),
                   ),
@@ -655,13 +1160,13 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _members.where((m) => m.status == 'Pending').length,
+                  itemCount: pendingClients.length,
                   separatorBuilder: (_, _) => Divider(
                     height: 1,
                     color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                   ),
                   itemBuilder: (context, index) {
-                    final pendingMember = _members.where((m) => m.status == 'Pending').toList()[index];
+                    final pendingMember = pendingClients[index];
                     return Padding(
                       padding: const EdgeInsets.all(14),
                       child: Row(
@@ -670,7 +1175,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                             radius: 20,
                             backgroundColor: Colors.amber.withOpacity(0.2),
                             child: Text(
-                              pendingMember.avatarChar,
+                              pendingMember.memberName.isNotEmpty ? pendingMember.memberName[0].toUpperCase() : 'P',
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.amber),
                             ),
                           ),
@@ -680,11 +1185,11 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  pendingMember.name,
+                                  pendingMember.memberName,
                                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                                 ),
                                 Text(
-                                  'Goal: ${pendingMember.goal}',
+                                  'Goal: ${pendingMember.memberGoal}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -698,12 +1203,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.close_rounded, color: AppColors.error, size: 20),
-                                onPressed: () {
-                                  setState(() {
-                                    _members.remove(pendingMember);
-                                    if (_pendingCount > 0) _pendingCount--;
-                                  });
-                                },
+                                onPressed: () => _confirmDeleteClient(pendingMember, trainerProv),
                               ),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
@@ -713,13 +1213,18 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    pendingMember.status = 'Active';
-                                    pendingMember.statusColor = AppColors.primaryLime;
-                                    if (_pendingCount > 0) _pendingCount--;
-                                  });
+                                  if (trainerProv != null) {
+                                    trainerProv.acceptPendingClient(pendingMember.id);
+                                  } else {
+                                    setState(() {
+                                      final idx = _fallbackClients.indexWhere((c) => c.id == pendingMember.id);
+                                      if (idx != -1) {
+                                        _fallbackClients[idx] = pendingMember.copyWith(status: 'active');
+                                      }
+                                    });
+                                  }
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Accepted ${pendingMember.name} into coaching! 🚀')),
+                                    SnackBar(content: Text('Accepted ${pendingMember.memberName} into coaching! 🚀')),
                                   );
                                 },
                                 child: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
@@ -778,7 +1283,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                   _buildActivityTile(
                     avatarChar: 'J',
                     name: 'James Wilson',
-                    action: 'Recorded body weight: 78.2 kg (-1.2 kg)',
+                    action: 'Recorded body weight: 91.0 kg (BMI 26.6)',
                     time: '3h ago',
                     icon: Icons.monitor_weight_outlined,
                     iconColor: AppColors.carbsColor,
@@ -795,181 +1300,259 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
   }
 
   // ================= TAB 1: MEMBERS =================
-  Widget _buildMembersTab(bool isDark) {
+  Widget _buildMembersTab(bool isDark, TrainerProvider? trainerProv) {
+    final clients = _getClients(trainerProv);
+
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text('My Members', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_add_alt_1_rounded),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Member invite link copied to clipboard! 📋')),
-              );
-            },
+            icon: const Icon(Icons.person_add_alt_1_rounded, color: AppColors.primaryLime),
+            tooltip: 'Add Client',
+            onPressed: () => _showAddClientDialog(trainerProv),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        itemCount: _members.length,
-        itemBuilder: (context, index) {
-          final member = _members[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: AppColors.primaryLime.withOpacity(0.18),
-                      child: Text(
-                        member.avatarChar,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primaryLime,
-                        ),
-                      ),
+      body: clients.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.groups_rounded, size: 48, color: AppColors.primaryLime),
+                  const SizedBox(height: 12),
+                  const Text('No clients added yet', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  const SizedBox(height: 6),
+                  const Text('Add your first athlete to start tracking progress.', style: TextStyle(fontSize: 12)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryLime,
+                      foregroundColor: const Color(0xFF0F172A),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(member.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 2),
-                          Text(
-                            member.goal,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: member.statusColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        member.status,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: member.statusColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ASSIGNED PLAN',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            member.assignedPlan,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'STREAK',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${member.streakDays} Days 🔥',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.orangeAccent),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: member.progressPercent,
-                    minHeight: 6,
-                    backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Client'),
+                    onPressed: () => _showAddClientDialog(trainerProv),
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FitFlowButton(
-                        text: 'Assign Plan',
-                        icon: Icons.assignment_outlined,
-                        isOutlined: true,
-                        height: 38,
-                        onPressed: () => _showAssignPlanDialog(member),
-                      ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              itemCount: clients.length,
+              itemBuilder: (context, index) {
+                final member = clients[index];
+                final isPending = member.status.toLowerCase() == 'pending';
+                final statusColor = isPending ? Colors.amber : AppColors.primaryLime;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FitFlowButton(
-                        text: 'Message',
-                        icon: Icons.chat_bubble_outline_rounded,
-                        height: 38,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Opening chat with ${member.name}... 💬')),
-                          );
-                        },
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _showClientDetailsModal(member, trainerProv),
+                            child: CircleAvatar(
+                              radius: 22,
+                              backgroundColor: AppColors.primaryLime.withOpacity(0.18),
+                              child: Text(
+                                member.memberName.isNotEmpty ? member.memberName[0].toUpperCase() : 'M',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.primaryLime,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _showClientDetailsModal(member, trainerProv),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(member.memberName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    member.memberGoal,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              member.status.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                            tooltip: 'Delete Client',
+                            onPressed: () => _confirmDeleteClient(member, trainerProv),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(height: 12),
+
+                      // BMI & Protein Badges for Trainer Visibility
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.monitor_weight_outlined, size: 12, color: AppColors.primaryLime),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'BMI: ${member.clientBmi?.toStringAsFixed(1) ?? '23.8'}',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.restaurant_rounded, size: 12, color: AppColors.proteinColor),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Target: ${member.clientProteinRecommendation?.targetGrams.toInt() ?? 140}g Protein',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ASSIGNED PLAN',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  member.assignedPlan,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'STREAK',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${member.streakDays} Days 🔥',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.orangeAccent),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: member.progressPercent,
+                          minHeight: 6,
+                          backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FitFlowButton(
+                              text: 'Assign Plan',
+                              icon: Icons.assignment_outlined,
+                              isOutlined: true,
+                              height: 38,
+                              onPressed: () => _showAssignPlanDialog(member, trainerProv),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FitFlowButton(
+                              text: 'Details',
+                              icon: Icons.insights_rounded,
+                              height: 38,
+                              onPressed: () => _showClientDetailsModal(member, trainerProv),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
   // ================= TAB 2: PLANS =================
-  Widget _buildPlansTab(bool isDark) {
+  Widget _buildPlansTab(bool isDark, TrainerProvider? trainerProv) {
+    final plans = _getPlans(trainerProv);
+
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
@@ -977,7 +1560,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: _showCreatePlanDialog,
+            onPressed: () => _showCreatePlanDialog(trainerProv),
           ),
           const SizedBox(width: 8),
         ],
@@ -999,7 +1582,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: _showCreatePlanDialog,
+                  onPressed: () => _showCreatePlanDialog(trainerProv),
                   icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primaryLime),
                   label: const Text(
                     'New Plan',
@@ -1009,7 +1592,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            ..._workoutPlans.map((plan) {
+            ...plans.map((plan) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
@@ -1042,7 +1625,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                           Text(plan.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 2),
                           Text(
-                            '${plan.category} • ${plan.daysPerWeek} days/week',
+                            '${plan.category} • ${plan.durationMinutes} min',
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -1050,7 +1633,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${plan.assignedMembers} active athletes assigned',
+                            plan.intensity,
                             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryLime),
                           ),
                         ],
@@ -1075,7 +1658,9 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
   }
 
   // ================= TAB 3: PROGRESS =================
-  Widget _buildProgressTab(bool isDark) {
+  Widget _buildProgressTab(bool isDark, TrainerProvider? trainerProv) {
+    final clients = _getClients(trainerProv);
+
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
@@ -1162,16 +1747,20 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: 3,
+                itemCount: clients.take(3).length,
                 separatorBuilder: (_, _) => Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 itemBuilder: (context, idx) {
-                  final m = _members[idx];
+                  final m = clients[idx];
                   return ListTile(
+                    onTap: () => _showClientDetailsModal(m, trainerProv),
                     leading: CircleAvatar(
                       backgroundColor: AppColors.primaryLime.withOpacity(0.18),
-                      child: Text(m.avatarChar, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryLime)),
+                      child: Text(
+                        m.memberName.isNotEmpty ? m.memberName[0].toUpperCase() : 'M',
+                        style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryLime),
+                      ),
                     ),
-                    title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    title: Text(m.memberName, style: const TextStyle(fontWeight: FontWeight.w700)),
                     subtitle: Text(m.assignedPlan, style: const TextStyle(fontSize: 12)),
                     trailing: Text('${m.streakDays} Days 🔥', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.orangeAccent)),
                   );
@@ -1186,8 +1775,8 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
 
   // ================= TAB 4: PROFILE =================
   Widget _buildProfileTab(bool isDark) {
-    final authProv = context.watch<AuthProvider>();
-    final user = authProv.user;
+    final authProv = Provider.of<AuthProvider?>(context);
+    final user = authProv?.user;
     final trainerName = user?.name.isNotEmpty == true ? user!.name : 'Coach';
     final profile = user?.trainerProfile;
 
@@ -1263,7 +1852,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                 children: [
                   _buildProfileRow(
                     'Experience',
-                    '${profile?.experienceYears ?? 1} Years Coaching',
+                    '${profile?.experienceYears ?? 4} Years Coaching',
                     Icons.military_tech_rounded,
                     isDark,
                   ),
@@ -1286,7 +1875,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Switch to Member Mode (allows trainer to test member view)
+            // Switch to Member Mode
             Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
@@ -1322,7 +1911,9 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
                   style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.error, fontSize: 14),
                 ),
                 onTap: () async {
-                  await authProv.signOut();
+                  if (authProv != null) {
+                    await authProv.signOut();
+                  }
                   if (!mounted) return;
                   Navigator.pushAndRemoveUntil(
                     context,
@@ -1511,46 +2102,4 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
     );
   }
-}
-
-class _TrainerMemberItem {
-  final String id;
-  final String name;
-  final String email;
-  final String goal;
-  String assignedPlan;
-  final int streakDays;
-  final double progressPercent;
-  String status;
-  Color statusColor;
-  final String avatarChar;
-
-  _TrainerMemberItem({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.goal,
-    required this.assignedPlan,
-    required this.streakDays,
-    required this.progressPercent,
-    required this.status,
-    required this.statusColor,
-    required this.avatarChar,
-  });
-}
-
-class _WorkoutPlanItem {
-  final String title;
-  final String category;
-  final int daysPerWeek;
-  final int assignedMembers;
-  final String difficulty;
-
-  _WorkoutPlanItem({
-    required this.title,
-    required this.category,
-    required this.daysPerWeek,
-    required this.assignedMembers,
-    required this.difficulty,
-  });
 }

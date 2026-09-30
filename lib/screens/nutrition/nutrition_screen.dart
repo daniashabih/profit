@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/meal_type.dart';
 import '../../models/nutrition_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/nutrition_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_card.dart';
@@ -18,6 +19,16 @@ class NutritionScreen extends StatefulWidget {
 
 class _NutritionScreenState extends State<NutritionScreen> {
   DateTime _selectedDate = DateTime(2026, 9, 12);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authProv = Provider.of<AuthProvider?>(context, listen: false);
+    final nutritionProv = Provider.of<NutritionProvider?>(context, listen: false);
+    if (authProv?.user != null && nutritionProv != null) {
+      nutritionProv.bindUser(authProv!.user!.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,9 +326,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       IconButton(
                         icon: const Icon(Icons.close_rounded, size: 16),
                         color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                        onPressed: () {
-                          context.read<NutritionProvider>().deleteMeal(item.id);
-                        },
+                        onPressed: () => _confirmDeleteMeal(context, item),
                       ),
                     ],
                   ),
@@ -326,6 +335,57 @@ class _NutritionScreenState extends State<NutritionScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  void _confirmDeleteMeal(BuildContext context, MealItemModel item) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+              SizedBox(width: 8),
+              Text('Delete Meal?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to remove "${item.name}" (${item.calories} kcal) from your log?',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.read<NutritionProvider>().deleteMeal(item.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Removed ${item.name} from nutrition log.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
     );
   }
 

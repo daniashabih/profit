@@ -28,6 +28,16 @@ class ProfileScreen extends StatelessWidget {
     final user = authProv.user;
     final nameController = TextEditingController(text: user?.name ?? 'Dania Shabih');
     final goalController = TextEditingController(text: user?.goal ?? 'Weight Loss');
+    final weightController = TextEditingController(
+      text: user?.currentWeightKg != null && user!.currentWeightKg > 0
+          ? user.currentWeightKg.toStringAsFixed(1)
+          : '70.0',
+    );
+    final heightController = TextEditingController(
+      text: user?.heightCm != null && user!.heightCm > 0
+          ? user.heightCm.toStringAsFixed(0)
+          : '175',
+    );
 
     showDialog(
       context: context,
@@ -37,19 +47,33 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w800)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Full Name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: goalController,
-                decoration: const InputDecoration(labelText: 'Fitness Goal'),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Full Name'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: goalController,
+                  decoration: const InputDecoration(labelText: 'Fitness Goal'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: weightController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Current Weight (kg)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: heightController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Height (cm)'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -61,11 +85,27 @@ class ProfileScreen extends StatelessWidget {
                 backgroundColor: AppColors.primaryLime,
                 foregroundColor: const Color(0xFF111827),
               ),
-              onPressed: () {
+              onPressed: () async {
+                final newName = nameController.text.trim();
+                final newGoal = goalController.text.trim();
+                final newWeight = double.tryParse(weightController.text.trim());
+                final newHeight = double.tryParse(heightController.text.trim());
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully!')),
+                final success = await authProv.updateProfileDetails(
+                  name: newName.isNotEmpty ? newName : null,
+                  goal: newGoal.isNotEmpty ? newGoal : null,
+                  currentWeightKg: newWeight,
+                  heightCm: newHeight,
                 );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success
+                          ? 'Profile updated successfully!'
+                          : 'Failed to update profile'),
+                    ),
+                  );
+                }
               },
               child: const Text('Save'),
             ),
@@ -252,13 +292,13 @@ class ProfileScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem('Goal', 'Weight Loss', isDark),
+                  _buildStatItem('Goal', user?.goal.isNotEmpty == true ? user!.goal : 'Weight Loss', isDark),
                   _buildVerticalDivider(isDark),
-                  _buildStatItem('Current', '${progressProv.currentWeight.toStringAsFixed(0)} kg', isDark),
+                  _buildStatItem('Current', '${(user?.currentWeightKg != null && user!.currentWeightKg > 0 ? user.currentWeightKg : progressProv.currentWeight).toStringAsFixed(0)} kg', isDark),
                   _buildVerticalDivider(isDark),
-                  _buildStatItem('Target', '${progressProv.targetWeight.toStringAsFixed(0)} kg', isDark),
+                  _buildStatItem('Target', '${(user?.targetWeightKg != null && user!.targetWeightKg > 0 ? user.targetWeightKg : progressProv.targetWeight).toStringAsFixed(0)} kg', isDark),
                   _buildVerticalDivider(isDark),
-                  _buildStatItem('Height', "5'0\"", isDark),
+                  _buildStatItem('Height', user?.heightCm != null && user!.heightCm > 0 ? '${user.heightCm.toStringAsFixed(0)} cm' : "5'0\"", isDark),
                 ],
               ),
             ),

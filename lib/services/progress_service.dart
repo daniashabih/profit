@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/measurement_model.dart';
 import '../core/errors/app_error.dart';
@@ -5,16 +6,17 @@ import '../core/errors/app_error.dart';
 /// ProgressService provides dynamic Cloud Firestore CRUD and streams for the
 /// 'measurements' collection, strictly adhering to firestore.rules isValidMeasurement.
 class ProgressService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestore;
 
   ProgressService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? (Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null);
 
   static const String colMeasurements = 'measurements';
   static const String colUsers = 'users';
 
   /// Streams measurements for a user, sorted chronologically
   Stream<List<BodyMeasurementModel>> streamMeasurements(String userId) {
+    if (_firestore == null) return const Stream.empty();
     return _firestore
         .collection(colMeasurements)
         .where('userId', isEqualTo: userId)
@@ -35,6 +37,7 @@ class ProgressService {
 
   /// Fetches historical measurements once
   Future<List<BodyMeasurementModel>> getMeasurements(String userId) async {
+    if (_firestore == null) return [];
     try {
       final snapshot = await _firestore
           .collection(colMeasurements)
@@ -58,6 +61,7 @@ class ProgressService {
 
   /// Adds a new measurement entry and updates user's currentWeightKg if weight was logged
   Future<void> addMeasurement(String userId, BodyMeasurementModel measurement) async {
+    if (_firestore == null) return;
     try {
       final docRef = measurement.id.isNotEmpty
           ? _firestore.collection(colMeasurements).doc(measurement.id)
@@ -82,6 +86,7 @@ class ProgressService {
 
   /// Deletes a measurement record
   Future<void> deleteMeasurement(String measurementId) async {
+    if (_firestore == null) return;
     try {
       await _firestore.collection(colMeasurements).doc(measurementId).delete();
     } catch (e) {
