@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
 import '../core/enums/user_role.dart';
 import '../core/errors/app_error.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
@@ -186,6 +188,51 @@ class AuthProvider extends ChangeNotifier {
   void updateUserProfile(UserModel updated) {
     _user = updated;
     notifyListeners();
+  }
+
+  /// Persists full profile updates to Cloud Firestore users/{uid}
+  Future<bool> saveUserProfile(UserModel updated) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      if (Firebase.apps.isNotEmpty) {
+        await FirestoreService().createUserProfile(updated);
+      }
+      _user = updated;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = AppError.fromException(e).message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Updates specific profile details and saves them to Firestore
+  Future<bool> updateProfileDetails({
+    String? name,
+    String? goal,
+    double? currentWeightKg,
+    double? heightCm,
+    int? age,
+    String? gender,
+    String? activityLevel,
+  }) async {
+    if (_user == null) return false;
+    final updated = _user!.copyWith(
+      name: name ?? _user!.name,
+      goal: goal ?? _user!.goal,
+      currentWeightKg: currentWeightKg ?? _user!.currentWeightKg,
+      heightCm: heightCm ?? _user!.heightCm,
+      age: age ?? _user!.age,
+      gender: gender ?? _user!.gender,
+      activityLevel: activityLevel ?? _user!.activityLevel,
+    );
+    return saveUserProfile(updated);
   }
 
   Future<void> signOut() async {

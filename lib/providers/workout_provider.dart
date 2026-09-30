@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/workout_model.dart';
 import '../models/exercise_model.dart';
 import '../models/workout_set_model.dart';
@@ -7,13 +6,17 @@ import '../core/enums/muscle_group.dart';
 import '../core/enums/exercise_difficulty.dart';
 import '../repositories/workout_repository.dart';
 import '../repositories/exercise_repository.dart';
+import '../services/workout_service.dart';
 
 class WorkoutProvider extends ChangeNotifier {
   final WorkoutRepository _workoutRepo;
   final ExerciseRepository _exerciseRepo;
+  final WorkoutService _workoutService;
 
   late WorkoutModel _todayWorkout;
   List<ExerciseModel> _filteredLibrary = [];
+  String? _boundUserId;
+  StreamSubscription? _userWorkoutsSub;
 
   // Filter criteria for Exercise Library
   String _searchQuery = '';
@@ -45,8 +48,10 @@ class WorkoutProvider extends ChangeNotifier {
   WorkoutProvider({
     required WorkoutRepository workoutRepo,
     required ExerciseRepository exerciseRepo,
+    WorkoutService? workoutService,
   })  : _workoutRepo = workoutRepo,
-        _exerciseRepo = exerciseRepo {
+        _exerciseRepo = exerciseRepo,
+        _workoutService = workoutService ?? WorkoutService() {
     _init();
   }
 
@@ -55,25 +60,64 @@ class WorkoutProvider extends ChangeNotifier {
     _applyLibraryFilters();
   }
 
+  /// Binds to a user's Firestore workouts
+  void bindUser(String userId) {
+    if (_boundUserId == userId) return;
+    _boundUserId = userId;
+
+    if (Firebase.apps.isEmpty) return;
+
+    _userWorkoutsSub?.cancel();
+    _userWorkoutsSub = _workoutService.streamUserWorkouts(userId).listen((list) {
+      if (list.isNotEmpty) {
+        _todayWorkout = list.first;
+        notifyListeners();
+      }
+    });
+  }
+
   void updateSet(String exerciseId, int setIndex, WorkoutSetModel set) {
     _workoutRepo.updateExerciseSet(exerciseId, setIndex, set);
     _todayWorkout = _workoutRepo.getTodayWorkout();
     notifyListeners();
+
+    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
+      _workoutService.updateExerciseSet(_todayWorkout.id, exerciseId, setIndex, set).catchError((_) {});
+    }
   }
 
   void addSet(String exerciseId) {
     _workoutRepo.addExerciseSet(exerciseId);
     _todayWorkout = _workoutRepo.getTodayWorkout();
     notifyListeners();
+
+    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
+      _workoutService.addExerciseSet(_todayWorkout.id, exerciseId).catchError((_) {});
+    }
   }
 
   void completeExercise(String exerciseId) {
     _workoutRepo.markExerciseComplete(exerciseId);
     _todayWorkout = _workoutRepo.getTodayWorkout();
     notifyListeners();
+
+    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
+      _workoutService.markExerciseComplete(_todayWorkout.id, exerciseId).catchError((_) {});
+    }
+
     // Automatically trigger rest timer
     final exercise = _todayWorkout.exercises.firstWhere((e) => e.id == exerciseId);
     startRestTimer(seconds: exercise.restTimeSeconds);
+  }
+
+  /// Creates a custom workout and saves to Firestore
+  Future<void> createCustomWorkout(WorkoutModel workout) async {
+    _todayWorkout = workout;
+    notifyListeners();
+
+    if (Firebase.apps.isNotEmpty) {
+      await _workoutService.createWorkout(workout);
+    }
   }
 
   // Rest Timer Controls

@@ -12,6 +12,7 @@ import 'providers/nutrition_provider.dart';
 import 'providers/progress_provider.dart';
 import 'providers/ai_coach_provider.dart';
 import 'providers/role_provider.dart';
+import 'providers/trainer_provider.dart';
 
 import 'services/auth_service.dart';
 import 'services/ai_coach_service.dart';
@@ -87,6 +88,9 @@ void main() async {
         ),
         ChangeNotifierProvider<AiCoachProvider>(
           create: (_) => AiCoachProvider(aiService: aiCoachService),
+        ),
+        ChangeNotifierProvider<TrainerProvider>(
+          create: (_) => TrainerProvider(),
         ),
       ],
       child: const ProfitApp(),

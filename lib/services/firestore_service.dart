@@ -4,13 +4,27 @@ import '../models/trainer_member_model.dart';
 import '../core/enums/user_role.dart';
 import '../core/errors/app_error.dart';
 
+import 'client_service.dart';
+import 'workout_service.dart';
+import 'meal_service.dart';
+import 'progress_service.dart';
+
 /// FirestoreService provides production-ready Cloud Firestore integration for PROFIT,
 /// handling user documents, security validations, and collection access.
 class FirestoreService {
   final FirebaseFirestore _firestore;
+  late final ClientService clients;
+  late final WorkoutService workouts;
+  late final MealService meals;
+  late final ProgressService progress;
 
   FirestoreService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance {
+    clients = ClientService(firestore: _firestore);
+    workouts = WorkoutService(firestore: _firestore);
+    meals = MealService(firestore: _firestore);
+    progress = ProgressService(firestore: _firestore);
+  }
 
   static const String colUsers = 'users';
   static const String colWorkouts = 'workouts';

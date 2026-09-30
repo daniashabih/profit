@@ -21,6 +21,10 @@ class TrainerMemberModel {
   final String? clientGender;
   final String? clientActivityLevel;
 
+  final double? goalWeightKg;
+  final String? phone;
+  final String? notes;
+
   /// Alias for memberId for explicit client relationship semantics
   String get clientId => memberId;
   String get userId => memberId;
@@ -62,6 +66,9 @@ class TrainerMemberModel {
     this.clientAge,
     this.clientGender,
     this.clientActivityLevel,
+    this.goalWeightKg,
+    this.phone,
+    this.notes,
   }) : createdAt = createdAt ?? DateTime.now();
 
   TrainerMemberModel copyWith({
@@ -81,6 +88,9 @@ class TrainerMemberModel {
     int? clientAge,
     String? clientGender,
     String? clientActivityLevel,
+    double? goalWeightKg,
+    String? phone,
+    String? notes,
   }) {
     return TrainerMemberModel(
       id: id ?? this.id,
@@ -99,6 +109,9 @@ class TrainerMemberModel {
       clientAge: clientAge ?? this.clientAge,
       clientGender: clientGender ?? this.clientGender,
       clientActivityLevel: clientActivityLevel ?? this.clientActivityLevel,
+      goalWeightKg: goalWeightKg ?? this.goalWeightKg,
+      phone: phone ?? this.phone,
+      notes: notes ?? this.notes,
     );
   }
 
@@ -121,6 +134,28 @@ class TrainerMemberModel {
       if (clientAge != null) 'clientAge': clientAge,
       if (clientGender != null) 'clientGender': clientGender,
       if (clientActivityLevel != null) 'clientActivityLevel': clientActivityLevel,
+      if (goalWeightKg != null) 'goalWeightKg': goalWeightKg,
+      if (phone != null) 'phone': phone,
+      if (notes != null) 'notes': notes,
+    };
+  }
+
+  /// Cloud Firestore payload strictly adhering to firestore.rules isValidTrainerMember
+  Map<String, dynamic> toFirestoreMap() {
+    return {
+      'id': id,
+      'trainerId': trainerId,
+      'memberId': memberId,
+      'clientId': clientId,
+      'memberName': memberName,
+      'memberEmail': memberEmail,
+      'memberAvatarUrl': memberAvatarUrl,
+      'memberGoal': memberGoal,
+      'assignedPlan': assignedPlan,
+      'status': status,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+      'progressPercent': progressPercent.clamp(0.0, 1.0),
     };
   }
 
@@ -144,6 +179,12 @@ class TrainerMemberModel {
       clientAge: (map['clientAge'] as num?)?.toInt(),
       clientGender: map['clientGender']?.toString(),
       clientActivityLevel: map['clientActivityLevel']?.toString(),
+      goalWeightKg: (map['goalWeightKg'] as num?)?.toDouble(),
+      phone: map['phone']?.toString(),
+      notes: map['notes']?.toString(),
     );
   }
 }
+
+/// ClientModel alias for semantic parity with Trainer -> Client requirements
+typedef ClientModel = TrainerMemberModel;
