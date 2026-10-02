@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/animations/animations.dart';
 import '../../providers/progress_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 
@@ -12,8 +13,11 @@ class GamificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final progressProv = context.watch<ProgressProvider>();
+    final authProv = context.watch<AuthProvider>();
     final achievements = progressProv.achievements;
     final personalRecords = progressProv.personalRecords;
+    
+    final streakDays = authProv.user?.streakDays ?? 0;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -63,20 +67,20 @@ class GamificationScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '5-Day Active Streak',
-                              style: TextStyle(
+                              '$streakDays-Day Active Streak',
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              'You\'re performing better than 84% of PROFIT members this week!',
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Keep it up!',
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.4,

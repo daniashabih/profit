@@ -18,9 +18,9 @@ class WorkoutScreen extends StatelessWidget {
     final todayWorkout = workoutProv.todayWorkout;
     final user = authProv.user;
 
-    final workoutTitle = todayWorkout.title.isNotEmpty ? todayWorkout.title : 'Chest';
-    final workoutDate = todayWorkout.subtitle.isNotEmpty ? todayWorkout.subtitle : 'January 20';
-    final exercises = todayWorkout.exercises;
+    final workoutTitle = todayWorkout?.title.isNotEmpty == true ? todayWorkout!.title : 'Chest';
+    final workoutDate = todayWorkout?.subtitle.isNotEmpty == true ? todayWorkout!.subtitle : 'January 20';
+    final exercises = todayWorkout?.exercises ?? [];
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,

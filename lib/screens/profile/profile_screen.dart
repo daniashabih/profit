@@ -27,17 +27,17 @@ class ProfileScreen extends StatelessWidget {
   void _showEditProfileDialog(BuildContext context) {
     final authProv = context.read<AuthProvider>();
     final user = authProv.user;
-    final nameController = TextEditingController(text: user?.name ?? 'Dania Shabih');
-    final goalController = TextEditingController(text: user?.goal ?? 'Weight Loss');
+    final nameController = TextEditingController(text: user?.name ?? 'User');
+    final goalController = TextEditingController(text: user?.goal ?? '');
     final weightController = TextEditingController(
       text: user?.currentWeightKg != null && user!.currentWeightKg > 0
           ? user.currentWeightKg.toStringAsFixed(1)
-          : '70.0',
+          : '',
     );
     final heightController = TextEditingController(
       text: user?.heightCm != null && user!.heightCm > 0
           ? user.heightCm.toStringAsFixed(0)
-          : '175',
+          : '',
     );
 
     showDialog(
@@ -228,7 +228,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      user?.name ?? 'Dania Shabih',
+                      user?.name ?? 'User',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -238,7 +238,7 @@ class ProfileScreen extends StatelessWidget {
                     Text(
                       user?.fitnessLevel.isNotEmpty == true
                           ? user!.fitnessLevel
-                          : 'Beginner • Fitness',
+                          : 'Beginner',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -313,13 +313,13 @@ class ProfileScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Goal', user?.goal.isNotEmpty == true ? user!.goal : 'Weight Loss', isDark),
+                    _buildStatItem('Goal', user?.goal.isNotEmpty == true ? user!.goal : '—', isDark),
                     _buildVerticalDivider(isDark),
                     _buildStatItem('Current', '${(user?.currentWeightKg != null && user!.currentWeightKg > 0 ? user.currentWeightKg : progressProv.currentWeight).toStringAsFixed(0)} kg', isDark),
                     _buildVerticalDivider(isDark),
                     _buildStatItem('Target', '${(user?.targetWeightKg != null && user!.targetWeightKg > 0 ? user.targetWeightKg : progressProv.targetWeight).toStringAsFixed(0)} kg', isDark),
                     _buildVerticalDivider(isDark),
-                    _buildStatItem('Height', user?.heightCm != null && user!.heightCm > 0 ? '${user.heightCm.toStringAsFixed(0)} cm' : "5'0\"", isDark),
+                    _buildStatItem('Height', user?.heightCm != null && user!.heightCm > 0 ? '${user.heightCm.toStringAsFixed(0)} cm' : '—', isDark),
                   ],
                 ),
               ),
@@ -376,7 +376,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${user?.bmi ?? 29.7}',
+                                  user?.bmi.toStringAsFixed(1) ?? '—',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
@@ -385,7 +385,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  user?.bmiCategory ?? 'Overweight',
+                                  user?.bmiCategory ?? '—',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -422,7 +422,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${user?.proteinRecommendation.targetGrams.toInt() ?? 138}g',
+                                  user != null ? '${user.proteinRecommendation.targetGrams.toInt()}g' : '—',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
@@ -431,7 +431,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Target (${user?.proteinRecommendation.minGrams.toInt() ?? 124}-${user?.proteinRecommendation.maxGrams.toInt() ?? 166}g)',
+                                  user != null ? 'Target (${user.proteinRecommendation.minGrams.toInt()}-${user.proteinRecommendation.maxGrams.toInt()}g)' : 'Target (—)',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,

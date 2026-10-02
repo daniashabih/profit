@@ -18,9 +18,9 @@ import 'package:profit/providers/self_trainer_cycle_provider.dart';
 import 'package:profit/services/auth_service.dart';
 import 'package:profit/services/ai_coach_service.dart';
 import 'package:profit/repositories/exercise_repository.dart';
-import 'package:profit/repositories/workout_repository.dart';
-import 'package:profit/repositories/nutrition_repository.dart';
-import 'package:profit/repositories/progress_repository.dart';
+
+
+
 import 'package:profit/screens/home/home_dashboard_screen.dart';
 import 'package:profit/screens/self_trainer/fitness_setup_wizard_screen.dart';
 import 'package:profit/screens/self_trainer/today_workout_screen.dart';
@@ -47,9 +47,9 @@ void main() {
 
   Widget buildTestApp(Widget child) {
     final exerciseRepo = LocalExerciseRepository();
-    final workoutRepo = LocalWorkoutRepository(exerciseRepo: exerciseRepo);
-    final nutritionRepo = LocalNutritionRepository();
-    final progressRepo = LocalProgressRepository();
+    
+    
+    
     final aiCoachService = ExtensibleAiCoachService();
 
     final authProv = AuthProvider(authService: authService);
@@ -64,13 +64,13 @@ void main() {
         ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
         ChangeNotifierProvider<AuthProvider>.value(value: authProv),
         ChangeNotifierProvider<WorkoutProvider>(
-          create: (_) => WorkoutProvider(workoutRepo: workoutRepo, exerciseRepo: exerciseRepo),
+          create: (_) => WorkoutProvider(exerciseRepo: exerciseRepo),
         ),
         ChangeNotifierProvider<NutritionProvider>(
-          create: (_) => NutritionProvider(nutritionRepo: nutritionRepo),
+          create: (_) => NutritionProvider(),
         ),
         ChangeNotifierProvider<ProgressProvider>(
-          create: (_) => ProgressProvider(progressRepo: progressRepo),
+          create: (_) => ProgressProvider(),
         ),
         ChangeNotifierProvider<AiCoachProvider>(
           create: (_) => AiCoachProvider(aiService: aiCoachService),

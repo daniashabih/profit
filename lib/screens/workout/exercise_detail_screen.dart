@@ -40,14 +40,15 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final workoutProv = context.watch<WorkoutProvider>();
 
-    final allList = widget.allExercises ?? workoutProv.todayWorkout.exercises;
+    final todayWorkout = workoutProv.todayWorkout;
+    final allList = widget.allExercises ?? (todayWorkout?.exercises ?? []);
     final totalCount = allList.isNotEmpty ? allList.length : 4;
 
     // Get live exercise instance from provider if available
-    final liveExercise = workoutProv.todayWorkout.exercises.firstWhere(
+    final liveExercise = todayWorkout?.exercises.firstWhere(
       (e) => e.id == _currentExercise.id,
       orElse: () => _currentExercise,
-    );
+    ) ?? _currentExercise;
 
     // Filter next exercises
     final nextExercises =

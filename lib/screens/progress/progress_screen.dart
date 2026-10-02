@@ -147,7 +147,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: _buildMetricCard(
                       icon: Icons.fitness_center_rounded,
                       title: 'Workouts',
-                      value: '18',
+                      value: '-',
                       iconColor: AppColors.primaryLime,
                       isDark: isDark,
                     ),
@@ -157,7 +157,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: _buildMetricCard(
                       icon: Icons.access_time_rounded,
                       title: 'Training Time',
-                      value: '12h 40m',
+                      value: '-',
                       iconColor: AppColors.primaryLime,
                       isDark: isDark,
                     ),
@@ -174,7 +174,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: _buildMetricCard(
                       icon: Icons.shield_rounded,
                       title: 'Total Volume',
-                      value: '24,580 kg',
+                      value: '-',
                       iconColor: AppColors.primaryLime,
                       isDark: isDark,
                     ),
@@ -184,7 +184,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: _buildMetricCard(
                       icon: Icons.local_fire_department_rounded,
                       title: 'Calories',
-                      value: '8,420',
+                      value: '-',
                       iconColor: Colors.orange,
                       isDark: isDark,
                     ),

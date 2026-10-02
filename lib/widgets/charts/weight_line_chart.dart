@@ -15,17 +15,45 @@ class WeightLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (measurements.isEmpty) {
+      return const Center(
+        child: Text(
+          'No measurements yet.\\nAdd one to see your progress!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final monthNames = ['Jun', 'Jul', 'Aug', 'Sep'];
+    // Sort measurements by date just in case
+    final sortedMeasurements = List<BodyMeasurementModel>.from(measurements)
+      ..sort((a, b) => a.date.compareTo(b.date));
 
-    // Seed points matching Mockup Screen 8: Jun (72), Jul (70.8), Aug (69.8), Sep (69.0)
-    final spots = <FlSpot>[
-      const FlSpot(0, 72.0),
-      const FlSpot(1, 70.8),
-      const FlSpot(2, 69.8),
-      const FlSpot(3, 69.0),
-    ];
+    // Map to FlSpot
+    final spots = <FlSpot>[];
+    for (int i = 0; i < sortedMeasurements.length; i++) {
+      spots.add(FlSpot(i.toDouble(), sortedMeasurements[i].weightKg));
+    }
+
+    // Min/Max for Y-axis
+    double minWeight = sortedMeasurements.map((m) => m.weightKg).reduce((a, b) => a < b ? a : b);
+    double maxWeight = sortedMeasurements.map((m) => m.weightKg).reduce((a, b) => a > b ? a : b);
+    
+    // Add some padding to Y-axis
+    minWeight = (minWeight - 2).floorToDouble();
+    maxWeight = (maxWeight + 2).ceilToDouble();
+    if (minWeight == maxWeight) {
+      minWeight -= 2;
+      maxWeight += 2;
+    }
+
+    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     return AspectRatio(
       aspectRatio: 1.85,
@@ -55,13 +83,14 @@ class WeightLineChart extends StatelessWidget {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   final idx = value.toInt();
-                  if (idx >= 0 && idx < monthNames.length) {
+                  if (idx >= 0 && idx < sortedMeasurements.length) {
+                    final date = sortedMeasurements[idx].date;
                     return Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
-                        monthNames[idx],
+                        '${monthNames[date.month - 1]} ${date.day}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: isDark
                               ? AppColors.darkTextMuted
@@ -80,7 +109,7 @@ class WeightLineChart extends StatelessWidget {
                 interval: 2,
                 reservedSize: 42,
                 getTitlesWidget: (value, meta) {
-                  if (value % 2 == 0 && value >= 64 && value <= 72) {
+                  if (value % 2 == 0 && value >= minWeight && value <= maxWeight) {
                     return Text(
                       '${value.toInt()}kg',
                       style: TextStyle(
@@ -99,9 +128,9 @@ class WeightLineChart extends StatelessWidget {
           ),
           borderData: FlBorderData(show: false),
           minX: 0,
-          maxX: 3,
-          minY: 64,
-          maxY: 74,
+          maxX: (sortedMeasurements.length - 1).toDouble() > 0 ? (sortedMeasurements.length - 1).toDouble() : 1.0,
+          minY: minWeight,
+          maxY: maxWeight,
           lineBarsData: [
             // User Weight Curve (Smooth Green curve with dots)
             LineChartBarData(

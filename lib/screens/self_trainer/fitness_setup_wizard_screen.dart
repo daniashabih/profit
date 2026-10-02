@@ -24,21 +24,21 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
 
   // Step 1: Basic Info
   final TextEditingController _nameController = TextEditingController();
-  int _age = 26;
-  String _gender = 'Female';
+  int _age = 25;
+  String _gender = '';
 
   // Step 2: Body Measurements
   bool _isFeetInches = false;
   int _heightFeet = 5;
-  int _heightInches = 0;
-  double _heightCm = 152.4;
-  double _currentWeightKg = 69.0;
+  int _heightInches = 7;
+  double _heightCm = 170.0;
+  double _currentWeightKg = 70.0;
 
   // Step 3: Fitness Goal
   String _selectedGoal = 'Lose Weight';
 
   // Step 5: Target Weight
-  double _targetWeightKg = 58.0;
+  double _targetWeightKg = 65.0;
 
   // Step 6: Training Days
   int? _trainingDays;

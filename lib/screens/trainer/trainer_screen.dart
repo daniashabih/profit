@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/trainer_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_card.dart';
@@ -12,24 +15,72 @@ class TrainerScreen extends StatefulWidget {
 }
 
 class _TrainerScreenState extends State<TrainerScreen> {
-  final TrainerModel trainer = TrainerModel(
-    id: 'tr_01',
-    name: 'Ahmed Khan',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-    certification: 'Certified Trainer',
-    rating: 4.9,
-    reviewsCount: 124,
-    bio:
-        'Certified fitness and conditioning coach specializing in strength development, progressive hypertrophy, and sustainable weight loss nutrition.',
-    assignedWorkoutPlan: '4 days / week',
-    assignedDietPlan: '1500 kcal / day',
-    weeklyTargets: [
-      'Complete 4 strength sessions',
-      'Hit 1500 kcal diet target',
-      'Drink 2.5L water daily',
-      '10,000 daily steps',
-    ],
-  );
+  TrainerModel? _trainer;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTrainer();
+    });
+  }
+
+  Future<void> _loadTrainer() async {
+    final user = context.read<AuthProvider>().user;
+    if (user == null || user.assignedTrainerId == null || user.assignedTrainerId!.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.assignedTrainerId).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        if (mounted) {
+          setState(() {
+            _trainer = TrainerModel(
+              id: doc.id,
+              name: data['name'] ?? 'Unknown Trainer',
+              avatarUrl: data['avatarUrl'] ?? '',
+              certification: data['certification'] ?? 'Certified Trainer',
+              rating: 5.0,
+              reviewsCount: 1,
+              bio: data['bio'] ?? 'Dedicated to helping you reach your fitness goals.',
+              assignedWorkoutPlan: user.assignedWorkoutPlan ?? 'Standard 4-Day Split',
+              assignedDietPlan: user.assignedDietPlan ?? 'Standard Macro Target',
+              weeklyTargets: [
+                'Complete all scheduled sessions',
+                'Hit daily protein targets',
+                'Drink 2.5L water daily',
+                'Aim for 8,000 steps',
+              ],
+            );
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _error = 'Trainer not found';
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load trainer info';
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   void _showMessageSheet() {
     showModalBottomSheet(
@@ -56,7 +107,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Message ${trainer.name}',
+                'Message ${_trainer!.name}',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
@@ -83,7 +134,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Message sent to ${trainer.name}! 💬'),
+                      content: Text('Message sent to ${_trainer!.name}! 💬'),
                       backgroundColor: const Color(0xFF1E293B),
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -109,54 +160,77 @@ class _TrainerScreenState extends State<TrainerScreen> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Trainer Profile Card
-            FitFlowCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      // Avatar
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                          child: Image.network(
-                            trainer.avatarUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              color: AppColors.primaryLime.withOpacity(0.2),
-                              child: const Icon(
-                                Icons.person_rounded,
-                                size: 44,
-                                color: AppColors.primaryLime,
-                              ),
-                            ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryLime))
+          : _error != null
+              ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
+              : _trainer == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.sports_gymnastics_rounded, size: 48, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No Trainer Assigned',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Contact support to get matched with a coach.',
+                            style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              trainer.name,
-                              style: const TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              trainer.certification,
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Trainer Profile Card
+                          FitFlowCard(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    // Avatar
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        width: 80,
+                                        height: 80,
+                                        color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                                        child: Image.network(
+                                          _trainer!.avatarUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => Container(
+                                            color: AppColors.primaryLime.withOpacity(0.2),
+                                            child: const Icon(
+                                              Icons.person_rounded,
+                                              size: 44,
+                                              color: AppColors.primaryLime,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _trainer!.name,
+                                            style: const TextStyle(
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _trainer!.certification,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -171,7 +245,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                                 const Icon(Icons.star_rounded, size: 18, color: Colors.amber),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${trainer.rating}',
+                                  '${_trainer!.rating}',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
@@ -179,7 +253,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '(${trainer.reviewsCount} reviews)',
+                                  '(${_trainer!.reviewsCount} reviews)',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isDark
@@ -196,7 +270,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    trainer.bio,
+                    _trainer!.bio,
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.45,
@@ -225,7 +299,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Viewing ${trainer.name}\'s full training roadmap'),
+                                content: Text('Viewing ${_trainer!.name}\'s full training roadmap'),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -291,7 +365,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          trainer.assignedWorkoutPlan,
+                          _trainer!.assignedWorkoutPlan,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -346,7 +420,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          trainer.assignedDietPlan,
+                          _trainer!.assignedDietPlan,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -460,7 +534,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                 ),
               ),
               child: Column(
-                children: List.generate(trainer.weeklyTargets.length, (index) {
+                children: List.generate(_trainer!.weeklyTargets.length, (index) {
                   final isDone = index < 3;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -475,7 +549,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            trainer.weeklyTargets[index],
+                            _trainer!.weeklyTargets[index],
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

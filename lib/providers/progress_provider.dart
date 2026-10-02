@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/measurement_model.dart';
 import '../models/achievement_model.dart';
-import '../repositories/progress_repository.dart';
 import '../services/progress_service.dart';
 
 class ProgressProvider extends ChangeNotifier {
-  final ProgressRepository _progressRepo;
   final ProgressService _progressService;
 
   List<BodyMeasurementModel> _measurements = [];
@@ -17,28 +15,31 @@ class ProgressProvider extends ChangeNotifier {
   String? _boundUserId;
   StreamSubscription? _measurementsSub;
 
+  bool _isLoading = false;
+  String? _error;
+
   List<BodyMeasurementModel> get measurements => _measurements;
   List<AchievementModel> get achievements => _achievements;
   List<PersonalRecordModel> get personalRecords => _personalRecords;
   List<bool> get weeklyActivity => _weeklyActivity;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
-  double get currentWeight => _measurements.isNotEmpty ? _measurements.last.weightKg : 74.5;
-  double get startingWeight => _measurements.isNotEmpty ? _measurements.first.weightKg : 81.0;
-  double get targetWeight => 72.0;
+  double get currentWeight => _measurements.isNotEmpty ? _measurements.last.weightKg : 0.0;
+  double get startingWeight => _measurements.isNotEmpty ? _measurements.first.weightKg : 0.0;
+  double get targetWeight => 0.0;
 
   ProgressProvider({
-    required ProgressRepository progressRepo,
     ProgressService? progressService,
-  })  : _progressRepo = progressRepo,
-        _progressService = progressService ?? ProgressService() {
+  })  : _progressService = progressService ?? ProgressService() {
     _init();
   }
 
   void _init() {
-    _measurements = List.from(_progressRepo.getMeasurementsHistory());
-    _achievements = List.from(_progressRepo.getAchievements());
-    _personalRecords = List.from(_progressRepo.getPersonalRecords());
-    _weeklyActivity = List.from(_progressRepo.getWeeklyWorkoutActivity());
+    _measurements = [];
+    _achievements = [];
+    _personalRecords = [];
+    _weeklyActivity = [];
   }
 
   /// Binds to a user's real-time measurements in Firestore
@@ -48,22 +49,38 @@ class ProgressProvider extends ChangeNotifier {
 
     if (Firebase.apps.isEmpty) return;
 
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     _measurementsSub?.cancel();
-    _measurementsSub = _progressService.streamMeasurements(userId).listen((list) {
-      if (list.isNotEmpty) {
+    _measurementsSub = _progressService.streamMeasurements(userId).listen(
+      (list) {
         _measurements = list;
+        _isLoading = false;
         notifyListeners();
-      }
-    });
+      },
+      onError: (err) {
+        _isLoading = false;
+        _error = err.toString();
+        debugPrint('Error streaming measurements: $_error');
+        notifyListeners();
+      },
+    );
   }
 
   void addMeasurement(BodyMeasurementModel measurement) {
-    _progressRepo.addMeasurement(measurement);
-    _measurements = List.from(_progressRepo.getMeasurementsHistory());
+    _measurements.add(measurement);
     notifyListeners();
 
     if (Firebase.apps.isNotEmpty && _boundUserId != null) {
-      _progressService.addMeasurement(_boundUserId!, measurement).catchError((_) {});
+      _progressService.addMeasurement(_boundUserId!, measurement).catchError((err) {
+        _error = err.toString();
+        debugPrint('Error adding measurement: $_error');
+        // If we want full revert, we could re-fetch or remove it.
+        // For now, just logging the error.
+        notifyListeners();
+      });
     }
   }
 
@@ -72,7 +89,11 @@ class ProgressProvider extends ChangeNotifier {
     notifyListeners();
 
     if (Firebase.apps.isNotEmpty) {
-      _progressService.deleteMeasurement(measurementId).catchError((_) {});
+      _progressService.deleteMeasurement(measurementId).catchError((err) {
+        _error = err.toString();
+        debugPrint('Error deleting measurement: $_error');
+        notifyListeners();
+      });
     }
   }
 

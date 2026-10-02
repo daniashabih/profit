@@ -18,9 +18,6 @@ import 'providers/self_trainer_cycle_provider.dart';
 import 'services/auth_service.dart';
 import 'services/ai_coach_service.dart';
 import 'repositories/exercise_repository.dart';
-import 'repositories/workout_repository.dart';
-import 'repositories/nutrition_repository.dart';
-import 'repositories/progress_repository.dart';
 
 import 'screens/splash/splash_screen.dart';
 
@@ -59,9 +56,6 @@ void main() async {
   }
   final aiCoachService = ExtensibleAiCoachService();
   final exerciseRepo = LocalExerciseRepository();
-  final workoutRepo = LocalWorkoutRepository(exerciseRepo: exerciseRepo);
-  final nutritionRepo = LocalNutritionRepository();
-  final progressRepo = LocalProgressRepository();
 
   runApp(
     MultiProvider(
@@ -77,15 +71,14 @@ void main() async {
         ),
         ChangeNotifierProvider<WorkoutProvider>(
           create: (_) => WorkoutProvider(
-            workoutRepo: workoutRepo,
             exerciseRepo: exerciseRepo,
           ),
         ),
         ChangeNotifierProvider<NutritionProvider>(
-          create: (_) => NutritionProvider(nutritionRepo: nutritionRepo),
+          create: (_) => NutritionProvider(),
         ),
         ChangeNotifierProvider<ProgressProvider>(
-          create: (_) => ProgressProvider(progressRepo: progressRepo),
+          create: (_) => ProgressProvider(),
         ),
         ChangeNotifierProvider<AiCoachProvider>(
           create: (_) => AiCoachProvider(aiService: aiCoachService),

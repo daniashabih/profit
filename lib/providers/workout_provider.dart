@@ -6,19 +6,20 @@ import '../models/exercise_model.dart';
 import '../models/workout_set_model.dart';
 import '../core/enums/muscle_group.dart';
 import '../core/enums/exercise_difficulty.dart';
-import '../repositories/workout_repository.dart';
 import '../repositories/exercise_repository.dart';
 import '../services/workout_service.dart';
 
 class WorkoutProvider extends ChangeNotifier {
-  final WorkoutRepository _workoutRepo;
   final ExerciseRepository _exerciseRepo;
   final WorkoutService _workoutService;
 
-  late WorkoutModel _todayWorkout;
+  WorkoutModel? _todayWorkout;
   List<ExerciseModel> _filteredLibrary = [];
   String? _boundUserId;
   StreamSubscription? _userWorkoutsSub;
+
+  bool _isLoading = false;
+  String? _error;
 
   // Filter criteria for Exercise Library
   String _searchQuery = '';
@@ -33,7 +34,7 @@ class WorkoutProvider extends ChangeNotifier {
   bool _isRestTimerActive = false;
   Timer? _restTimer;
 
-  WorkoutModel get todayWorkout => _todayWorkout;
+  WorkoutModel? get todayWorkout => _todayWorkout;
   List<ExerciseModel> get filteredLibrary => _filteredLibrary;
   String get searchQuery => _searchQuery;
   MuscleGroup? get selectedMuscle => _selectedMuscle;
@@ -47,18 +48,18 @@ class WorkoutProvider extends ChangeNotifier {
   double get restTimerProgress =>
       _restTimerInitialSeconds == 0 ? 0.0 : (_restTimerSeconds / _restTimerInitialSeconds);
 
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
   WorkoutProvider({
-    required WorkoutRepository workoutRepo,
     required ExerciseRepository exerciseRepo,
     WorkoutService? workoutService,
-  })  : _workoutRepo = workoutRepo,
-        _exerciseRepo = exerciseRepo,
+  })  : _exerciseRepo = exerciseRepo,
         _workoutService = workoutService ?? WorkoutService() {
     _init();
   }
 
   void _init() {
-    _todayWorkout = _workoutRepo.getTodayWorkout();
     _applyLibraryFilters();
   }
 
@@ -69,47 +70,100 @@ class WorkoutProvider extends ChangeNotifier {
 
     if (Firebase.apps.isEmpty) return;
 
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     _userWorkoutsSub?.cancel();
-    _userWorkoutsSub = _workoutService.streamUserWorkouts(userId).listen((list) {
-      if (list.isNotEmpty) {
-        _todayWorkout = list.first;
+    _userWorkoutsSub = _workoutService.streamUserWorkouts(userId).listen(
+      (list) {
+        _todayWorkout = list.isNotEmpty ? list.first : null;
+        _isLoading = false;
         notifyListeners();
-      }
-    });
+      },
+      onError: (err) {
+        _isLoading = false;
+        _error = err.toString();
+        debugPrint('Error streaming workouts: $_error');
+        notifyListeners();
+      },
+    );
   }
 
   void updateSet(String exerciseId, int setIndex, WorkoutSetModel set) {
-    _workoutRepo.updateExerciseSet(exerciseId, setIndex, set);
-    _todayWorkout = _workoutRepo.getTodayWorkout();
-    notifyListeners();
+    if (_todayWorkout != null) {
+      final exercises = List<ExerciseModel>.from(_todayWorkout!.exercises);
+      final exIndex = exercises.indexWhere((e) => e.id == exerciseId);
+      if (exIndex != -1) {
+        final exercise = exercises[exIndex];
+        final setsList = List<WorkoutSetModel>.from(exercise.setsList);
+        if (setIndex >= 0 && setIndex < setsList.length) {
+          setsList[setIndex] = set;
+          exercises[exIndex] = exercise.copyWith(setsList: setsList);
+          _todayWorkout = _todayWorkout!.copyWith(exercises: exercises);
+          notifyListeners();
+        }
+      }
+    }
 
-    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
-      _workoutService.updateExerciseSet(_todayWorkout.id, exerciseId, setIndex, set).catchError((_) {});
+    if (Firebase.apps.isNotEmpty && _todayWorkout != null && _todayWorkout!.id.isNotEmpty) {
+      _workoutService.updateExerciseSet(_todayWorkout!.id, exerciseId, setIndex, set).catchError((err) {
+        _error = err.toString();
+        debugPrint('Error updating set: $_error');
+        notifyListeners();
+      });
     }
   }
 
   void addSet(String exerciseId) {
-    _workoutRepo.addExerciseSet(exerciseId);
-    _todayWorkout = _workoutRepo.getTodayWorkout();
-    notifyListeners();
+    if (_todayWorkout != null) {
+      final exercises = List<ExerciseModel>.from(_todayWorkout!.exercises);
+      final exIndex = exercises.indexWhere((e) => e.id == exerciseId);
+      if (exIndex != -1) {
+        final exercise = exercises[exIndex];
+        final setsList = List<WorkoutSetModel>.from(exercise.setsList);
+        final newSet = WorkoutSetModel(
+          setNumber: setsList.length + 1,
+          weightKg: 20.0,
+          reps: 10,
+        );
+        setsList.add(newSet);
+        exercises[exIndex] = exercise.copyWith(setsList: setsList);
+        _todayWorkout = _todayWorkout!.copyWith(exercises: exercises);
+        notifyListeners();
+      }
+    }
 
-    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
-      _workoutService.addExerciseSet(_todayWorkout.id, exerciseId).catchError((_) {});
+    if (Firebase.apps.isNotEmpty && _todayWorkout != null && _todayWorkout!.id.isNotEmpty) {
+      _workoutService.addExerciseSet(_todayWorkout!.id, exerciseId).catchError((err) {
+        _error = err.toString();
+        debugPrint('Error adding set: $_error');
+        notifyListeners();
+      });
     }
   }
 
   void completeExercise(String exerciseId) {
-    _workoutRepo.markExerciseComplete(exerciseId);
-    _todayWorkout = _workoutRepo.getTodayWorkout();
-    notifyListeners();
+    if (_todayWorkout != null) {
+      final exercises = List<ExerciseModel>.from(_todayWorkout!.exercises);
+      final exIndex = exercises.indexWhere((e) => e.id == exerciseId);
+      if (exIndex != -1) {
+        exercises[exIndex] = exercises[exIndex].copyWith(isCompleted: true);
+        _todayWorkout = _todayWorkout!.copyWith(exercises: exercises);
+        notifyListeners();
 
-    if (Firebase.apps.isNotEmpty && _todayWorkout.id.isNotEmpty) {
-      _workoutService.markExerciseComplete(_todayWorkout.id, exerciseId).catchError((_) {});
+        // Automatically trigger rest timer
+        startRestTimer(seconds: exercises[exIndex].restTimeSeconds);
+      }
     }
 
-    // Automatically trigger rest timer
-    final exercise = _todayWorkout.exercises.firstWhere((e) => e.id == exerciseId);
-    startRestTimer(seconds: exercise.restTimeSeconds);
+    if (Firebase.apps.isNotEmpty && _todayWorkout != null && _todayWorkout!.id.isNotEmpty) {
+      _workoutService.markExerciseComplete(_todayWorkout!.id, exerciseId).catchError((err) {
+        _error = err.toString();
+        debugPrint('Error completing exercise: $_error');
+        notifyListeners();
+      });
+    }
   }
 
   /// Creates a custom workout and saves to Firestore
@@ -118,7 +172,13 @@ class WorkoutProvider extends ChangeNotifier {
     notifyListeners();
 
     if (Firebase.apps.isNotEmpty) {
-      await _workoutService.createWorkout(workout);
+      try {
+        await _workoutService.createWorkout(workout);
+      } catch (err) {
+        _error = err.toString();
+        debugPrint('Error creating workout: $_error');
+        notifyListeners();
+      }
     }
   }
 

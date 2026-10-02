@@ -7,9 +7,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/auth/auth_widgets.dart';
-import '../trainer/trainer_onboarding_screen.dart';
-import '../self_trainer/fitness_setup_wizard_screen.dart';
-
 /// Clean, minimal, premium Sign Up screen for PROFIT.
 /// Keeps registration simple, intuitive, and comfortable across devices.
 class SignUpScreen extends StatefulWidget {
@@ -77,41 +74,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (success) {
       roleProv.setRole(_selectedRole);
 
-      if (_selectedRole == UserRole.trainer) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 350),
-            pageBuilder: (_, _, _) =>
-                TrainerOnboardingScreen(user: authProv.user),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-          (route) => false,
-        );
-      } else if (_selectedRole == UserRole.self) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 350),
-            pageBuilder: (_, _, _) => const FitnessSetupWizardScreen(),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-          (route) => false,
-        );
-      } else {
-        Navigator.pushAndRemoveUntil(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 350),
-            pageBuilder: (_, _, _) =>
-                getRoleBasedHomeScreen(_selectedRole),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-          (route) => false,
-        );
+      if (authProv.user != null) {
+        RoleRouter.navigateToRoleHome(context, authProv.user!, isSignUp: true);
       }
 
       if (mounted) {

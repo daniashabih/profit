@@ -38,22 +38,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   String _formatNotificationTime(int index, DateTime timestamp) {
-    // Exact times matching Screen 13 mockup
-    switch (index) {
-      case 0:
-        return '08:00 AM';
-      case 1:
-        return '11:30 AM';
-      case 2:
-        return '02:15 PM';
-      case 3:
-        return '01:30 PM';
-      case 4:
-        return 'Yesterday';
-      case 5:
-        return '2 days ago';
-      default:
-        return 'Just now';
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24 && now.day == timestamp.day) {
+      final hour = timestamp.hour > 12 ? timestamp.hour - 12 : (timestamp.hour == 0 ? 12 : timestamp.hour);
+      final minute = timestamp.minute.toString().padLeft(2, '0');
+      final ampm = timestamp.hour >= 12 ? 'PM' : 'AM';
+      return 'Today at $hour:$minute $ampm';
+    } else if (now.day - timestamp.day == 1 || (now.day == 1 && difference.inHours < 48)) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
     }
   }
 

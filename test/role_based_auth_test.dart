@@ -10,7 +10,7 @@ import 'package:profit/providers/auth_provider.dart';
 import 'package:profit/providers/role_provider.dart';
 import 'package:profit/services/auth_service.dart';
 import 'package:profit/providers/progress_provider.dart';
-import 'package:profit/repositories/progress_repository.dart';
+
 import 'package:profit/screens/main_navigation.dart';
 import 'package:profit/screens/profile/profile_screen.dart';
 import 'package:profit/screens/trainer/trainer_dashboard_screen.dart';
@@ -312,7 +312,7 @@ void main() {
       final authService = MockAuthService();
       final authProvider = AuthProvider(authService: authService);
       final roleProvider = RoleProvider();
-      final progressProvider = ProgressProvider(progressRepo: LocalProgressRepository());
+      final progressProvider = ProgressProvider();
 
       // Sign in as standard self user (e.g. Google user)
       await authProvider.signInWithGoogle();
@@ -342,7 +342,7 @@ void main() {
       final authService = MockAuthService();
       final authProvider = AuthProvider(authService: authService);
       final roleProvider = RoleProvider();
-      final progressProvider = ProgressProvider(progressRepo: LocalProgressRepository());
+      final progressProvider = ProgressProvider();
 
       // Register as trainer
       await authProvider.register(

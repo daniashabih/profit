@@ -12,9 +12,6 @@ import '../../widgets/auth/auth_widgets.dart';
 import '../../widgets/common/profit_logo.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../auth/sign_in_screen.dart';
-import '../../providers/self_trainer_cycle_provider.dart';
-import '../self_trainer/fitness_setup_wizard_screen.dart';
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -100,14 +97,11 @@ class _SplashScreenState extends State<SplashScreen>
       context.read<RoleProvider>().setRole(role);
 
       if (role == UserRole.self) {
-        context.read<SelfTrainerCycleProvider>().initializeForUser(user);
-        if (!user.fitnessSetupCompleted) {
-          nextScreen = const FitnessSetupWizardScreen();
-        } else {
-          nextScreen = getRoleBasedHomeScreen(role);
-        }
+        RoleRouter.navigateToRoleHome(context, user);
+        return;
       } else {
-        nextScreen = getRoleBasedHomeScreen(role);
+        RoleRouter.navigateToRoleHome(context, user);
+        return;
       }
     } else {
       nextScreen = const SignInScreen();

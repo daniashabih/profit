@@ -110,6 +110,9 @@ class UserModel {
   final DateTime membershipExpiryDate;
   final bool fitnessSetupCompleted;
   final int trainingDaysPerWeek;
+  final String? assignedTrainerId;
+  final String? assignedWorkoutPlan;
+  final String? assignedDietPlan;
 
   String get uid => id;
   String get fullName => name;
@@ -166,6 +169,9 @@ class UserModel {
     DateTime? membershipExpiryDate,
     this.fitnessSetupCompleted = false,
     this.trainingDaysPerWeek = 4,
+    this.assignedTrainerId,
+    this.assignedWorkoutPlan,
+    this.assignedDietPlan,
   })  : createdAt = createdAt ?? DateTime.now(),
         membershipExpiryDate = membershipExpiryDate ??
             DateTime.now().add(const Duration(days: 184));
@@ -200,6 +206,9 @@ class UserModel {
     DateTime? membershipExpiryDate,
     bool? fitnessSetupCompleted,
     int? trainingDaysPerWeek,
+    String? assignedTrainerId,
+    String? assignedWorkoutPlan,
+    String? assignedDietPlan,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -236,6 +245,9 @@ class UserModel {
           fitnessSetupCompleted ?? this.fitnessSetupCompleted,
       trainingDaysPerWeek:
           trainingDaysPerWeek ?? this.trainingDaysPerWeek,
+      assignedTrainerId: assignedTrainerId ?? this.assignedTrainerId,
+      assignedWorkoutPlan: assignedWorkoutPlan ?? this.assignedWorkoutPlan,
+      assignedDietPlan: assignedDietPlan ?? this.assignedDietPlan,
     );
   }
 
@@ -277,6 +289,9 @@ class UserModel {
       'membershipTier': membershipTier,
       'membershipDaysRemaining': membershipDaysRemaining,
       'membershipExpiryDate': membershipExpiryDate.toIso8601String(),
+      if (assignedTrainerId != null) 'assignedTrainerId': assignedTrainerId,
+      if (assignedWorkoutPlan != null) 'assignedWorkoutPlan': assignedWorkoutPlan,
+      if (assignedDietPlan != null) 'assignedDietPlan': assignedDietPlan,
     };
   }
 
@@ -332,6 +347,9 @@ class UserModel {
           : DateTime.now(),
       fitnessSetupCompleted: map['fitnessSetupCompleted'] == true,
       trainingDaysPerWeek: (map['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
+      assignedTrainerId: map['assignedTrainerId']?.toString(),
+      assignedWorkoutPlan: map['assignedWorkoutPlan']?.toString(),
+      assignedDietPlan: map['assignedDietPlan']?.toString(),
     );
   }
 }

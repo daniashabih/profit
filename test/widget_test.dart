@@ -13,9 +13,9 @@ import 'package:profit/providers/role_provider.dart';
 import 'package:profit/services/auth_service.dart';
 import 'package:profit/services/ai_coach_service.dart';
 import 'package:profit/repositories/exercise_repository.dart';
-import 'package:profit/repositories/workout_repository.dart';
-import 'package:profit/repositories/nutrition_repository.dart';
-import 'package:profit/repositories/progress_repository.dart';
+
+
+
 
 void main() {
   setUp(() {
@@ -26,9 +26,9 @@ void main() {
     final authService = MockAuthService();
     final aiCoachService = ExtensibleAiCoachService();
     final exerciseRepo = LocalExerciseRepository();
-    final workoutRepo = LocalWorkoutRepository(exerciseRepo: exerciseRepo);
-    final nutritionRepo = LocalNutritionRepository();
-    final progressRepo = LocalProgressRepository();
+    
+    
+    
 
     await tester.pumpWidget(
       MultiProvider(
@@ -37,13 +37,13 @@ void main() {
           ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
           ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider(authService: authService)),
           ChangeNotifierProvider<WorkoutProvider>(
-            create: (_) => WorkoutProvider(workoutRepo: workoutRepo, exerciseRepo: exerciseRepo),
+            create: (_) => WorkoutProvider(exerciseRepo: exerciseRepo),
           ),
           ChangeNotifierProvider<NutritionProvider>(
-            create: (_) => NutritionProvider(nutritionRepo: nutritionRepo),
+            create: (_) => NutritionProvider(),
           ),
           ChangeNotifierProvider<ProgressProvider>(
-            create: (_) => ProgressProvider(progressRepo: progressRepo),
+            create: (_) => ProgressProvider(),
           ),
           ChangeNotifierProvider<AiCoachProvider>(
             create: (_) => AiCoachProvider(aiService: aiCoachService),

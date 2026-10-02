@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/animations/animations.dart';
 import '../../core/enums/meal_type.dart';
@@ -19,7 +20,7 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
-  DateTime _selectedDate = DateTime(2026, 9, 12);
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void didChangeDependencies() {
@@ -35,7 +36,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final nutritionProv = context.watch<NutritionProvider>();
-    final today = nutritionProv.todayNutrition;
+    final today = nutritionProv.todayNutrition ?? DailyNutritionModel();
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -94,8 +95,12 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         AnimatedSwitcher(
                           duration: AppAnimationConstants.fast,
                           child: Text(
-                            'Today, ${_selectedDate.day} Sep',
-                            key: ValueKey<int>(_selectedDate.day),
+                            _selectedDate.day == DateTime.now().day &&
+                                    _selectedDate.month == DateTime.now().month &&
+                                    _selectedDate.year == DateTime.now().year
+                                ? 'Today, ${DateFormat('d MMM').format(_selectedDate)}'
+                                : DateFormat('EEE, d MMM').format(_selectedDate),
+                            key: ValueKey<String>(_selectedDate.toIso8601String()),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,

@@ -9,9 +9,6 @@ import '../../theme/app_colors.dart';
 import '../../widgets/auth/auth_widgets.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
-import '../../providers/self_trainer_cycle_provider.dart';
-import '../self_trainer/fitness_setup_wizard_screen.dart';
-
 /// Clean, minimal, premium Sign In screen for PROFIT.
 /// Delivers an effortless authentication experience with strong visual hierarchy,
 /// generous whitespace, clear feedback, and responsive layout.
@@ -58,29 +55,10 @@ class _SignInScreenState extends State<SignInScreen> {
       final role = user?.role ?? UserRole.self;
       roleProv.setRole(role);
 
-      Widget destination;
-      if (role == UserRole.self && user != null) {
-        context.read<SelfTrainerCycleProvider>().initializeForUser(user);
-        if (!user.fitnessSetupCompleted) {
-          destination = const FitnessSetupWizardScreen();
-        } else {
-          destination = getRoleBasedHomeScreen(role);
-        }
-      } else {
-        destination = getRoleBasedHomeScreen(role);
+      if (user != null) {
+        RoleRouter.navigateToRoleHome(context, user);
+        return;
       }
-
-      // Navigate to destination and clear back-stack
-      Navigator.pushAndRemoveUntil(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 350),
-          pageBuilder: (_, _, _) => destination,
-          transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-        ),
-        (route) => false,
-      );
     }
   }
 

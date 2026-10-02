@@ -49,7 +49,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final authProv = context.watch<AuthProvider>();
     final cycleProv = context.watch<SelfTrainerCycleProvider>();
     final user = authProv.user;
-    final userName = user?.name.split(' ').first ?? 'Dania';
+    final userName = user?.name.split(' ').first ?? 'User';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,

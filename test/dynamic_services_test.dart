@@ -12,8 +12,8 @@ import 'package:profit/providers/auth_provider.dart';
 import 'package:profit/providers/role_provider.dart';
 import 'package:profit/providers/progress_provider.dart';
 import 'package:profit/providers/nutrition_provider.dart';
-import 'package:profit/repositories/progress_repository.dart';
-import 'package:profit/repositories/nutrition_repository.dart';
+
+
 import 'package:profit/services/auth_service.dart';
 import 'package:profit/core/enums/muscle_group.dart';
 import 'package:profit/core/enums/exercise_difficulty.dart';
@@ -554,7 +554,7 @@ void main() {
       tester.binding.window.devicePixelRatioTestValue = 1.0;
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
-      final nutritionProv = NutritionProvider(nutritionRepo: LocalNutritionRepository());
+      final nutritionProv = NutritionProvider();
       final authProv = AuthProvider(authService: MockAuthService());
 
       await tester.pumpWidget(
@@ -593,7 +593,7 @@ void main() {
       tester.binding.window.devicePixelRatioTestValue = 1.0;
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
-      final progressProv = ProgressProvider(progressRepo: LocalProgressRepository());
+      final progressProv = ProgressProvider();
       final authProv = AuthProvider(authService: MockAuthService());
 
       await tester.pumpWidget(

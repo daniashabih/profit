@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/animations/animations.dart';
 import '../../models/membership_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/profit_logo.dart';
@@ -13,21 +15,6 @@ class MembershipScreen extends StatefulWidget {
 }
 
 class _MembershipScreenState extends State<MembershipScreen> {
-  final UserMembershipModel userMembership = UserMembershipModel(
-    tierName: 'PREMIUM',
-    expiryDate: DateTime(2026, 9, 23),
-    daysRemaining: 184,
-    totalDays: 365,
-    activeFeatures: [
-      'Access to workout plans',
-      'Nutrition & macro plans',
-      'Advanced progress analytics',
-      'Dedicated 1-on-1 trainer support',
-      'Exclusive video content & guides',
-      'AI Fitness Coach unlimited chats',
-    ],
-  );
-
   final List<MembershipPlanModel> plans = const [
     MembershipPlanModel(
       id: 'plan_monthly',
@@ -77,6 +64,34 @@ class _MembershipScreenState extends State<MembershipScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authProv = context.watch<AuthProvider>();
+    final user = authProv.user;
+
+    if (authProv.isLoading || user == null) {
+      return Scaffold(
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        appBar: AppBar(
+          title: const Text(
+            'Your Membership',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: AppColors.primaryLime)),
+      );
+    }
+
+    final hasMembership = user.membershipTier != 'free' && user.membershipExpiryDate.isAfter(DateTime.now());
+    
+    // Fallback/calculated data
+    final String tierName = user.membershipTier.toUpperCase();
+    final DateTime expiry = user.membershipExpiryDate;
+    final int daysRemaining = user.membershipDaysRemaining;
+    
+    // Calculate progress if it was a 1-year membership approximately
+    double progress = 0.0;
+    progress = (365.0 - daysRemaining.toDouble()) / 365.0;
+    if (progress < 0) progress = 0;
+    if (progress > 1) progress = 1;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -91,8 +106,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // CURRENT PREMIUM STATUS CARD (Exact mockup layout)
-            StaggeredEntrance(
+            // CURRENT STATUS CARD
+            if (hasMembership) StaggeredEntrance(
               index: 0,
               child: Container(
                 padding: const EdgeInsets.all(22),
@@ -122,18 +137,18 @@ class _MembershipScreenState extends State<MembershipScreen> {
                             color: AppColors.primaryLime,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ProFitLogo(
+                              const ProFitLogo(
                                 size: 16,
                                 showText: false,
                                 logoColor: Color(0xFF111827),
                               ),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(
-                                'PREMIUM',
-                                style: TextStyle(
+                                tierName,
+                                style: const TextStyle(
                                   color: Color(0xFF111827),
                                   fontWeight: FontWeight.w900,
                                   fontSize: 13,
@@ -150,7 +165,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '${userMembership.daysRemaining} Days Remaining',
+                            '$daysRemaining Days Remaining',
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
@@ -163,15 +178,15 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Expires: 23 September 2026',
-                          style: TextStyle(
+                        Text(
+                          'Expires: ${expiry.day} ${expiry.month} ${expiry.year}',
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          '${(userMembership.progressPercentage * 100).toInt()}%',
+                          '${(progress * 100).toInt()}%',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -185,7 +200,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0.0, end: userMembership.progressPercentage),
+                        tween: Tween<double>(begin: 0.0, end: progress),
                         duration: AppAnimationConstants.medium,
                         curve: AppAnimationConstants.curveAthletic,
                         builder: (context, value, _) {
@@ -200,42 +215,6 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     ),
                   const SizedBox(height: 22),
 
-                  // Features list with checkmarks
-                  const Text(
-                    'INCLUDED WITH YOUR PLAN',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...userMembership.activeFeatures.map((feat) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            size: 20,
-                            color: AppColors.primaryLime,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              feat,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 16),
-
                   // Button: RENEW MEMBERSHIP
                   FitFlowButton(
                     text: 'Renew Membership',
@@ -243,12 +222,40 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('PROFIT Premium Membership renewed! 🌟'),
+                          content: Text('Coming soon — payment integration pending'),
                           backgroundColor: Color(0xFF1E293B),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
                     },
+                  ),
+                ],
+              ),
+            ),
+          ) else StaggeredEntrance(
+            index: 0,
+            child: Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.stars_rounded, size: 48, color: AppColors.primaryLime),
+                  SizedBox(height: 12),
+                  Text(
+                    'No Active Membership',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Upgrade your plan to unlock premium features, personal coaching, and full facility access.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -263,7 +270,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'OTHER PLANS',
+                  'AVAILABLE PLANS',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,

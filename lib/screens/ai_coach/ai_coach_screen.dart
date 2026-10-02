@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/animations/animations.dart';
 import '../../providers/ai_coach_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/self_trainer_cycle_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../../widgets/common/fit_flow_card.dart';
@@ -108,8 +110,14 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     );
   }
 
-  // Screen 16 Layout: "What should I do today?"
   Widget _buildDailySuggestionView(BuildContext context, bool isDark) {
+    final authProv = context.watch<AuthProvider>();
+    final cycleProv = context.watch<SelfTrainerCycleProvider>();
+    final user = authProv.user;
+    final userName = user?.name.split(' ').first ?? 'User';
+    final targetProtein = cycleProv.dailyProteinTarget;
+    final consumedProtein = cycleProv.dailyProteinConsumed;
+
     return SingleChildScrollView(
       key: const ValueKey('daily_suggestion_view'),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -137,13 +145,13 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                     showContainer: true,
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'Hi Dania! 👋',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  Text(
+                    'Hi $userName! 👋',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Based on your recent activity, you\'ve trained 3 days this week. Today would be a great day for a lower-body workout.',
+                    'Based on your plan, today would be a great day to focus on your goals and stay consistent.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -216,8 +224,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 _buildSuggestionCard(
                   context,
                   title: 'Workout',
-                  subtitle: 'Upper Body Strength',
-                  detail: '45 mins • 7 exercises',
+                  subtitle: cycleProv.todayWorkoutDay?.workoutType ?? 'Daily Routine',
+                  detail: cycleProv.isTodayRestDay ? 'Rest & Recover' : 'Focus on your form',
                   icon: Icons.fitness_center_rounded,
                   accentColor: AppColors.primaryLime,
                   isDark: isDark,
@@ -233,8 +241,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 _buildSuggestionCard(
                   context,
                   title: 'Nutrition',
-                  subtitle: '1,800 kcal Target',
-                  detail: '120g protein • Log meals',
+                  subtitle: '${targetProtein.toStringAsFixed(0)}g Protein Target',
+                  detail: '${consumedProtein.toStringAsFixed(0)}g consumed so far',
                   icon: Icons.restaurant_rounded,
                   accentColor: AppColors.proteinColor,
                   isDark: isDark,
@@ -251,7 +259,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   context,
                   title: 'Recovery',
                   subtitle: 'Rest & Stretch',
-                  detail: '15 mins mobility • Relax',
+                  detail: 'Take time to recover',
                   icon: Icons.self_improvement_rounded,
                   accentColor: AppColors.carbsColor,
                   isDark: isDark,
@@ -266,8 +274,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 _buildSuggestionCard(
                   context,
                   title: 'Hydration',
-                  subtitle: '2.5L Daily Goal',
-                  detail: '1.8L logged • 72%',
+                  subtitle: 'Stay Hydrated',
+                  detail: 'Drink water regularly',
                   icon: Icons.water_drop_rounded,
                   accentColor: const Color(0xFF38BDF8),
                   isDark: isDark,
