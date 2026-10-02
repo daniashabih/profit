@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../models/notification_model.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
@@ -68,8 +69,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
+          PressableScale(
+            onTap: () async {
               await _notifService.markAllAsRead();
               await _load();
               if (!context.mounted) return;
@@ -80,12 +81,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
               );
             },
-            child: const Text(
-              'Mark All Read',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryLime,
-                fontSize: 13,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                'Mark All Read',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryLime,
+                  fontSize: 13,
+                ),
               ),
             ),
           ),
@@ -101,9 +105,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: NotificationCategory.values.map((cat) {
                 final isSelected = _selectedTab == cat;
                 return Expanded(
-                  child: GestureDetector(
+                  child: PressableScale(
                     onTap: () => setState(() => _selectedTab = cat),
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: AppAnimationConstants.fast,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
@@ -139,7 +144,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // Notifications List
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    itemCount: 4,
+                    itemBuilder: (context, index) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: ShimmerLoading(
+                        child: ShimmerBox(
+                          width: double.infinity,
+                          height: 72,
+                          borderRadius: 20,
+                        ),
+                      ),
+                    ),
+                  )
                 : _filteredList.isEmpty
                     ? Center(
                         child: Column(
@@ -164,19 +182,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         itemBuilder: (context, index) {
                           final item = _filteredList[index];
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppColors.darkSurface : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: !item.isRead
-                                    ? AppColors.primaryLime.withOpacity(0.5)
-                                    : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                                width: !item.isRead ? 1.5 : 1,
-                              ),
-                            ),
+                          return StaggeredEntrance(
+                            index: index,
+                            child: PressableScale(
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppColors.darkSurface : Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: !item.isRead
+                                        ? AppColors.primaryLime.withOpacity(0.5)
+                                        : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                                    width: !item.isRead ? 1.5 : 1,
+                                  ),
+                                ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -242,8 +263,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 ),
                               ],
                             ),
-                          );
-                        },
+                          ),
+                        ),
+                      );
+                    },
                       ),
           ),
         ],

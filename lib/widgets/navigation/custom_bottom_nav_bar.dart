@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/app_colors.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
@@ -46,7 +47,8 @@ class CustomBottomNavBar extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () => onTap(index),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: AppAnimations.standardDuration,
+                curve: AppAnimations.curveAthletic,
                 padding: EdgeInsets.symmetric(
                   horizontal: isSelected ? 22 : 12,
                   vertical: 8,
@@ -59,14 +61,19 @@ class CustomBottomNavBar extends StatelessWidget {
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: Icon(
-                  item.icon,
-                  size: 22,
-                  color: isSelected
-                      ? (isDark ? const Color(0xFF0B1216) : Colors.white)
-                      : (isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.lightTextMuted),
+                child: AnimatedScale(
+                  scale: isSelected ? 1.08 : 1.0,
+                  duration: AppAnimations.fastDuration,
+                  curve: AppAnimations.curveSubtleSpring,
+                  child: Icon(
+                    item.icon,
+                    size: 22,
+                    color: isSelected
+                        ? (isDark ? const Color(0xFF0B1216) : Colors.white)
+                        : (isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextMuted),
+                  ),
                 ),
               ),
             );

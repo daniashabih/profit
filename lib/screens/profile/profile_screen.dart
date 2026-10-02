@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/enums/user_role.dart';
 import '../../core/responsive/breakpoints.dart';
@@ -76,16 +77,15 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryLime,
-                foregroundColor: const Color(0xFF111827),
+            PressableScale(
+              onTap: () => Navigator.pop(ctx),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text('Cancel'),
               ),
-              onPressed: () async {
+            ),
+            PressableScale(
+              onTap: () async {
                 final newName = nameController.text.trim();
                 final newGoal = goalController.text.trim();
                 final newWeight = double.tryParse(weightController.text.trim());
@@ -107,7 +107,20 @@ class ProfileScreen extends StatelessWidget {
                   );
                 }
               },
-              child: const Text('Save'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLime,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                    color: Color(0xFF111827),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
             ),
           ],
         );
@@ -161,14 +174,17 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
+          PressableScale(
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
             },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.settings_outlined),
+            ),
           ),
           const SizedBox(width: 4),
         ],
@@ -187,440 +203,467 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // PROFILE HERO SECTION (Matching Screen 12 mockup)
-            Center(
-              child: Column(
-                children: [
-                  // Avatar with Lime Border
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primaryLime, width: 2.5),
-                    ),
-                    child: CircleAvatar(
-                      radius: 46,
-                      backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
-                      backgroundImage: (user?.avatarUrl.isNotEmpty ?? false)
-                          ? NetworkImage(user!.avatarUrl)
-                          : null,
-                      child: (user?.avatarUrl.isEmpty ?? true)
-                          ? const Icon(Icons.person_rounded, size: 48, color: AppColors.primaryLime)
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    user?.name ?? 'Dania Shabih',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.fitnessLevel.isNotEmpty == true
-                        ? user!.fitnessLevel
-                        : 'Beginner • Fitness',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
-                  ),
-                  if (isTrainer) ...[
-                    const SizedBox(height: 6),
+            StaggeredEntrance(
+              index: 0,
+              child: Center(
+                child: Column(
+                  children: [
+                    // Avatar with Lime Border
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLime.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primaryLime.withOpacity(0.4)),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryLime, width: 2.5),
                       ),
-                      child: const Text(
-                        'ROLE: TRAINER',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          color: AppColors.primaryLime,
+                      child: CircleAvatar(
+                        radius: 46,
+                        backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
+                        backgroundImage: (user?.avatarUrl.isNotEmpty ?? false)
+                            ? NetworkImage(user!.avatarUrl)
+                            : null,
+                        child: (user?.avatarUrl.isEmpty ?? true)
+                            ? const Icon(Icons.person_rounded, size: 48, color: AppColors.primaryLime)
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      user?.name ?? 'Dania Shabih',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.fitnessLevel.isNotEmpty == true
+                          ? user!.fitnessLevel
+                          : 'Beginner • Fitness',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                    if (isTrainer) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLime.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.primaryLime.withOpacity(0.4)),
+                        ),
+                        child: const Text(
+                          'ROLE: TRAINER',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: AppColors.primaryLime,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    // "Edit Profile" Pill Button
+                    PressableScale(
+                      onTap: () => _showEditProfileDialog(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Edit Profile',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  // "Edit Profile" Pill Button
-                  GestureDetector(
-                    onTap: () => _showEditProfileDialog(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.edit_outlined,
-                            size: 14,
-                            color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Edit Profile',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.primaryLime : const Color(0xFF111827),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
 
             // 4-COLUMN STATS CARD (Matching Screen 12 mockup: Goal | Current | Target | Height)
-            FitFlowCard(
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatItem('Goal', user?.goal.isNotEmpty == true ? user!.goal : 'Weight Loss', isDark),
-                  _buildVerticalDivider(isDark),
-                  _buildStatItem('Current', '${(user?.currentWeightKg != null && user!.currentWeightKg > 0 ? user.currentWeightKg : progressProv.currentWeight).toStringAsFixed(0)} kg', isDark),
-                  _buildVerticalDivider(isDark),
-                  _buildStatItem('Target', '${(user?.targetWeightKg != null && user!.targetWeightKg > 0 ? user.targetWeightKg : progressProv.targetWeight).toStringAsFixed(0)} kg', isDark),
-                  _buildVerticalDivider(isDark),
-                  _buildStatItem('Height', user?.heightCm != null && user!.heightCm > 0 ? '${user.heightCm.toStringAsFixed(0)} cm' : "5'0\"", isDark),
-                ],
+            StaggeredEntrance(
+              index: 1,
+              child: FitFlowCard(
+                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem('Goal', user?.goal.isNotEmpty == true ? user!.goal : 'Weight Loss', isDark),
+                    _buildVerticalDivider(isDark),
+                    _buildStatItem('Current', '${(user?.currentWeightKg != null && user!.currentWeightKg > 0 ? user.currentWeightKg : progressProv.currentWeight).toStringAsFixed(0)} kg', isDark),
+                    _buildVerticalDivider(isDark),
+                    _buildStatItem('Target', '${(user?.targetWeightKg != null && user!.targetWeightKg > 0 ? user.targetWeightKg : progressProv.targetWeight).toStringAsFixed(0)} kg', isDark),
+                    _buildVerticalDivider(isDark),
+                    _buildStatItem('Height', user?.heightCm != null && user!.heightCm > 0 ? '${user.heightCm.toStringAsFixed(0)} cm' : "5'0\"", isDark),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
 
             // RESPONSIVE FITNESS FOUNDATION (BMI & PROTEIN ESTIMATES)
-            FitFlowCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.analytics_outlined,
-                          size: 18, color: AppColors.primaryLime),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Body Metrics & Nutrition Estimates',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkSurfaceElevated
-                                : AppColors.gray100,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'BMI',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? AppColors.darkTextSecondary
-                                      : AppColors.lightTextSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${user?.bmi ?? 29.7}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.primaryLime,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                user?.bmiCategory ?? 'Overweight',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color:
-                                      isDark ? Colors.white70 : Colors.black87,
-                                ),
-                              ),
-                            ],
+            StaggeredEntrance(
+              index: 2,
+              child: FitFlowCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.analytics_outlined,
+                            size: 18, color: AppColors.primaryLime),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Body Metrics & Nutrition Estimates',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkSurfaceElevated
-                                : AppColors.gray100,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Daily Protein',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? AppColors.darkTextSecondary
-                                      : AppColors.lightTextSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${user?.proteinRecommendation.targetGrams.toInt() ?? 138}g',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.primaryLime,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Target (${user?.proteinRecommendation.minGrams.toInt() ?? 124}-${user?.proteinRecommendation.maxGrams.toInt() ?? 166}g)',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color:
-                                      isDark ? Colors.white70 : Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'General fitness estimate based on body weight and activity level. Not medical advice.',
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontStyle: FontStyle.italic,
-                      color: isDark
-                          ? AppColors.darkTextMuted
-                          : AppColors.lightTextMuted,
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkSurfaceElevated
+                                  : AppColors.gray100,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'BMI',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${user?.bmi ?? 29.7}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.primaryLime,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  user?.bmiCategory ?? 'Overweight',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkSurfaceElevated
+                                  : AppColors.gray100,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Daily Protein',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${user?.proteinRecommendation.targetGrams.toInt() ?? 138}g',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.primaryLime,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Target (${user?.proteinRecommendation.minGrams.toInt() ?? 124}-${user?.proteinRecommendation.maxGrams.toInt() ?? 166}g)',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'General fitness estimate based on body weight and activity level. Not medical advice.',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontStyle: FontStyle.italic,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.lightTextMuted,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
 
             // Trainer / Admin Portal Access (if active role or available)
             if (user?.role == UserRole.trainer || roleProv.isTrainer) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: ListTile(
-                  tileColor: AppColors.primaryLime.withOpacity(0.15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    side: const BorderSide(color: AppColors.primaryLime),
+              StaggeredEntrance(
+                index: 3,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  child: PressableScale(
+                    child: ListTile(
+                      tileColor: AppColors.primaryLime.withOpacity(0.15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: const BorderSide(color: AppColors.primaryLime),
+                      ),
+                      leading: const Icon(Icons.sports_gymnastics_rounded, color: AppColors.primaryLime),
+                      title: const Text(
+                        'Open Trainer Dashboard',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      ),
+                      subtitle: const Text(
+                        'Manage clients, workout splits & member progress',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TrainerDashboardScreen()),
+                        );
+                      },
+                    ),
                   ),
-                  leading: const Icon(Icons.sports_gymnastics_rounded, color: AppColors.primaryLime),
-                  title: const Text(
-                    'Open Trainer Dashboard',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                  ),
-                  subtitle: const Text(
-                    'Manage clients, workout splits & member progress',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TrainerDashboardScreen()),
-                    );
-                  },
                 ),
               ),
             ] else if (user?.role == UserRole.admin || roleProv.isAdmin) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: ListTile(
-                  tileColor: AppColors.primaryLime.withOpacity(0.15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    side: const BorderSide(color: AppColors.primaryLime),
+              StaggeredEntrance(
+                index: 3,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  child: PressableScale(
+                    child: ListTile(
+                      tileColor: AppColors.primaryLime.withOpacity(0.15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: const BorderSide(color: AppColors.primaryLime),
+                      ),
+                      leading: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.primaryLime),
+                      title: const Text(
+                        'Open Admin Operations',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      ),
+                      subtitle: const Text(
+                        'Manage memberships, staff & analytics',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                        );
+                      },
+                    ),
                   ),
-                  leading: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.primaryLime),
-                  title: const Text(
-                    'Open Admin Operations',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                  ),
-                  subtitle: const Text(
-                    'Manage memberships, staff & analytics',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLime),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-                    );
-                  },
                 ),
               ),
             ],
 
             // MENU ITEMS (Matching Screen 12: My Plans, My Membership, Measurements, Workout History, Notifications, Settings, Help & Support)
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            StaggeredEntrance(
+              index: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.assignment_outlined,
-                    title: 'My Plans',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TrainerScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.card_membership_rounded,
-                    title: 'My Membership',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const MembershipScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.show_chart_rounded,
-                    title: 'Measurements',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProgressScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.history_rounded,
-                    title: 'Workout History',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const GamificationScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.notifications_none_rounded,
-                    title: 'Notifications',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.settings_outlined,
-                    title: 'Settings',
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                      );
-                    },
-                  ),
-                  _buildDivider(isDark),
-                  _buildMenuItem(
-                    icon: Icons.help_outline_rounded,
-                    title: 'Help & Support',
-                    isDark: isDark,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Connecting to PROFIT 24/7 Support Desk...')),
-                      );
-                    },
-                  ),
-                ],
+                child: Column(
+                  children: [
+                    _buildMenuItem(
+                      icon: Icons.assignment_outlined,
+                      title: 'My Plans',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TrainerScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.card_membership_rounded,
+                      title: 'My Membership',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MembershipScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.show_chart_rounded,
+                      title: 'Measurements',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ProgressScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.history_rounded,
+                      title: 'Workout History',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GamificationScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.notifications_none_rounded,
+                      title: 'Notifications',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.settings_outlined,
+                      title: 'Settings',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildMenuItem(
+                      icon: Icons.help_outline_rounded,
+                      title: 'Help & Support',
+                      isDark: isDark,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Connecting to PROFIT 24/7 Support Desk...')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
 
             // Sign Out Button
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
-              ),
-              child: ListTile(
-                leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-                title: const Text(
-                  'Sign Out',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
+            StaggeredEntrance(
+              index: 5,
+              child: PressableScale(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+                    title: const Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    onTap: () async {
+                      await authProv.signOut();
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      }
+                    },
                   ),
                 ),
-                onTap: () async {
-                  await authProv.signOut();
-                  if (context.mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      (route) => false,
-                    );
-                  }
-                },
               ),
             ),
             const SizedBox(height: 24),
@@ -693,22 +736,24 @@ class ProfileScreen extends StatelessWidget {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-          borderRadius: BorderRadius.circular(10),
+    return PressableScale(
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 20, color: AppColors.primaryLime),
         ),
-        child: Icon(icon, size: 20, color: AppColors.primaryLime),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded, size: 20),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-      ),
-      trailing: const Icon(Icons.chevron_right_rounded, size: 20),
     );
   }
 

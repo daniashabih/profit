@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/self_trainer_cycle_provider.dart';
 import '../../theme/app_colors.dart';
@@ -142,56 +143,83 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               // 0. MONTHLY REVIEW ALERT BANNER (If available)
               // ==========================================
               if (cycleProv.cycleToReview != null) ...[
-                _buildMonthlyReviewBanner(context, cycleProv, isDark),
+                StaggeredEntrance(
+                  index: 0,
+                  child: _buildMonthlyReviewBanner(context, cycleProv, isDark),
+                ),
                 const SizedBox(height: 18),
               ],
 
               // ==========================================
               // 1. YOUR GOAL SECTION
               // ==========================================
-              _buildGoalHeader(cycleProv, isDark),
+              StaggeredEntrance(
+                index: 0,
+                child: _buildGoalHeader(cycleProv, isDark),
+              ),
               const SizedBox(height: 14),
 
               // ==========================================
               // 2. WEIGHT & BMI CARDS (Section 18)
               // ==========================================
-              _buildWeightAndBmiRow(cycleProv, isDark),
+              StaggeredEntrance(
+                index: 1,
+                child: _buildWeightAndBmiRow(cycleProv, isDark),
+              ),
               const SizedBox(height: 14),
 
               // ==========================================
               // 3. TARGET WEIGHT PROGRESS BAR (Section 26)
               // ==========================================
-              _buildTargetWeightProgress(cycleProv, isDark),
+              StaggeredEntrance(
+                index: 2,
+                child: _buildTargetWeightProgress(cycleProv, isDark),
+              ),
               const SizedBox(height: 20),
 
               // ==========================================
               // 4. TODAY'S WORKOUT CARD (Section 14 & 18)
               // ==========================================
-              _buildTodayWorkoutCard(context, cycleProv, isDark),
+              StaggeredEntrance(
+                index: 3,
+                child: _buildTodayWorkoutCard(context, cycleProv, isDark),
+              ),
               const SizedBox(height: 20),
 
               // ==========================================
               // 5. DAILY PROTEIN TRACKING CARD (Section 16 & 18)
               // ==========================================
-              _buildDailyProteinCard(cycleProv, isDark),
+              StaggeredEntrance(
+                index: 4,
+                child: _buildDailyProteinCard(cycleProv, isDark),
+              ),
               const SizedBox(height: 20),
 
               // ==========================================
               // 6. TODAY'S MEALS SECTION (Section 17 & 18)
               // ==========================================
-              _buildTodayMealsSection(cycleProv, isDark),
+              StaggeredEntrance(
+                index: 5,
+                child: _buildTodayMealsSection(cycleProv, isDark),
+              ),
               const SizedBox(height: 20),
 
               // ==========================================
               // 7. PROGRESS & STREAK SECTION
               // ==========================================
-              _buildProgressAndStreak(user?.streakDays ?? 5, cycleProv, isDark),
+              StaggeredEntrance(
+                index: 6,
+                child: _buildProgressAndStreak(user?.streakDays ?? 5, cycleProv, isDark),
+              ),
               const SizedBox(height: 20),
 
               // ==========================================
               // 8. AI COACH GUIDANCE SHORTCUT
               // ==========================================
-              _buildAiCoachShortcut(context, isDark),
+              StaggeredEntrance(
+                index: 7,
+                child: _buildAiCoachShortcut(context, isDark),
+              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -448,11 +476,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: cycleProv.targetWeightProgress,
-              minHeight: 7,
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: cycleProv.targetWeightProgress.clamp(0.0, 1.0)),
+              duration: AppAnimations.slowDuration,
+              curve: AppAnimations.curveAthletic,
+              builder: (context, animatedVal, _) {
+                return LinearProgressIndicator(
+                  value: animatedVal,
+                  minHeight: 7,
+                  backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                );
+              },
             ),
           ),
         ],
@@ -560,11 +595,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: cycleProv.todayWorkoutProgress,
-                minHeight: 7,
-                backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: cycleProv.todayWorkoutProgress.clamp(0.0, 1.0)),
+                duration: AppAnimations.slowDuration,
+                curve: AppAnimations.curveAthletic,
+                builder: (context, animatedVal, _) {
+                  return LinearProgressIndicator(
+                    value: animatedVal,
+                    minHeight: 7,
+                    backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 18),
@@ -630,11 +672,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: cycleProv.dailyProteinProgress,
-              minHeight: 10,
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: cycleProv.dailyProteinProgress.clamp(0.0, 1.0)),
+              duration: AppAnimations.slowDuration,
+              curve: AppAnimations.curveAthletic,
+              builder: (context, animatedVal, _) {
+                return LinearProgressIndicator(
+                  value: animatedVal,
+                  minHeight: 10,
+                  backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                );
+              },
             ),
           ),
           const SizedBox(height: 12),
@@ -778,51 +827,56 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Widget _buildProgressAndStreak(int streakDays, SelfTrainerCycleProvider cycleProv, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Center(child: Text('🔥', style: TextStyle(fontSize: 22))),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$streakDays Day Activity Streak',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+    return PressableScale(
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        ),
+        child: Row(
+          children: [
+            PulsingGlow(
+              glowColor: Colors.orange,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Weight change: ${cycleProv.weightDeltaKg <= 0 ? '↓' : '↑'} ${cycleProv.weightDeltaKg.abs()} kg this cycle',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                child: const Center(child: Text('🔥', style: TextStyle(fontSize: 22))),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$streakDays Day Activity Streak',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'Weight change: ${cycleProv.weightDeltaKg <= 0 ? '↓' : '↑'} ${cycleProv.weightDeltaKg.abs()} kg this cycle',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAiCoachShortcut(BuildContext context, bool isDark) {
-    return GestureDetector(
+    return PressableScale(
       onTap: () {
         Navigator.push(
           context,

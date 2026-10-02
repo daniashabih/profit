@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/pressable_scale.dart';
 import '../../theme/app_colors.dart';
 
 class FitFlowCard extends StatelessWidget {
@@ -53,13 +54,17 @@ class FitFlowCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
+      return PressableScale(
+        onTap: onTap,
+        pressedScale: 0.985,
+        child: Material(
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(borderRadius),
-          onTap: onTap,
-          child: cardContent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(borderRadius),
+            onTap: onTap,
+            child: cardContent,
+          ),
         ),
       );
     }

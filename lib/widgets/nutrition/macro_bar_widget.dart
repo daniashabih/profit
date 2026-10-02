@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/app_colors.dart';
 
 class MacroBarWidget extends StatelessWidget {
@@ -61,13 +62,20 @@ class MacroBarWidget extends StatelessWidget {
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 6,
-            backgroundColor: isDark
-                ? AppColors.darkSurfaceElevated
-                : AppColors.gray200,
-            valueColor: AlwaysStoppedAnimation<Color>(barColor),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: progress),
+            duration: AppAnimations.slowDuration,
+            curve: AppAnimations.curveAthletic,
+            builder: (context, animVal, _) {
+              return LinearProgressIndicator(
+                value: animVal,
+                minHeight: 6,
+                backgroundColor: isDark
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.gray200,
+                valueColor: AlwaysStoppedAnimation<Color>(barColor),
+              );
+            },
           ),
         ),
       ],

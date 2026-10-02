@@ -136,6 +136,8 @@ class WeightLineChart extends StatelessWidget {
             ),
           ],
         ),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 
@@ -29,26 +30,36 @@ class CalorieRingWidget extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(
-            size: Size(size, size),
-            painter: _CalorieRingPainter(
-              progress: progress,
-              trackColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
-              progressColor: AppColors.primaryLime,
-              strokeWidth: 12,
-            ),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: progress),
+            duration: AppAnimations.slowDuration,
+            curve: AppAnimations.curveAthletic,
+            builder: (context, animVal, _) {
+              return CustomPaint(
+                size: Size(size, size),
+                painter: _CalorieRingPainter(
+                  progress: animVal,
+                  trackColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray200,
+                  progressColor: AppColors.primaryLime,
+                  strokeWidth: 12,
+                ),
+              );
+            },
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.local_fire_department_rounded,
-                color: AppColors.primaryLime,
-                size: 26,
+              const PulsingGlow(
+                glowColor: AppColors.primaryLime,
+                child: Icon(
+                  Icons.local_fire_department_rounded,
+                  color: AppColors.primaryLime,
+                  size: 26,
+                ),
               ),
               const SizedBox(height: 2),
-              Text(
-                Formatters.formatCalories(consumedCalories),
+              AnimatedCounter(
+                value: consumedCalories,
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,

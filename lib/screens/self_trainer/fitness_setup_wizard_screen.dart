@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/self_trainer_cycle_provider.dart';
 import '../../services/bmi_service.dart';
+import '../../core/animations/animations.dart';
 import '../main_navigation.dart';
 
 /// Personal Fitness Setup Wizard for Self Trainer Athletes.
@@ -40,7 +41,7 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
   double _targetWeightKg = 58.0;
 
   // Step 6: Training Days
-  int _trainingDays = 4;
+  int? _trainingDays;
 
   bool _isGenerating = false;
 
@@ -48,6 +49,8 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
       final user = context.read<AuthProvider>().user;
       if (user != null) {
         if (user.name.isNotEmpty) {
@@ -111,6 +114,16 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
   }
 
   Future<void> _generatePlanAndFinish() async {
+    if (_trainingDays == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a workout frequency to continue.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final authProv = context.read<AuthProvider>();
     final cycleProv = context.read<SelfTrainerCycleProvider>();
     final user = authProv.user;
@@ -132,7 +145,7 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
         currentWeightKg: _currentWeightKg,
         targetWeightKg: _targetWeightKg,
         goalType: _selectedGoal,
-        trainingDaysPerWeek: _trainingDays,
+        trainingDaysPerWeek: _trainingDays!,
       );
 
       // Update auth user profile locally and in Firestore
@@ -145,7 +158,7 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
         targetWeightKg: _targetWeightKg,
         goal: _selectedGoal,
         fitnessSetupCompleted: true,
-        trainingDaysPerWeek: _trainingDays,
+        trainingDaysPerWeek: _trainingDays!,
       );
       await authProv.saveUserProfile(updatedUser);
 
@@ -153,7 +166,13 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
+        PageRouteBuilder(
+          pageBuilder: (_, animation, secondaryAnimation) => const MainNavigation(),
+          transitionsBuilder: (_, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
         (route) => false,
       );
     } catch (e) {
@@ -196,34 +215,47 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
             color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
           ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
-            minHeight: 4,
-          ),
-        ),
       ),
-      body: SafeArea(
-        child: _isGenerating
-            ? _buildGeneratingState(isDark)
-            : PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (step) => setState(() => _currentStep = step),
-                children: [
-                  _buildStep1BasicInfo(isDark),
-                  _buildStep2Measurements(isDark),
-                  _buildStep3Goal(isDark),
-                  _buildStep4BmiCalculation(isDark),
-                  _buildStep5TargetWeight(isDark),
-                  _buildStep6TrainingDays(isDark),
-                ],
-              ),
-      ),
-      bottomNavigationBar: _isGenerating ? null : _buildBottomBar(isDark),
+      body: _isGenerating
+          ? SafeArea(child: _buildGeneratingState(isDark))
+          : Column(
+              children: [
+                // Clean unclipped Progress Indicator with proper spacing
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                      minHeight: 4,
+                    ),
+                  ),
+                ),
+                // Expanded scrollable PageView
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (step) => setState(() => _currentStep = step),
+                    children: [
+                      _buildStep1BasicInfo(isDark),
+                      _buildStep2Measurements(isDark),
+                      _buildStep3Goal(isDark),
+                      _buildStep4BmiCalculation(isDark),
+                      _buildStep5TargetWeight(isDark),
+                      _buildStep6TrainingDays(isDark),
+                    ],
+                  ),
+                ),
+                // Fixed Bottom CTA area anchored inside SafeArea
+                SafeArea(
+                  top: false,
+                  child: _buildBottomBar(isDark),
+                ),
+              ],
+            ),
     );
   }
 
@@ -304,21 +336,31 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: AppColors.primaryLime),
-                            onPressed: () {
+                          PressableScale(
+                            onTap: () {
                               if (_age > 14) setState(() => _age--);
                             },
+                            child: IconButton(
+                              icon: const Icon(Icons.remove_circle_outline, color: AppColors.primaryLime),
+                              onPressed: () {
+                                if (_age > 14) setState(() => _age--);
+                              },
+                            ),
                           ),
                           Text(
                             '$_age',
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryLime),
-                            onPressed: () {
+                          PressableScale(
+                            onTap: () {
                               if (_age < 95) setState(() => _age++);
                             },
+                            child: IconButton(
+                              icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryLime),
+                              onPressed: () {
+                                if (_age < 95) setState(() => _age++);
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -348,9 +390,11 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
   Widget _buildGenderChip(String gender, IconData icon, bool isDark) {
     final selected = _gender == gender;
     return Expanded(
-      child: GestureDetector(
+      child: PressableScale(
         onTap: () => setState(() => _gender = gender),
-        child: Container(
+        child: AnimatedContainer(
+          duration: AppAnimationConstants.fast,
+          curve: AppAnimationConstants.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
             color: selected
@@ -653,8 +697,14 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                         decoration: BoxDecoration(
                           color: selected
                               ? AppColors.primaryLime
-                              : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
+                              : (isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: selected
+                                ? AppColors.primaryLime
+                                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                            width: 1.5,
+                          ),
                         ),
                         child: Icon(
                           g.icon,
@@ -904,32 +954,35 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: AppColors.primaryLime, size: 32),
-                      onPressed: () {
-                        if (_targetWeightKg > healthyRange.minKg - 5.0) {
-                          setState(() => _targetWeightKg = double.parse((_targetWeightKg - 0.5).toStringAsFixed(1)));
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${_targetWeightKg.toStringAsFixed(1)} kg',
-                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(width: 16),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryLime, size: 32),
-                      onPressed: () {
-                        if (_targetWeightKg < _currentWeightKg + 20.0) {
-                          setState(() => _targetWeightKg = double.parse((_targetWeightKg + 0.5).toStringAsFixed(1)));
-                        }
-                      },
-                    ),
-                  ],
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline, color: AppColors.primaryLime, size: 32),
+                        onPressed: () {
+                          if (_targetWeightKg > healthyRange.minKg - 5.0) {
+                            setState(() => _targetWeightKg = double.parse((_targetWeightKg - 0.5).toStringAsFixed(1)));
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        '${_targetWeightKg.toStringAsFixed(1)} kg',
+                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryLime, size: 32),
+                        onPressed: () {
+                          if (_targetWeightKg < _currentWeightKg + 20.0) {
+                            setState(() => _targetWeightKg = double.parse((_targetWeightKg + 0.5).toStringAsFixed(1)));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -984,7 +1037,7 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -994,78 +1047,112 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
             subtitle: 'Choose your weekly commitment. You can adapt this anytime.',
             isDark: isDark,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           ...daysOptions.map((opt) {
             final selected = _trainingDays == opt.days;
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () => setState(() => _trainingDays = opt.days),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.primaryLime.withValues(alpha: 0.12)
-                        : (isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    setState(() => _trainingDays = opt.days);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    constraints: const BoxConstraints(minHeight: 74),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
                       color: selected
-                          ? AppColors.primaryLime
-                          : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      width: selected ? 2 : 1,
+                          ? AppColors.primaryLime.withValues(alpha: 0.12)
+                          : (isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.primaryLime
+                            : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        width: selected ? 2 : 1,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.primaryLime
-                              : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${opt.days}',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: selected ? Colors.black : (isDark ? Colors.white : Colors.black),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.primaryLime
+                                : (isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.primaryLime
+                                  : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Center(
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 250),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: selected
+                                    ? Colors.black
+                                    : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                              ),
+                              child: Text('${opt.days}'),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              opt.title,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                opt.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              opt.desc,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                              const SizedBox(height: 4),
+                              Text(
+                                opt.desc,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  height: 1.35,
+                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      Icon(
-                        selected ? Icons.check_circle_rounded : Icons.radio_button_off,
-                        color: selected ? AppColors.primaryLime : Colors.grey,
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(scale: animation, child: child),
+                          child: Icon(
+                            selected ? Icons.check_circle_rounded : Icons.radio_button_off,
+                            key: ValueKey<bool>(selected),
+                            color: selected
+                                ? AppColors.primaryLime
+                                : (isDark ? Colors.white38 : Colors.black38),
+                            size: 24,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1076,65 +1163,65 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
     );
   }
 
-  // BOTTOM NAVIGATION BAR
+  // FIXED BOTTOM CTA AREA
   Widget _buildBottomBar(bool isDark) {
     final isLastStep = _currentStep == _totalSteps - 1;
+    final isStepValid = isLastStep ? (_trainingDays != null) : true;
 
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
-          border: Border(
-            top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1,
           ),
         ),
-        child: Row(
-          children: [
-            if (_currentStep > 0)
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: OutlinedButton(
-                  onPressed: _prevPage,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                  ),
-                  child: Text(
-                    'Back',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black,
+      ),
+      child: isLastStep
+          ? _AnimatedContinueButton(
+              isEnabled: isStepValid,
+              isDark: isDark,
+              label: 'Continue',
+              onPressed: isStepValid ? _generatePlanAndFinish : null,
+            )
+          : Row(
+              children: [
+                if (_currentStep > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: PressableScale(
+                      onTap: _prevPage,
+                      child: OutlinedButton(
+                        onPressed: _prevPage,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        ),
+                        child: Text(
+                          'Back',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
+                Expanded(
+                  child: _AnimatedContinueButton(
+                    isEnabled: true,
+                    isDark: isDark,
+                    label: 'Continue',
+                    onPressed: _nextPage,
+                  ),
                 ),
-              ),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isLastStep ? _generatePlanAndFinish : _nextPage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryLime,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: Text(
-                  isLastStep ? 'Generate My Fitness Plan' : 'Continue',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1253,3 +1340,113 @@ class _FitnessSetupWizardScreenState extends State<FitnessSetupWizardScreen> {
     );
   }
 }
+
+class _AnimatedContinueButton extends StatefulWidget {
+  final bool isEnabled;
+  final bool isDark;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _AnimatedContinueButton({
+    required this.isEnabled,
+    required this.isDark,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_AnimatedContinueButton> createState() => _AnimatedContinueButtonState();
+}
+
+class _AnimatedContinueButtonState extends State<_AnimatedContinueButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.isEnabled;
+    final isDark = widget.isDark;
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: enabled ? widget.label : '${widget.label}. Please select a workout frequency to proceed',
+      child: Listener(
+        onPointerDown: enabled ? (_) => setState(() => _isPressed = true) : null,
+        onPointerUp: enabled ? (_) => setState(() => _isPressed = false) : null,
+        onPointerCancel: enabled ? (_) => setState(() => _isPressed = false) : null,
+        child: AnimatedScale(
+          scale: _isPressed && enabled ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOutCubic,
+          child: SizedBox(
+            height: 54,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: enabled ? widget.onPressed : null,
+              style: ButtonStyle(
+                elevation: WidgetStateProperty.resolveWith<double>((states) {
+                  if (states.contains(WidgetState.disabled)) return 0;
+                  if (states.contains(WidgetState.pressed)) return 1;
+                  return 2;
+                }),
+                shadowColor: WidgetStateProperty.all(
+                  AppColors.primaryLime.withValues(alpha: 0.35),
+                ),
+                backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return isDark ? const Color(0xFF1E241E) : Colors.grey.shade300;
+                  }
+                  return AppColors.primaryLime;
+                }),
+                foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return isDark ? Colors.white38 : Colors.black38;
+                  }
+                  return Colors.black;
+                }),
+                shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) {
+                  final isDis = states.contains(WidgetState.disabled);
+                  return RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: isDis
+                        ? BorderSide(color: isDark ? Colors.white12 : Colors.black12, width: 1)
+                        : BorderSide.none,
+                  );
+                }),
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                      color: enabled
+                          ? Colors.black
+                          : (isDark ? Colors.white38 : Colors.black38),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: enabled
+                        ? Colors.black
+                        : (isDark ? Colors.white24 : Colors.black26),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

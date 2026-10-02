@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../core/enums/meal_type.dart';
 import '../../models/nutrition_model.dart';
 import '../../providers/auth_provider.dart';
@@ -44,10 +45,12 @@ class _NutritionScreenState extends State<NutritionScreen> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
         actions: [
-          IconButton(
-            tooltip: 'Add Meal',
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryLime, size: 26),
-            onPressed: () => AddMealDialog.show(context),
+          PressableScale(
+            onTap: () => AddMealDialog.show(context),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryLime, size: 26),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -58,59 +61,70 @@ class _NutritionScreenState extends State<NutritionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Date Selector Bar: < Today, 12 Sep >
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            StaggeredEntrance(
+              index: 0,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, size: 22),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                      });
-                    },
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primaryLime),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Today, ${_selectedDate.day} Sep',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    PressableScale(
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                        });
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(Icons.chevron_left_rounded, size: 22),
                       ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right_rounded, size: 22),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = _selectedDate.add(const Duration(days: 1));
-                      });
-                    },
-                  ),
-                ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primaryLime),
+                        const SizedBox(width: 8),
+                        AnimatedSwitcher(
+                          duration: AppAnimationConstants.fast,
+                          child: Text(
+                            'Today, ${_selectedDate.day} Sep',
+                            key: ValueKey<int>(_selectedDate.day),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    PressableScale(
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = _selectedDate.add(const Duration(days: 1));
+                        });
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(Icons.chevron_right_rounded, size: 22),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
             // Calorie Ring & Macro Summary Card
-            FitFlowCard(
-              padding: const EdgeInsets.all(20),
+            StaggeredEntrance(
+              index: 1,
+              child: FitFlowCard(
+                padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   Row(
@@ -158,10 +172,13 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+          ),
+          const SizedBox(height: 24),
 
-            // Meals Breakdown Header
-            Row(
+          // Meals Breakdown Header
+          StaggeredEntrance(
+            index: 2,
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
@@ -172,7 +189,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     letterSpacing: 1.2,
                   ),
                 ),
-                GestureDetector(
+                PressableScale(
                   onTap: () => AddMealDialog.show(context),
                   child: const Row(
                     children: [
@@ -191,34 +208,41 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+          ),
+          const SizedBox(height: 14),
 
-            // 4 Meal Sections: Breakfast, Lunch, Dinner, Snack
-            ...MealType.values.map((type) {
-              return _buildMealCategorySection(
+          // 4 Meal Sections: Breakfast, Lunch, Dinner, Snack
+          ...MealType.values.map((type) {
+            return StaggeredEntrance(
+              index: 3 + type.index,
+              child: _buildMealCategorySection(
                 context,
                 type: type,
                 today: today,
                 isDark: isDark,
-              );
-            }),
-            const SizedBox(height: 24),
-          ],
-        ),
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildMealCategorySection(
-    BuildContext context, {
-    required MealType type,
-    required DailyNutritionModel today,
-    required bool isDark,
-  }) {
-    final meals = today.getMealsByType(type);
-    final totalCals = today.getCaloriesByType(type);
+Widget _buildMealCategorySection(
+  BuildContext context, {
+  required MealType type,
+  required DailyNutritionModel today,
+  required bool isDark,
+}) {
+  final meals = today.getMealsByType(type);
+  final totalCals = today.getCaloriesByType(type);
 
-    return Container(
+  return AnimatedSize(
+    duration: AppAnimationConstants.standard,
+    curve: AppAnimationConstants.curveEaseOut,
+    child: Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
@@ -268,10 +292,16 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                  onPressed: () => AddMealDialog.show(context, initialMealType: type),
+                PressableScale(
+                  onTap: () => AddMealDialog.show(context, initialMealType: type),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.add_circle_outline_rounded,
+                      size: 20,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -323,10 +353,16 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 16),
-                        color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                        onPressed: () => _confirmDeleteMeal(context, item),
+                      PressableScale(
+                        onTap: () => _confirmDeleteMeal(context, item),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -335,59 +371,65 @@ class _NutritionScreenState extends State<NutritionScreen> {
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  void _confirmDeleteMeal(BuildContext context, MealItemModel item) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return AlertDialog(
-          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
-              SizedBox(width: 8),
-              Text('Delete Meal?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to remove "${item.name}" (${item.calories} kcal) from your log?',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                context.read<NutritionProvider>().deleteMeal(item.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Removed ${item.name} from nutrition log.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
-            ),
+void _confirmDeleteMeal(BuildContext context, MealItemModel item) {
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      final isDark = Theme.of(ctx).brightness == Brightness.dark;
+      return AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+            SizedBox(width: 8),
+            Text('Delete Meal?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ],
-        );
-      },
-    );
-  }
+        ),
+        content: Text(
+          'Are you sure you want to remove "${item.name}" (${item.calories} kcal) from your log?',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+          ),
+        ),
+        actions: [
+          PressableScale(
+            onTap: () => Navigator.pop(ctx),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text('Cancel'),
+            ),
+          ),
+          PressableScale(
+            onTap: () {
+              Navigator.pop(ctx);
+              context.read<NutritionProvider>().deleteMeal(item.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Removed ${item.name} from nutrition log.'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   IconData _getMealIcon(MealType type) {
     switch (type) {

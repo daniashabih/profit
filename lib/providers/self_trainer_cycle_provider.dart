@@ -45,12 +45,34 @@ class SelfTrainerCycleProvider extends ChangeNotifier {
     NutritionService? nutritionService,
     MonthlyCycleService? monthlyCycleService,
     BmiService? bmiService,
-  })  : _fitnessProfileService = fitnessProfileService ?? FitnessProfileService(),
-        _workoutPlanService = workoutPlanService ?? WorkoutPlanService(),
-        _workoutLogService = workoutLogService ?? WorkoutLogService(),
-        _nutritionService = nutritionService ?? NutritionService(),
-        _monthlyCycleService = monthlyCycleService ?? MonthlyCycleService(),
-        _bmiService = bmiService ?? BmiService();
+  }) : this._internal(
+          fitnessProfileService ?? FitnessProfileService(),
+          workoutPlanService ?? WorkoutPlanService(),
+          workoutLogService ?? WorkoutLogService(),
+          nutritionService ?? NutritionService(),
+          bmiService ?? BmiService(),
+          monthlyCycleService,
+        );
+
+  SelfTrainerCycleProvider._internal(
+    FitnessProfileService fitnessProfileService,
+    WorkoutPlanService workoutPlanService,
+    WorkoutLogService workoutLogService,
+    NutritionService nutritionService,
+    BmiService bmiService,
+    MonthlyCycleService? monthlyCycleService,
+  )   : _fitnessProfileService = fitnessProfileService,
+        _workoutPlanService = workoutPlanService,
+        _workoutLogService = workoutLogService,
+        _nutritionService = nutritionService,
+        _bmiService = bmiService,
+        _monthlyCycleService = monthlyCycleService ??
+            MonthlyCycleService(
+              fitnessProfileService: fitnessProfileService,
+              workoutPlanService: workoutPlanService,
+              nutritionService: nutritionService,
+              workoutLogService: workoutLogService,
+            );
 
   // Getters
   FitnessProfile? get fitnessProfile => _fitnessProfile;

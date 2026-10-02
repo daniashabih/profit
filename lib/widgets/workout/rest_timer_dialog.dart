@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/workout_provider.dart';
 import '../../core/utils/formatters.dart';
 import '../../theme/app_colors.dart';
@@ -93,26 +94,41 @@ class _RestTimerDialogState extends State<RestTimerDialog> {
                   SizedBox(
                     width: 170,
                     height: 170,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 8,
-                      backgroundColor: isDark
-                          ? AppColors.darkSurfaceElevated
-                          : AppColors.gray200,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primaryLime,
-                      ),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: progress, end: progress),
+                      duration: AppAnimations.standardDuration,
+                      curve: Curves.linear,
+                      builder: (context, animatedProgress, _) {
+                        return CircularProgressIndicator(
+                          value: animatedProgress,
+                          strokeWidth: 8,
+                          backgroundColor: isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.gray200,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryLime,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        Formatters.formatSecondsToMinutes(remaining),
-                        style: const TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1,
+                      AnimatedSwitcher(
+                        duration: AppAnimations.fastDuration,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                        child: Text(
+                          Formatters.formatSecondsToMinutes(remaining),
+                          key: ValueKey('sec_$remaining'),
+                          style: const TextStyle(
+                            fontSize: 38,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -201,17 +217,19 @@ class _RestTimerDialogState extends State<RestTimerDialog> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ActionChip(
-      label: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+    return PressableScale(
+      child: ActionChip(
+        label: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+        backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+        side: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        onPressed: onTap,
       ),
-      backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-      side: BorderSide(
-        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      onPressed: onTap,
     );
   }
 }

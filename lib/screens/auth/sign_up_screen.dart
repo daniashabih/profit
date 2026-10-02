@@ -114,15 +114,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Account created successfully! Welcome to PROFIT, ${_nameController.text.trim()} 💪',
-          ),
-          backgroundColor: const Color(0xFF1E293B),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/animations/animations.dart';
 import '../../core/enums/meal_type.dart';
 import '../../models/nutrition_model.dart';
 import '../../providers/nutrition_provider.dart';
@@ -139,23 +140,26 @@ class _AddMealDialogState extends State<AddMealDialog> {
                     final isSelected = _selectedType == type;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: ChoiceChip(
-                        label: Text(type.displayName),
-                        selected: isSelected,
-                        selectedColor: AppColors.primaryLime,
-                        backgroundColor: isDark
-                            ? AppColors.darkSurfaceElevated
-                            : AppColors.gray100,
-                        labelStyle: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          color: isSelected
-                              ? const Color(0xFF111827)
-                              : (isDark ? Colors.white : Colors.black87),
+                      child: PressableScale(
+                        onTap: () => setState(() => _selectedType = type),
+                        child: ChoiceChip(
+                          label: Text(type.displayName),
+                          selected: isSelected,
+                          selectedColor: AppColors.primaryLime,
+                          backgroundColor: isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.gray100,
+                          labelStyle: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: isSelected
+                                ? const Color(0xFF111827)
+                                : (isDark ? Colors.white : Colors.black87),
+                          ),
+                          onSelected: (selected) {
+                            if (selected) setState(() => _selectedType = type);
+                          },
                         ),
-                        onSelected: (selected) {
-                          if (selected) setState(() => _selectedType = type);
-                        },
                       ),
                     );
                   }).toList(),

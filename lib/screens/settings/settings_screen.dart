@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/theme_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -38,182 +39,230 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Account & Security
-            _buildSectionTitle('ACCOUNT'),
-            _buildSettingsCard(
-              isDark,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.person_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('Account & Security', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  subtitle: Text(
-                    'Email, password and active sessions',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
+            StaggeredEntrance(
+              index: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('ACCOUNT'),
+                  _buildSettingsCard(
+                    isDark,
+                    children: [
+                      PressableScale(
+                        child: ListTile(
+                          leading: const Icon(Icons.person_outline_rounded, color: AppColors.primaryLime),
+                          title: const Text('Account & Security', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          subtitle: Text(
+                            'Email, password and active sessions',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Account settings managed securely by ProFit')),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Account settings managed securely by ProFit')),
-                    );
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 
             // Appearance
-            _buildSectionTitle('APPEARANCE'),
-            _buildSettingsCard(
-              isDark,
-              children: [
-                SwitchListTile(
-                  title: const Text(
-                    'Appearance',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+            StaggeredEntrance(
+              index: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('APPEARANCE'),
+                  _buildSettingsCard(
+                    isDark,
+                    children: [
+                      SwitchListTile(
+                        title: const Text(
+                          'Appearance',
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                        subtitle: Text(
+                          themeProv.isDarkMode ? 'Dark Mode (Electric Lime & Charcoal)' : 'Light Mode (Clean Bright)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primaryLime),
+                        activeThumbColor: AppColors.primaryLime,
+                        activeTrackColor: AppColors.primaryLime.withOpacity(0.4),
+                        value: themeProv.isDarkMode,
+                        onChanged: (val) => themeProv.toggleTheme(),
+                      ),
+                    ],
                   ),
-                  subtitle: Text(
-                    themeProv.isDarkMode ? 'Dark Mode (Electric Lime & Charcoal)' : 'Light Mode (Clean Bright)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
-                  ),
-                  secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primaryLime),
-                  activeThumbColor: AppColors.primaryLime,
-                  activeTrackColor: AppColors.primaryLime.withOpacity(0.4),
-                  value: themeProv.isDarkMode,
-                  onChanged: (val) => themeProv.toggleTheme(),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 
             // Preferences (Language & Units)
-            _buildSectionTitle('PREFERENCES'),
-            _buildSettingsCard(
-              isDark,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.language_rounded, color: AppColors.primaryLime),
-                  title: const Text('Language', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  trailing: DropdownButton<String>(
-                    value: _selectedLanguage,
-                    underline: const SizedBox(),
-                    items: const [
-                      DropdownMenuItem(value: 'English', child: Text('English')),
-                      DropdownMenuItem(value: 'Urdu', child: Text('اردو (Urdu)')),
-                      DropdownMenuItem(value: 'Spanish', child: Text('Español')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedLanguage = val);
-                    },
-                  ),
-                ),
-                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ListTile(
-                  leading: const Icon(Icons.straighten_rounded, color: AppColors.primaryLime),
-                  title: const Text('Units', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  subtitle: Text(
-                    '$_selectedWeightUnit, $_selectedHeightUnit',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+            StaggeredEntrance(
+              index: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('PREFERENCES'),
+                  _buildSettingsCard(
+                    isDark,
                     children: [
-                      DropdownButton<String>(
-                        value: _selectedWeightUnit,
-                        underline: const SizedBox(),
-                        items: const [
-                          DropdownMenuItem(value: 'kg', child: Text('kg')),
-                          DropdownMenuItem(value: 'lbs', child: Text('lbs')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedWeightUnit = val);
-                        },
+                      ListTile(
+                        leading: const Icon(Icons.language_rounded, color: AppColors.primaryLime),
+                        title: const Text('Language', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        trailing: DropdownButton<String>(
+                          value: _selectedLanguage,
+                          underline: const SizedBox(),
+                          items: const [
+                            DropdownMenuItem(value: 'English', child: Text('English')),
+                            DropdownMenuItem(value: 'Urdu', child: Text('اردو (Urdu)')),
+                            DropdownMenuItem(value: 'Spanish', child: Text('Español')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedLanguage = val);
+                          },
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      DropdownButton<String>(
-                        value: _selectedHeightUnit,
-                        underline: const SizedBox(),
-                        items: const [
-                          DropdownMenuItem(value: 'cm', child: Text('cm')),
-                          DropdownMenuItem(value: 'ft', child: Text('ft')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedHeightUnit = val);
-                        },
+                      Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      ListTile(
+                        leading: const Icon(Icons.straighten_rounded, color: AppColors.primaryLime),
+                        title: const Text('Units', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        subtitle: Text(
+                          '$_selectedWeightUnit, $_selectedHeightUnit',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButton<String>(
+                              value: _selectedWeightUnit,
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(value: 'kg', child: Text('kg')),
+                                DropdownMenuItem(value: 'lbs', child: Text('lbs')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedWeightUnit = val);
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _selectedHeightUnit,
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(value: 'cm', child: Text('cm')),
+                                DropdownMenuItem(value: 'ft', child: Text('ft')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedHeightUnit = val);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 
             // Notifications
-            _buildSectionTitle('NOTIFICATIONS'),
-            _buildSettingsCard(
-              isDark,
-              children: [
-                SwitchListTile(
-                  title: const Text('Push Notifications', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  subtitle: const Text('Workout reminders and trainer messages'),
-                  secondary: const Icon(Icons.notifications_active_outlined, color: AppColors.primaryLime),
-                  activeThumbColor: AppColors.primaryLime,
-                  value: _pushNotifications,
-                  onChanged: (val) => setState(() => _pushNotifications = val),
-                ),
-                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                SwitchListTile(
-                  title: const Text('Sound Effects', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  subtitle: const Text('Rest timer completion beeps'),
-                  secondary: const Icon(Icons.volume_up_outlined, color: AppColors.primaryLime),
-                  activeThumbColor: AppColors.primaryLime,
-                  value: _soundEffects,
-                  onChanged: (val) => setState(() => _soundEffects = val),
-                ),
-              ],
+            StaggeredEntrance(
+              index: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('NOTIFICATIONS'),
+                  _buildSettingsCard(
+                    isDark,
+                    children: [
+                      SwitchListTile(
+                        title: const Text('Push Notifications', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        subtitle: const Text('Workout reminders and trainer messages'),
+                        secondary: const Icon(Icons.notifications_active_outlined, color: AppColors.primaryLime),
+                        activeThumbColor: AppColors.primaryLime,
+                        value: _pushNotifications,
+                        onChanged: (val) => setState(() => _pushNotifications = val),
+                      ),
+                      Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      SwitchListTile(
+                        title: const Text('Sound Effects', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        subtitle: const Text('Rest timer completion beeps'),
+                        secondary: const Icon(Icons.volume_up_outlined, color: AppColors.primaryLime),
+                        activeThumbColor: AppColors.primaryLime,
+                        value: _soundEffects,
+                        onChanged: (val) => setState(() => _soundEffects = val),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 
             // Privacy & Support
-            _buildSectionTitle('LEGAL & SUPPORT'),
-            _buildSettingsCard(
-              isDark,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primaryLime),
-                  title: const Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                  onTap: () {},
-                ),
-                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ListTile(
-                  leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                  onTap: () {},
-                ),
-                Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ListTile(
-                  leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryLime),
-                  title: const Text('About PROFIT', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  subtitle: Text(
-                    'Version ${AppConstants.appVersion} • PROFIT - Your Fitness. Your Progress.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                    ),
+            StaggeredEntrance(
+              index: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('LEGAL & SUPPORT'),
+                  _buildSettingsCard(
+                    isDark,
+                    children: [
+                      PressableScale(
+                        child: ListTile(
+                          leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primaryLime),
+                          title: const Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () {},
+                        ),
+                      ),
+                      Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      PressableScale(
+                        child: ListTile(
+                          leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryLime),
+                          title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () {},
+                        ),
+                      ),
+                      Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      PressableScale(
+                        child: ListTile(
+                          leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryLime),
+                          title: const Text('About PROFIT', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          subtitle: Text(
+                            'Version ${AppConstants.appVersion} • PROFIT - Your Fitness. Your Progress.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () => _showAboutProfitDialog(context),
+                        ),
+                      ),
+                    ],
                   ),
-                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                  onTap: () => _showAboutProfitDialog(context),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 32),
           ],
@@ -261,17 +310,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryLime,
-                  foregroundColor: const Color(0xFF111827),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Close',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+              child: PressableScale(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryLime,
+                    foregroundColor: const Color(0xFF111827),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                  ),
                 ),
               ),
             ),

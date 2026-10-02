@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/animations/app_page_transitions.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
@@ -126,6 +127,28 @@ class AppTheme {
         bodyColor: AppColors.darkTextPrimary,
         displayColor: AppColors.darkTextPrimary,
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.darkSurfaceElevated,
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppColors.darkBorder),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.iOS: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.windows: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.macOS: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.linux: AppSlideFadeTransitionBuilder(),
+        },
+      ),
     );
   }
 
@@ -246,6 +269,27 @@ class AppTheme {
       ).apply(
         bodyColor: AppColors.lightTextPrimary,
         displayColor: AppColors.lightTextPrimary,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF1E293B),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.iOS: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.windows: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.macOS: AppSlideFadeTransitionBuilder(),
+          TargetPlatform.linux: AppSlideFadeTransitionBuilder(),
+        },
       ),
     );
   }

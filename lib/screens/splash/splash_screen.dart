@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/animations/app_animation_constants.dart';
+import '../../core/animations/pulsing_glow.dart';
 import '../../core/enums/user_role.dart';
 import '../../core/utils/role_router.dart';
 import '../../providers/auth_provider.dart';
@@ -22,28 +25,62 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim;
+  late Animation<double> _logoFadeAnim;
+  late Animation<double> _logoScaleAnim;
+  late Animation<double> _taglineFadeAnim;
+  late Animation<Offset> _taglineSlideAnim;
+  late Animation<double> _buttonFadeAnim;
+  late Animation<Offset> _buttonSlideAnim;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1300),
     );
 
-    _fadeAnim = CurvedAnimation(
+    // 1. Logo fades in from 0.0 -> 0.55
+    _logoFadeAnim = CurvedAnimation(
       parent: _animController,
-      curve: const Interval(0.0, 0.7, curve: Curves.easeIn),
+      curve: const Interval(0.0, 0.55, curve: Curves.easeOutCubic),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
+    // Logo smoothly scales from 0.85 -> 1.0
+    _logoScaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.0, 0.8, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
       ),
     );
+
+    // 2. Tagline fades and slides in slightly after the logo (0.35 -> 0.80)
+    _taglineFadeAnim = CurvedAnimation(
+      parent: _animController,
+      curve: const Interval(0.35, 0.80, curve: Curves.easeOutCubic),
+    );
+
+    _taglineSlideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: const Interval(0.35, 0.80, curve: Curves.easeOutCubic),
+    ));
+
+    // 3. CTA button slides & fades in (0.60 -> 1.0)
+    _buttonFadeAnim = CurvedAnimation(
+      parent: _animController,
+      curve: const Interval(0.60, 1.0, curve: Curves.easeOutCubic),
+    );
+
+    _buttonSlideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: const Interval(0.60, 1.0, curve: Curves.easeOutCubic),
+    ));
 
     _animController.forward();
   }
@@ -79,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: AppAnimationConstants.medium,
         pageBuilder: (_, _, _) => nextScreen,
         transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -107,19 +144,74 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               const Spacer(flex: 3),
 
-              // Brand Logo & Title
+              // Brand Logo & Title with ambient glow pulse
               FadeTransition(
-                opacity: _fadeAnim,
+                opacity: _logoFadeAnim,
                 child: ScaleTransition(
-                  scale: _scaleAnim,
-                  child: const ProFitLogo(
-                    size: 96,
-                    showText: true,
-                    showTagline: true,
-                    fontSize: 38,
-                    taglineFontSize: 15,
-                    textColor: Colors.white,
-                    logoColor: Colors.white,
+                  scale: _logoScaleAnim,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PulsingGlow(
+                        glowColor: AppColors.primaryLime,
+                        minBlur: 14,
+                        maxBlur: 32,
+                        minOpacity: 0.12,
+                        maxOpacity: 0.32,
+                        child: const ProFitLogo(
+                          size: 96,
+                          showText: false,
+                          logoColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      // PROFIT Brand Name
+                      const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'PRO',
+                            style: TextStyle(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w900,
+                              fontStyle: FontStyle.italic,
+                              letterSpacing: 1.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'FIT',
+                            style: TextStyle(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w900,
+                              fontStyle: FontStyle.italic,
+                              letterSpacing: 1.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Sequential Tagline Entrance
+              FadeTransition(
+                opacity: _taglineFadeAnim,
+                child: SlideTransition(
+                  position: _taglineSlideAnim,
+                  child: const Text(
+                    AppConstants.appTagline,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.4,
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
               ),
@@ -128,12 +220,15 @@ class _SplashScreenState extends State<SplashScreen>
 
               // CTA Button: "Get Started →"
               FadeTransition(
-                opacity: _fadeAnim,
-                child: PrimaryButton(
-                  text: 'Get Started →',
-                  height: 56,
-                  borderRadius: 28,
-                  onPressed: _navigateToNext,
+                opacity: _buttonFadeAnim,
+                child: SlideTransition(
+                  position: _buttonSlideAnim,
+                  child: PrimaryButton(
+                    text: 'Get Started →',
+                    height: 56,
+                    borderRadius: 28,
+                    onPressed: _navigateToNext,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

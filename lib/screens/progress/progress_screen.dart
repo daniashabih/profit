@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../theme/app_colors.dart';
@@ -44,10 +45,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
         ),
         actions: [
-          IconButton(
-            tooltip: 'Add Record',
-            icon: const Icon(Icons.add_chart_rounded, color: AppColors.primaryLime, size: 24),
-            onPressed: () => AddMeasurementDialog.show(context),
+          PressableScale(
+            onTap: () => AddMeasurementDialog.show(context),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.add_chart_rounded, color: AppColors.primaryLime, size: 24),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -58,196 +61,223 @@ class _ProgressScreenState extends State<ProgressScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Segmented Pills: [Weight] [Body Fat] [Measurements] (Screen 8 in mockup)
-            Row(
-              children: List.generate(tabs.length, (idx) {
-                final isSelected = _selectedTab == idx;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedTab = idx),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      margin: EdgeInsets.only(right: idx < tabs.length - 1 ? 8 : 0),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primaryLime
-                            : (isDark ? AppColors.darkSurface : Colors.white),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
+            StaggeredEntrance(
+              index: 0,
+              child: Row(
+                children: List.generate(tabs.length, (idx) {
+                  final isSelected = _selectedTab == idx;
+                  return Expanded(
+                    child: PressableScale(
+                      onTap: () => setState(() => _selectedTab = idx),
+                      child: AnimatedContainer(
+                        duration: AppAnimationConstants.fast,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        margin: EdgeInsets.only(right: idx < tabs.length - 1 ? 8 : 0),
+                        decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.primaryLime
-                              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          tabs[idx],
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                              : (isDark ? AppColors.darkSurface : Colors.white),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF0F172A)
-                                : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                                ? AppColors.primaryLime
+                                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            tabs[idx],
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? const Color(0xFF0F172A)
+                                  : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
             const SizedBox(height: 20),
 
             // Weight Line Chart Card (Screen 8 in mockup)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF161A20) : Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            StaggeredEntrance(
+              index: 1,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF161A20) : Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
                 ),
-              ),
-              child: WeightLineChart(
-                measurements: measurements,
-                targetWeight: progressProv.targetWeight,
+                child: WeightLineChart(
+                  measurements: measurements,
+                  targetWeight: progressProv.targetWeight,
+                ),
               ),
             ),
             const SizedBox(height: 28),
 
             // Section: "This Month" (Screen 8 in mockup)
-            const Text(
-              'This Month',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
+            StaggeredEntrance(
+              index: 2,
+              child: const Text(
+                'This Month',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
             const SizedBox(height: 14),
 
             // 2x2 Grid of dark rounded cards (Screen 8 in mockup)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetricCard(
-                    icon: Icons.fitness_center_rounded,
-                    title: 'Workouts',
-                    value: '18',
-                    iconColor: AppColors.primaryLime,
-                    isDark: isDark,
+            StaggeredEntrance(
+              index: 3,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildMetricCard(
+                      icon: Icons.fitness_center_rounded,
+                      title: 'Workouts',
+                      value: '18',
+                      iconColor: AppColors.primaryLime,
+                      isDark: isDark,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildMetricCard(
-                    icon: Icons.access_time_rounded,
-                    title: 'Training Time',
-                    value: '12h 40m',
-                    iconColor: AppColors.primaryLime,
-                    isDark: isDark,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildMetricCard(
+                      icon: Icons.access_time_rounded,
+                      title: 'Training Time',
+                      value: '12h 40m',
+                      iconColor: AppColors.primaryLime,
+                      isDark: isDark,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetricCard(
-                    icon: Icons.shield_rounded,
-                    title: 'Total Volume',
-                    value: '24,580 kg',
-                    iconColor: AppColors.primaryLime,
-                    isDark: isDark,
+            StaggeredEntrance(
+              index: 4,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildMetricCard(
+                      icon: Icons.shield_rounded,
+                      title: 'Total Volume',
+                      value: '24,580 kg',
+                      iconColor: AppColors.primaryLime,
+                      isDark: isDark,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildMetricCard(
-                    icon: Icons.local_fire_department_rounded,
-                    title: 'Calories',
-                    value: '8,420',
-                    iconColor: Colors.orange,
-                    isDark: isDark,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildMetricCard(
+                      icon: Icons.local_fire_department_rounded,
+                      title: 'Calories',
+                      value: '8,420',
+                      iconColor: Colors.orange,
+                      isDark: isDark,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 28),
 
             // Measurements Details (if tab 2 selected)
             if (_selectedTab == 2 && latest != null) ...[
-              const Text(
-                'Body Measurements',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF161A20) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+              StaggeredEntrance(
+                index: 5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildCircMeasure('Weight', '${latest.weightKg} kg', isDark),
-                    _buildCircMeasure('Waist', '${latest.waistCm} cm', isDark),
-                    _buildCircMeasure('Chest', '${latest.chestCm} cm', isDark),
-                    _buildCircMeasure('Arms', '${latest.armsCm} cm', isDark),
-                    _buildCircMeasure('Thighs', '${latest.thighsCm} cm', isDark),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Recent Log Entries',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 12),
-              ...measurements.reversed.take(5).map((m) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF161A20) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.monitor_weight_outlined, size: 20, color: AppColors.primaryLime),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    const Text(
+                      'Body Measurements',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF161A20) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildCircMeasure('Weight', '${latest.weightKg} kg', isDark),
+                          _buildCircMeasure('Waist', '${latest.waistCm} cm', isDark),
+                          _buildCircMeasure('Chest', '${latest.chestCm} cm', isDark),
+                          _buildCircMeasure('Arms', '${latest.armsCm} cm', isDark),
+                          _buildCircMeasure('Thighs', '${latest.thighsCm} cm', isDark),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Recent Log Entries',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 12),
+                    ...measurements.reversed.take(5).map((m) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF161A20) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              '${m.weightKg.toStringAsFixed(1)} kg',
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                            const Icon(Icons.monitor_weight_outlined, size: 20, color: AppColors.primaryLime),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${m.weightKg.toStringAsFixed(1)} kg',
+                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                                  ),
+                                  Text(
+                                    '${m.date.day}/${m.date.month}/${m.date.year}${m.note != null ? ' • ${m.note}' : ''}',
+                                    style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Text(
-                              '${m.date.day}/${m.date.month}/${m.date.year}${m.note != null ? ' • ${m.note}' : ''}',
-                              style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                            PressableScale(
+                              onTap: () => _confirmDeleteMeasurement(context, m.id, m.weightKg),
+                              child: const Padding(
+                                padding: EdgeInsets.all(6.0),
+                                child: Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                        onPressed: () => _confirmDeleteMeasurement(context, m.id, m.weightKg),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 24),
+                      );
+                    }),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
             ],
           ],
         ),
@@ -278,17 +308,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            PressableScale(
+              onTap: () => Navigator.pop(ctx),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text('Cancel'),
               ),
-              onPressed: () {
+            ),
+            PressableScale(
+              onTap: () {
                 Navigator.pop(ctx);
                 context.read<ProgressProvider>().deleteMeasurement(measurementId);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -298,7 +326,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 );
               },
-              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              ),
             ),
           ],
         );
@@ -313,75 +348,79 @@ class _ProgressScreenState extends State<ProgressScreen> {
     required Color iconColor,
     required bool isDark,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF161A20) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+    return PressableScale(
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF161A20) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 22, color: iconColor),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 22, color: iconColor),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCircMeasure(String label, String value, bool isDark) {
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+    return PressableScale(
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
             ),
-          ),
-          child: Center(
-            child: Text(
-              value,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
+            child: Center(
+              child: Text(
+                value,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

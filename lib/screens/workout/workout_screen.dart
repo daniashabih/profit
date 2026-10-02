@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../models/exercise_model.dart';
@@ -177,12 +178,15 @@ class WorkoutScreen extends StatelessWidget {
                     itemCount: exercises.length,
                     itemBuilder: (context, index) {
                       final exercise = exercises[index];
-                      return _buildExerciseCard(
-                        context: context,
-                        exercise: exercise,
+                      return StaggeredEntrance(
                         index: index,
-                        allExercises: exercises,
-                        isDark: isDark,
+                        child: _buildExerciseCard(
+                          context: context,
+                          exercise: exercise,
+                          index: index,
+                          allExercises: exercises,
+                          isDark: isDark,
+                        ),
                       );
                     },
                   ),
@@ -198,36 +202,38 @@ class WorkoutScreen extends StatelessWidget {
             bottom: 16,
             child: SizedBox(
               height: 54,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryLime,
-                  foregroundColor: const Color(0xFF0B1216),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+              child: PressableScale(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryLime,
+                    foregroundColor: const Color(0xFF0B1216),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  if (exercises.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ExerciseDetailScreen(
-                          exercise: exercises.first,
-                          allExercises: exercises,
-                          currentIndex: 0,
+                  onPressed: () {
+                    if (exercises.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ExerciseDetailScreen(
+                            exercise: exercises.first,
+                            allExercises: exercises,
+                            currentIndex: 0,
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                },
-                child: const Text(
-                  'START WORKOUT',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                    color: Color(0xFF0B1216),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'START WORKOUT',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: Color(0xFF0B1216),
+                    ),
                   ),
                 ),
               ),
@@ -245,8 +251,7 @@ class WorkoutScreen extends StatelessWidget {
     required List<ExerciseModel> allExercises,
     required bool isDark,
   }) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PressableScale(
       onTap: () {
         Navigator.push(
           context,

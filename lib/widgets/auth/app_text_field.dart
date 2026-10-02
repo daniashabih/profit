@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 
@@ -136,93 +137,109 @@ class _AppTextFieldState extends State<AppTextField> {
           ),
           const SizedBox(height: 8),
         ],
-        TextFormField(
-          controller: widget.controller,
-          focusNode: _focusNode,
-          obscureText: widget.obscureText,
-          readOnly: widget.readOnly,
-          enabled: widget.enabled,
-          autofocus: widget.autofocus,
-          maxLines: widget.maxLines,
-          keyboardType: widget.keyboardType,
-          textInputAction: widget.textInputAction,
-          textCapitalization: widget.textCapitalization,
-          inputFormatters: widget.inputFormatters,
-          validator: widget.validator,
-          onFieldSubmitted: widget.onSubmitted,
-          onChanged: widget.onChanged,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: isDark
-                ? AppColors.darkTextPrimary
-                : AppColors.lightTextPrimary,
+        AnimatedContainer(
+          duration: AppAnimations.fastDuration,
+          curve: AppAnimations.curveAthletic,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+            boxShadow: _isFocused
+                ? [
+                    BoxShadow(
+                      color: primaryFocusColor.withOpacity(isDark ? 0.12 : 0.06),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : const [],
           ),
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            helperText: widget.helperText,
-            errorText: widget.errorText,
-            hintStyle: TextStyle(
-              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
-            filled: true,
-            fillColor: isDark
-                ? AppColors.darkSurfaceElevated
-                : AppColors.lightSurfaceElevated,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 16,
-            ),
-            prefixIcon: widget.prefixIcon != null
-                ? Icon(
-                    widget.prefixIcon,
-                    size: 20,
-                    color: _isFocused ? primaryFocusColor : mutedIconColor,
-                  )
-                : null,
-            suffixIcon: widget.suffixIcon,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.inputRadius),
-              borderSide: BorderSide(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                width: 1.0,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.inputRadius),
-              borderSide: BorderSide(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                width: 1.0,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.inputRadius),
-              borderSide: BorderSide(
-                color: primaryFocusColor,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.inputRadius),
-              borderSide: const BorderSide(
-                color: AppColors.error,
-                width: 1.2,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.inputRadius),
-              borderSide: const BorderSide(
-                color: AppColors.error,
-                width: 1.5,
-              ),
-            ),
-            errorStyle: const TextStyle(
-              color: AppColors.error,
-              fontSize: 12,
+          child: TextFormField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            obscureText: widget.obscureText,
+            readOnly: widget.readOnly,
+            enabled: widget.enabled,
+            autofocus: widget.autofocus,
+            maxLines: widget.maxLines,
+            keyboardType: widget.keyboardType,
+            textInputAction: widget.textInputAction,
+            textCapitalization: widget.textCapitalization,
+            inputFormatters: widget.inputFormatters,
+            validator: widget.validator,
+            onFieldSubmitted: widget.onSubmitted,
+            onChanged: widget.onChanged,
+            style: TextStyle(
+              fontSize: 15,
               fontWeight: FontWeight.w500,
-              height: 1.3,
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              helperText: widget.helperText,
+              errorText: widget.errorText,
+              hintStyle: TextStyle(
+                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? AppColors.darkSurfaceElevated
+                  : AppColors.lightSurfaceElevated,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 16,
+              ),
+              prefixIcon: widget.prefixIcon != null
+                  ? Icon(
+                      widget.prefixIcon,
+                      size: 20,
+                      color: _isFocused ? primaryFocusColor : mutedIconColor,
+                    )
+                  : null,
+              suffixIcon: widget.suffixIcon,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  width: 1.0,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  width: 1.0,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+                borderSide: BorderSide(
+                  color: primaryFocusColor,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+                borderSide: const BorderSide(
+                  color: AppColors.error,
+                  width: 1.2,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.inputRadius),
+                borderSide: const BorderSide(
+                  color: AppColors.error,
+                  width: 1.5,
+                ),
+              ),
+              errorStyle: const TextStyle(
+                color: AppColors.error,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
+              ),
             ),
           ),
         ),

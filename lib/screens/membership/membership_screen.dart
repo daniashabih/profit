@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../models/membership_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
@@ -91,103 +92,112 @@ class _MembershipScreenState extends State<MembershipScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // CURRENT PREMIUM STATUS CARD (Exact mockup layout)
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF1E2614), const Color(0xFF161C10)]
-                      : [const Color(0xFFF7FEE7), Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            StaggeredEntrance(
+              index: 0,
+              child: Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF1E2614), const Color(0xFF161C10)]
+                        : [const Color(0xFFF7FEE7), Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.primaryLime.withOpacity(0.5),
+                    width: 1.5,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.primaryLime.withOpacity(0.5),
-                  width: 1.5,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLime,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ProFitLogo(
-                              size: 16,
-                              showText: false,
-                              logoColor: Color(0xFF111827),
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'PREMIUM',
-                              style: TextStyle(
-                                color: Color(0xFF111827),
-                                fontWeight: FontWeight.w900,
-                                fontSize: 13,
-                                letterSpacing: 1.2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLime,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ProFitLogo(
+                                size: 16,
+                                showText: false,
+                                logoColor: Color(0xFF111827),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${userMembership.daysRemaining} Days Remaining',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
+                              SizedBox(width: 6),
+                              Text(
+                                'PREMIUM',
+                                style: TextStyle(
+                                  color: Color(0xFF111827),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Expires: 23 September 2026',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${userMembership.daysRemaining} Days Remaining',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${(userMembership.progressPercentage * 100).toInt()}%',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primaryLime,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Progress bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: userMembership.progressPercentage,
-                      minHeight: 8,
-                      backgroundColor: isDark ? const Color(0xFF263309) : AppColors.gray200,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Expires: 23 September 2026',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          '${(userMembership.progressPercentage * 100).toInt()}%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryLime,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Progress bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0.0, end: userMembership.progressPercentage),
+                        duration: AppAnimationConstants.medium,
+                        curve: AppAnimationConstants.curveAthletic,
+                        builder: (context, value, _) {
+                          return LinearProgressIndicator(
+                            value: value,
+                            minHeight: 8,
+                            backgroundColor: isDark ? const Color(0xFF263309) : AppColors.gray200,
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                          );
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 22),
 
                   // Features list with checkmarks
@@ -243,143 +253,153 @@ class _MembershipScreenState extends State<MembershipScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+          ),
+          const SizedBox(height: 32),
 
-            // AVAILABLE PLANS FOR UPGRADE OR EXTENSION
-            const Text(
-              'OTHER PLANS',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
+          // AVAILABLE PLANS FOR UPGRADE OR EXTENSION
+          StaggeredEntrance(
+            index: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'OTHER PLANS',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose or upgrade your plan to unlock more personal coaching and facilities.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Choose or upgrade your plan to unlock more personal coaching and facilities.',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
+          ),
+          const SizedBox(height: 16),
 
-            // Plans list
-            ...List.generate(plans.length, (index) {
-              final plan = plans[index];
-              final isSelected = _selectedPlanIndex == index;
+          // Plans list
+          ...List.generate(plans.length, (index) {
+            final plan = plans[index];
+            final isSelected = _selectedPlanIndex == index;
 
-              return Container(
+            return StaggeredEntrance(
+              index: 2 + index,
+              child: Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(22),
-                    onTap: () => setState(() => _selectedPlanIndex = index),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkSurface : Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primaryLime
-                              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                          width: isSelected ? 2 : 1,
-                        ),
+                child: PressableScale(
+                  onTap: () => setState(() => _selectedPlanIndex = index),
+                  child: AnimatedContainer(
+                    duration: AppAnimationConstants.fast,
+                    curve: AppAnimationConstants.curveEaseOut,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primaryLime
+                            : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        width: isSelected ? 2 : 1,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                plan.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              plan.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
                               ),
-                              if (plan.isPopular)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryLime.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'BEST VALUE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primaryLime,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                plan.price,
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                plan.period,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            plan.billingDescription,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                             ),
+                            if (plan.isPopular)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryLime.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'BEST VALUE',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primaryLime,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              plan.price,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              plan.period,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          plan.billingDescription,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                           ),
-                          const SizedBox(height: 14),
-                          ...plan.features.map((feat) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 6.0),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.check, size: 16, color: AppColors.primaryLime),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      feat,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                      ),
+                        ),
+                        const SizedBox(height: 14),
+                        ...plan.features.map((feat) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6.0),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.check, size: 16, color: AppColors.primaryLime),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    feat,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                                     ),
                                   ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ),
                 ),
-              );
-            }),
-            const SizedBox(height: 24),
-          ],
-        ),
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

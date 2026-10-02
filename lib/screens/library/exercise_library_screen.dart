@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../core/enums/muscle_group.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
@@ -62,7 +63,7 @@ class ExerciseLibraryScreen extends StatelessWidget {
                 final group = cat['group'] as MuscleGroup;
                 final isSelected = workoutProv.selectedMuscle == group;
 
-                return GestureDetector(
+                return PressableScale(
                   onTap: () {
                     if (isSelected) {
                       workoutProv.selectMuscleGroup(null);
@@ -70,7 +71,9 @@ class ExerciseLibraryScreen extends StatelessWidget {
                       workoutProv.selectMuscleGroup(group);
                     }
                   },
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: AppAnimations.fastDuration,
+                    curve: AppAnimations.curveAthletic,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected
@@ -156,98 +159,103 @@ class ExerciseLibraryScreen extends StatelessWidget {
                           ex.name.toLowerCase().contains('squat') ||
                           ex.name.toLowerCase().contains('deadlift');
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurface : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ExerciseDetailScreen(exercise: ex),
+                      return StaggeredEntrance(
+                        index: index,
+                        child: PressableScale(
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurface : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                               ),
-                            );
-                          },
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
-                              child: ex.imageUrl.isNotEmpty
-                                  ? Image.network(
-                                      ex.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => const Icon(
-                                        Icons.fitness_center_rounded,
-                                        color: AppColors.primaryLime,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.fitness_center_rounded,
-                                      color: AppColors.primaryLime,
-                                    ),
                             ),
-                          ),
-                          title: Text(
-                            ex.name,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${ex.muscleGroup.displayName} • ${ex.difficulty.displayName}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark
-                                        ? AppColors.darkTextSecondary
-                                        : AppColors.lightTextSecondary,
-                                    fontWeight: FontWeight.w500,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ExerciseDetailScreen(exercise: ex),
                                   ),
-                                ),
-                                if (isPopular) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryLime.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.star_rounded, size: 12, color: AppColors.primaryLime),
-                                        SizedBox(width: 2),
-                                        Text(
-                                          'Popular',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
+                                );
+                              },
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  width: 56,
+                                  height: 56,
+                                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.gray100,
+                                  child: ex.imageUrl.isNotEmpty
+                                      ? Image.network(
+                                          ex.imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => const Icon(
+                                            Icons.fitness_center_rounded,
                                             color: AppColors.primaryLime,
                                           ),
+                                        )
+                                      : const Icon(
+                                          Icons.fitness_center_rounded,
+                                          color: AppColors.primaryLime,
                                         ),
-                                      ],
+                                ),
+                              ),
+                              title: Text(
+                                ex.name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${ex.muscleGroup.displayName} • ${ex.difficulty.displayName}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? AppColors.darkTextSecondary
+                                            : AppColors.lightTextSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ],
+                                    if (isPopular) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryLime.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.star_rounded, size: 12, color: AppColors.primaryLime),
+                                            SizedBox(width: 2),
+                                            Text(
+                                              'Popular',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                color: AppColors.primaryLime,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                              ),
                             ),
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right_rounded,
-                            size: 20,
                           ),
                         ),
                       );

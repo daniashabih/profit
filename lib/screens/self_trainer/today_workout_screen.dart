@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/self_trainer_cycle_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -154,11 +155,25 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.emoji_events_rounded, color: AppColors.primaryLime, size: 32),
-            SizedBox(width: 12),
-            Text('Workout Completed!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.7, end: 1.0),
+              duration: AppAnimations.mediumDuration,
+              curve: AppAnimations.curveSubtleSpring,
+              builder: (context, scale, child) {
+                return Transform.scale(
+                  scale: scale,
+                  child: child,
+                );
+              },
+              child: const PulsingGlow(
+                glowColor: AppColors.primaryLime,
+                child: Icon(Icons.emoji_events_rounded, color: AppColors.primaryLime, size: 32),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Workout Completed!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
           ],
         ),
         content: Column(
@@ -170,34 +185,39 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLime.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _dialogStat('Completed', '${_completedExerciseIds.length}/${widget.workoutDay.exercises.length}'),
-                  _dialogStat('Duration', '$_sessionMinutes min'),
-                ],
+            StaggeredEntrance(
+              index: 0,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLime.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _dialogStat('Completed', '${_completedExerciseIds.length}/${widget.workoutDay.exercises.length}'),
+                    _dialogStat('Duration', '$_sessionMinutes min'),
+                  ],
+                ),
               ),
             ),
           ],
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryLime,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          PressableScale(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryLime,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Back to Dashboard', style: TextStyle(fontWeight: FontWeight.w800)),
             ),
-            child: const Text('Back to Dashboard', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -264,11 +284,18 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
-            minHeight: 6,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: progress.clamp(0.0, 1.0)),
+            duration: AppAnimations.standardDuration,
+            curve: AppAnimations.curveAthletic,
+            builder: (context, val, _) {
+              return LinearProgressIndicator(
+                value: val,
+                backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+                minHeight: 6,
+              );
+            },
           ),
         ),
       ),
@@ -281,30 +308,35 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                 if (index == widget.workoutDay.exercises.length) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _finishWorkout,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryLime,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    child: PressableScale(
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _finishWorkout,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryLime,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.black),
+                              )
+                            : Text(
+                                completed >= total ? 'Finish Workout' : 'Save Session Progress',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                              ),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.black),
-                            )
-                          : Text(
-                              completed >= total ? 'Finish Workout' : 'Save Session Progress',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-                            ),
                     ),
                   );
                 }
 
                 final exercise = widget.workoutDay.exercises[index];
-                return _buildExerciseCard(exercise, index + 1, isDark);
+                return StaggeredEntrance(
+                  index: index,
+                  child: _buildExerciseCard(exercise, index + 1, isDark),
+                );
               },
             ),
     );
@@ -366,8 +398,16 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: isAllCompleted ? AppColors.primaryLime : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
+                    color: isAllCompleted
+                        ? AppColors.primaryLime
+                        : (isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isAllCompleted
+                          ? AppColors.primaryLime
+                          : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      width: 1.5,
+                    ),
                   ),
                   child: Center(
                     child: isAllCompleted
@@ -377,7 +417,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : Colors.black,
+                              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                             ),
                           ),
                   ),

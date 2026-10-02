@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/ai_coach_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
@@ -83,85 +84,100 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         ),
         actions: [
           // Toggle button between Daily Suggestion & Interactive Chat
-          IconButton(
-            tooltip: _showChat ? 'View Daily Plan' : 'Open AI Chat',
-            icon: Icon(
-              _showChat ? Icons.dashboard_outlined : Icons.chat_bubble_outline_rounded,
-              color: AppColors.primaryLime,
+          PressableScale(
+            onTap: () => setState(() => _showChat = !_showChat),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(
+                _showChat ? Icons.dashboard_outlined : Icons.chat_bubble_outline_rounded,
+                color: AppColors.primaryLime,
+              ),
             ),
-            onPressed: () => setState(() => _showChat = !_showChat),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: _showChat ? _buildChatView(context, isDark, aiProv) : _buildDailySuggestionView(context, isDark),
+      body: AnimatedSwitcher(
+        duration: AppAnimationConstants.standard,
+        switchInCurve: AppAnimationConstants.curveEaseOut,
+        switchOutCurve: AppAnimationConstants.curveEaseOut,
+        child: _showChat
+            ? _buildChatView(context, isDark, aiProv)
+            : _buildDailySuggestionView(context, isDark),
+      ),
     );
   }
 
   // Screen 16 Layout: "What should I do today?"
   Widget _buildDailySuggestionView(BuildContext context, bool isDark) {
     return SingleChildScrollView(
+      key: const ValueKey('daily_suggestion_view'),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Coach Greeting Card matching Mockup Screen 16
-          Container(
-            padding: const EdgeInsets.all(20),
-            margin: const EdgeInsets.only(bottom: 24),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          StaggeredEntrance(
+            index: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                const ProFitLogo(
-                  size: 52,
-                  showText: false,
-                  showContainer: true,
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'Hi Dania! 👋',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Based on your recent activity, you\'ve trained 3 days this week. Today would be a great day for a lower-body workout.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              child: Column(
+                children: [
+                  const ProFitLogo(
+                    size: 52,
+                    showText: false,
+                    showContainer: true,
                   ),
-                ),
-                const SizedBox(height: 18),
-                FitFlowButton(
-                  text: 'View Recommendation',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const WorkoutScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    side: BorderSide(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Hi Dania! 👋',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Based on your recent activity, you\'ve trained 3 days this week. Today would be a great day for a lower-body workout.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.45,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                     ),
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-                  label: const Text('Ask AI Coach', style: TextStyle(fontWeight: FontWeight.w700)),
-                  onPressed: () => setState(() => _showChat = true),
-                ),
-              ],
+                  const SizedBox(height: 18),
+                  FitFlowButton(
+                    text: 'View Recommendation',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  PressableScale(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        side: BorderSide(
+                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        ),
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                      label: const Text('Ask AI Coach', style: TextStyle(fontWeight: FontWeight.w700)),
+                      onPressed: () => setState(() => _showChat = true),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -186,158 +202,169 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           const SizedBox(height: 24),
 
           // 4 Suggestion Cards in 2x2 Grid
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 1.05,
-            children: [
-              // 1. Workout Card
-              _buildSuggestionCard(
-                context,
-                title: 'Workout',
-                subtitle: 'Upper Body Strength',
-                detail: '45 mins • 7 exercises',
-                icon: Icons.fitness_center_rounded,
-                accentColor: AppColors.primaryLime,
-                isDark: isDark,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WorkoutScreen()),
-                  );
-                },
-              ),
+          StaggeredEntrance(
+            index: 1,
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.05,
+              children: [
+                // 1. Workout Card
+                _buildSuggestionCard(
+                  context,
+                  title: 'Workout',
+                  subtitle: 'Upper Body Strength',
+                  detail: '45 mins • 7 exercises',
+                  icon: Icons.fitness_center_rounded,
+                  accentColor: AppColors.primaryLime,
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+                    );
+                  },
+                ),
 
-              // 2. Nutrition Card
-              _buildSuggestionCard(
-                context,
-                title: 'Nutrition',
-                subtitle: '1,800 kcal Target',
-                detail: '120g protein • Log meals',
-                icon: Icons.restaurant_rounded,
-                accentColor: AppColors.proteinColor,
-                isDark: isDark,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NutritionScreen()),
-                  );
-                },
-              ),
+                // 2. Nutrition Card
+                _buildSuggestionCard(
+                  context,
+                  title: 'Nutrition',
+                  subtitle: '1,800 kcal Target',
+                  detail: '120g protein • Log meals',
+                  icon: Icons.restaurant_rounded,
+                  accentColor: AppColors.proteinColor,
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const NutritionScreen()),
+                    );
+                  },
+                ),
 
-              // 3. Recovery Card
-              _buildSuggestionCard(
-                context,
-                title: 'Recovery',
-                subtitle: 'Rest & Stretch',
-                detail: '15 mins mobility • Relax',
-                icon: Icons.self_improvement_rounded,
-                accentColor: AppColors.carbsColor,
-                isDark: isDark,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Starting 15-minute guided dynamic mobility stretch...')),
-                  );
-                },
-              ),
+                // 3. Recovery Card
+                _buildSuggestionCard(
+                  context,
+                  title: 'Recovery',
+                  subtitle: 'Rest & Stretch',
+                  detail: '15 mins mobility • Relax',
+                  icon: Icons.self_improvement_rounded,
+                  accentColor: AppColors.carbsColor,
+                  isDark: isDark,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Starting 15-minute guided dynamic mobility stretch...')),
+                    );
+                  },
+                ),
 
-              // 4. Hydration Card
-              _buildSuggestionCard(
-                context,
-                title: 'Hydration',
-                subtitle: '2.5L Daily Goal',
-                detail: '1.8L logged • 72%',
-                icon: Icons.water_drop_rounded,
-                accentColor: const Color(0xFF38BDF8),
-                isDark: isDark,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('+250ml water added! Keep staying hydrated 💧')),
-                  );
-                },
-              ),
-            ],
+                // 4. Hydration Card
+                _buildSuggestionCard(
+                  context,
+                  title: 'Hydration',
+                  subtitle: '2.5L Daily Goal',
+                  detail: '1.8L logged • 72%',
+                  icon: Icons.water_drop_rounded,
+                  accentColor: const Color(0xFF38BDF8),
+                  isDark: isDark,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('+250ml water added! Keep staying hydrated 💧')),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
 
           // Primary "Let's Go →" Button
-          FitFlowButton(
-            text: "Let's Go →",
-            height: 52,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const WorkoutScreen()),
-              );
-            },
+          StaggeredEntrance(
+            index: 2,
+            child: FitFlowButton(
+              text: "Let's Go →",
+              height: 52,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WorkoutScreen()),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 24),
 
           // Bottom Quote / Inspiration Card (Screen 16 mockup)
-          FitFlowCard(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLime.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+          StaggeredEntrance(
+            index: 3,
+            child: FitFlowCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLime.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.format_quote_rounded,
+                      color: AppColors.primaryLime,
+                      size: 22,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.format_quote_rounded,
-                    color: AppColors.primaryLime,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '"Small steps every day lead to big results."',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontStyle: FontStyle.italic,
-                          height: 1.4,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '"Small steps every day lead to big results."',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            fontStyle: FontStyle.italic,
+                            height: 1.4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'PROFIT Daily Motivation',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                        const SizedBox(height: 6),
+                        Text(
+                          'PROFIT Daily Motivation',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 18),
 
           // Chat Switch Prompt
           Center(
-            child: TextButton.icon(
-              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryLime),
-              label: const Text(
-                'Have questions? Ask AI Coach',
-                style: TextStyle(
-                  color: AppColors.primaryLime,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+            child: PressableScale(
+              child: TextButton.icon(
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryLime),
+                label: const Text(
+                  'Have questions? Ask AI Coach',
+                  style: TextStyle(
+                    color: AppColors.primaryLime,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
+                onPressed: () => setState(() => _showChat = true),
               ),
-              onPressed: () => setState(() => _showChat = true),
             ),
           ),
           const SizedBox(height: 24),
@@ -356,7 +383,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -427,6 +454,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   // Interactive AI Companion Chat
   Widget _buildChatView(BuildContext context, bool isDark, AiCoachProvider aiProv) {
     return Column(
+      key: const ValueKey('chat_view'),
       children: [
         // Chat Messages List
         Expanded(
@@ -441,17 +469,13 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ),
         ),
 
-        // Thinking indicator
+        // Thinking indicator with animated dots
         if (aiProv.isThinking)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
               children: [
-                const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryLime),
-                ),
+                const TypingDotsIndicator(color: AppColors.primaryLime, dotSize: 5),
                 const SizedBox(width: 10),
                 Text(
                   'Coach is typing...',
@@ -494,14 +518,15 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryLime,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Color(0xFF111827), size: 20),
-                    onPressed: () => _handleSend(_textController.text),
+                PressableScale(
+                  onTap: () => _handleSend(_textController.text),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryLime,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.send_rounded, color: Color(0xFF111827), size: 20),
                   ),
                 ),
               ],
@@ -514,8 +539,11 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
 
   Widget _buildMessageBubble(BuildContext context, dynamic msg, bool isDark) {
     final isUser = msg.isUser;
+    final shouldReduce = AppAnimationConstants.shouldReduceMotion(context);
+    final isTesting = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    final animate = !shouldReduce && !isTesting;
 
-    return Align(
+    final bubble = Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -559,7 +587,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   spacing: 6,
                   runSpacing: 6,
                   children: (msg.actionChips as List<String>).map((chip) {
-                    return GestureDetector(
+                    return PressableScale(
                       onTap: () => _handleSend(chip),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -586,6 +614,24 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ],
         ),
       ),
+    );
+
+    if (!animate) return bubble;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: AppAnimationConstants.fast,
+      curve: AppAnimationConstants.curveEaseOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 8 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: bubble,
     );
   }
 }

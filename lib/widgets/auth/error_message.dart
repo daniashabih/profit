@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/animations.dart';
 import '../../core/errors/app_error.dart';
 import '../../theme/app_colors.dart';
 
@@ -32,7 +33,9 @@ class ErrorMessage extends StatelessWidget {
     final message = getFriendlyMessage(error);
 
     return AnimatedCrossFade(
-      duration: const Duration(milliseconds: 250),
+      duration: AppAnimations.standardDuration,
+      firstCurve: AppAnimations.curveEaseOut,
+      secondCurve: AppAnimations.curveEaseInOut,
       crossFadeState: message != null && message.isNotEmpty
           ? CrossFadeState.showFirst
           : CrossFadeState.showSecond,

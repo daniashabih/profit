@@ -9,6 +9,7 @@ import 'package:profit/core/enums/user_role.dart';
 import 'package:profit/providers/auth_provider.dart';
 import 'package:profit/providers/role_provider.dart';
 import 'package:profit/theme/theme_provider.dart';
+import 'package:profit/theme/app_colors.dart';
 import 'package:profit/providers/workout_provider.dart';
 import 'package:profit/providers/nutrition_provider.dart';
 import 'package:profit/providers/progress_provider.dart';
@@ -135,7 +136,7 @@ void main() {
 
     // Now on Step 6: Verify training days options are visible
     expect(find.text('How many days per week do you want to train?'), findsOneWidget);
-    expect(find.text('Generate My Fitness Plan'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
 
     final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await gesture.addPointer(location: Offset.zero);
@@ -205,4 +206,61 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
   });
+
+  testWidgets(
+      'FitnessSetupWizardScreen Step 6 training day circular badges render visible borders and colors',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+    await tester.pumpAndSettle();
+
+    // Navigate to Step 6
+    for (int i = 0; i < 5; i++) {
+      final continueBtn = find.widgetWithText(ElevatedButton, 'Continue');
+      await tester.tap(continueBtn);
+      await tester.pumpAndSettle();
+    }
+
+    // Step 6: Tap on option '4 Days / Week' to select 4 training days
+    final option4 = find.text('4 Days / Week');
+    await tester.tap(option4);
+    await tester.pumpAndSettle();
+
+    // Verify circular container for option '2' has border and surface decoration
+    final text2 = find.text('2');
+    expect(text2, findsOneWidget);
+
+    final container2 = tester.widget<Container>(
+      find.ancestor(
+        of: text2,
+        matching: find.byWidgetPredicate((w) =>
+            w is Container &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).shape == BoxShape.circle),
+      ),
+    );
+
+    final boxDec2 = container2.decoration as BoxDecoration;
+    expect(boxDec2.shape, BoxShape.circle);
+    expect(boxDec2.border, isNotNull);
+
+    // Verify option '4' is selected and has primaryLime background and border
+    final text4 = find.text('4');
+    expect(text4, findsOneWidget);
+
+    final container4 = tester.widget<Container>(
+      find.ancestor(
+        of: text4,
+        matching: find.byWidgetPredicate((w) =>
+            w is Container &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).shape == BoxShape.circle),
+      ),
+    );
+
+    final boxDec4 = container4.decoration as BoxDecoration;
+    expect(boxDec4.shape, BoxShape.circle);
+    expect(boxDec4.color, AppColors.primaryLime);
+    expect(boxDec4.border, isNotNull);
+  });
 }
+

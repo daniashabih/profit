@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/animations/animations.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/fit_flow_button.dart';
@@ -144,55 +145,70 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Spacer(),
 
                         // Center Visual with Lime Graphic Shape Accent (matching Screen 2)
-                        Center(
-                          child: SizedBox(
-                            height: 300,
-                            width: double.infinity,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Organic Lime blob background accent
-                                Container(
-                                  width: 240,
-                                  height: 240,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryLime.withOpacity(isDark ? 0.25 : 0.8),
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(140),
-                                      topRight: Radius.circular(100),
-                                      bottomLeft: Radius.circular(110),
-                                      bottomRight: Radius.circular(160),
+                        TweenAnimationBuilder<double>(
+                          key: ValueKey('page_visual_${index}_$_currentPage'),
+                          tween: Tween<double>(begin: 0.92, end: 1.0),
+                          duration: AppAnimations.mediumDuration,
+                          curve: AppAnimations.curveEaseOut,
+                          builder: (context, scale, child) {
+                            return Transform.scale(
+                              scale: scale,
+                              child: Opacity(
+                                opacity: ((scale - 0.92) / 0.08).clamp(0.0, 1.0),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Center(
+                            child: SizedBox(
+                              height: 300,
+                              width: double.infinity,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Organic Lime blob background accent
+                                  Container(
+                                    width: 240,
+                                    height: 240,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryLime.withOpacity(isDark ? 0.25 : 0.8),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(140),
+                                        topRight: Radius.circular(100),
+                                        bottomLeft: Radius.circular(110),
+                                        bottomRight: Radius.circular(160),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                // Athlete photo
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Image.network(
-                                    page.imageUrl,
-                                    height: 280,
-                                    width: 260,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => Container(
+                                  // Athlete photo
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(24),
+                                    child: Image.network(
+                                      page.imageUrl,
                                       height: 280,
                                       width: 260,
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? AppColors.darkSurface
-                                            : AppColors.gray100,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.fitness_center_rounded,
-                                          size: 64,
-                                          color: AppColors.primaryLime,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => Container(
+                                        height: 280,
+                                        width: 260,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? AppColors.darkSurface
+                                              : AppColors.gray100,
+                                          borderRadius: BorderRadius.circular(24),
+                                        ),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.fitness_center_rounded,
+                                            size: 64,
+                                            color: AppColors.primaryLime,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -215,7 +231,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     children: List.generate(_pages.length, (idx) {
                       final isSelected = _currentPage == idx;
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
+                        duration: AppAnimations.standardDuration,
+                        curve: AppAnimations.curveAthletic,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: isSelected ? 24 : 8,
                         height: 8,
