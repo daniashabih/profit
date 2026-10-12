@@ -46,9 +46,14 @@ class AuthProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _hasOnboarded = prefs.getBool(AppConstants.keyHasOnboarded) ?? false;
+    } catch (e) {
+      debugPrint('AuthProvider SharedPreferences initialization notice: $e');
+    }
+
+    try {
       _user = await _authService.getCurrentUser();
     } catch (e) {
-      _errorMessage = AppError.fromException(e).message;
+      debugPrint('AuthProvider getCurrentUser notice: $e');
     } finally {
       notifyListeners();
     }
@@ -56,8 +61,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> completeOnboarding() async {
     _hasOnboarded = true;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(AppConstants.keyHasOnboarded, true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(AppConstants.keyHasOnboarded, true);
+    } catch (e) {
+      debugPrint('AuthProvider completeOnboarding notice: $e');
+    }
     notifyListeners();
   }
 

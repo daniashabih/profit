@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/animations/animations.dart';
 import '../../core/errors/app_error.dart';
 import '../../theme/app_colors.dart';
 
@@ -31,61 +30,53 @@ class ErrorMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = getFriendlyMessage(error);
+    if (message == null || message.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return AnimatedCrossFade(
-      duration: AppAnimations.standardDuration,
-      firstCurve: AppAnimations.curveEaseOut,
-      secondCurve: AppAnimations.curveEaseInOut,
-      crossFadeState: message != null && message.isNotEmpty
-          ? CrossFadeState.showFirst
-          : CrossFadeState.showSecond,
-      firstChild: message != null && message.isNotEmpty
-          ? Container(
-              margin: margin,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.error.withOpacity(0.35),
-                  width: 1.0,
-                ),
+    return Container(
+      margin: margin,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.error.withOpacity(0.35),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.error,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.35,
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    color: AppColors.error,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                    ),
-                  ),
-                  if (onDismiss != null) ...[
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: onDismiss,
-                      child: const Icon(
-                        Icons.close_rounded,
-                        color: AppColors.error,
-                        size: 18,
-                      ),
-                    ),
-                  ],
-                ],
+            ),
+          ),
+          if (onDismiss != null) ...[
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: onDismiss,
+              child: const Icon(
+                Icons.close_rounded,
+                color: AppColors.error,
+                size: 18,
               ),
-            )
-          : const SizedBox.shrink(),
-      secondChild: const SizedBox.shrink(),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

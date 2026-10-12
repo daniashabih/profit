@@ -5,8 +5,6 @@ import '../../models/user_model.dart';
 import '../../screens/main_navigation.dart';
 import '../../screens/trainer/trainer_dashboard_screen.dart';
 import '../../screens/admin/admin_dashboard_screen.dart';
-import '../../screens/self_trainer/fitness_setup_wizard_screen.dart';
-import '../../screens/trainer/trainer_onboarding_screen.dart';
 import '../../providers/self_trainer_cycle_provider.dart';
 
 /// Returns the primary root dashboard screen based on authenticated user role.
@@ -26,21 +24,13 @@ Widget getRoleBasedHomeScreen(UserRole role) {
 
 class RoleRouter {
   static void navigateToRoleHome(BuildContext context, UserModel user, {bool isSignUp = false}) {
-    Widget destination;
     final role = user.role;
 
     if (role == UserRole.self) {
       context.read<SelfTrainerCycleProvider>().initializeForUser(user);
-      if (!user.fitnessSetupCompleted) {
-        destination = const FitnessSetupWizardScreen();
-      } else {
-        destination = getRoleBasedHomeScreen(role);
-      }
-    } else if (role == UserRole.trainer && isSignUp) {
-      destination = TrainerOnboardingScreen(user: user);
-    } else {
-      destination = getRoleBasedHomeScreen(role);
     }
+
+    final destination = getRoleBasedHomeScreen(role);
 
     Navigator.pushAndRemoveUntil(
       context,

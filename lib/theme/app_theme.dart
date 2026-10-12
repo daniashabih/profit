@@ -70,7 +70,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.darkTextPrimary,
           side: const BorderSide(color: AppColors.darkBorder, width: 1.5),
-          minimumSize: const Size.fromHeight(54),
+          minimumSize: const Size(64, 54),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(buttonRadius),
           ),
@@ -213,7 +213,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.lightTextPrimary,
           side: const BorderSide(color: AppColors.lightBorder, width: 1.5),
-          minimumSize: const Size.fromHeight(54),
+          minimumSize: const Size(64, 54),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(buttonRadius),
           ),

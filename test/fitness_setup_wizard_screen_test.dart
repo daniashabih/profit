@@ -79,8 +79,8 @@ void main() {
     );
   }
 
-  Future<void> navigateToStep6(WidgetTester tester) async {
-    for (int i = 0; i < 5; i++) {
+  Future<void> navigateToStep8(WidgetTester tester) async {
+    for (int i = 0; i < 7; i++) {
       final continueBtn = find.widgetWithText(ElevatedButton, 'Continue');
       expect(continueBtn, findsOneWidget);
       await tester.tap(continueBtn);
@@ -88,20 +88,18 @@ void main() {
     }
   }
 
-  group('Personal Fitness Setup - Step 6 & Bottom CTA Tests', () {
+  group('Personal Fitness Setup - Step 8 & Bottom CTA Tests', () {
     testWidgets(
-        'Step 6 renders progress indicator with proper spacing, unclipped header, and all frequency cards',
+        'Step 8 renders progress indicator with proper spacing, unclipped header, and all frequency cards',
         (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
-
-      await navigateToStep6(tester);
 
       // Verify header and progress
       expect(find.text('Personal Fitness Setup'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
-      expect(find.text('STEP 6 OF 6'), findsOneWidget);
-      expect(find.text('How many days per week do you want to train?'), findsOneWidget);
+      expect(find.text('STEP 8 OF 8'), findsOneWidget);
+      expect(find.text('How many days can you train per week?'), findsOneWidget);
       expect(
         find.text('Choose your weekly commitment. You can adapt this anytime.'),
         findsOneWidget,
@@ -126,12 +124,10 @@ void main() {
     });
 
     testWidgets(
-        'Continue button is initially disabled/subdued when no frequency is selected, then enables on selection',
+        'Continue button is enabled and selections update smoothly',
         (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
-
-      await navigateToStep6(tester);
 
       // Continue button should be present
       final continueFinder = find.widgetWithText(ElevatedButton, 'Continue');
@@ -156,10 +152,8 @@ void main() {
     testWidgets(
         'Selection switches smoothly between 2, 3, 4, 5, and 6 Days / Week',
         (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
-
-      await navigateToStep6(tester);
 
       final continueFinder = find.widgetWithText(ElevatedButton, 'Continue');
 
@@ -207,10 +201,8 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
-
-      await navigateToStep6(tester);
 
       final continueFinder = find.widgetWithText(ElevatedButton, 'Continue');
       expect(continueFinder, findsOneWidget);
@@ -234,18 +226,29 @@ void main() {
     testWidgets(
         'Pressing Continue saves frequency and triggers plan generation transition',
         (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
-
-      await navigateToStep6(tester);
 
       // Select 5 Days / Week
       await tester.ensureVisible(find.text('5 Days / Week'));
       await tester.tap(find.text('5 Days / Week'));
       await tester.pumpAndSettle();
 
+      // Tap Continue on Step 8 -> moves to Screen 9 (Nutrition Target)
       final continueFinder = find.widgetWithText(ElevatedButton, 'Continue');
       await tester.tap(continueFinder);
+      await tester.pumpAndSettle();
+
+      // Screen 9: Nutrition Target
+      expect(find.text('Your Daily Protein Target'), findsOneWidget);
+      await tester.tap(continueFinder);
+      await tester.pumpAndSettle();
+
+      // Screen 10: Profile Review
+      expect(find.text('Your Profile'), findsOneWidget);
+      final completeFinder = find.widgetWithText(ElevatedButton, 'Complete Profile');
+      expect(completeFinder, findsOneWidget);
+      await tester.tap(completeFinder);
       await tester.pumpAndSettle();
 
       // Verify the frequency was saved in auth user profile and cycle provider
@@ -253,18 +256,17 @@ void main() {
       expect(authProv.user!.fitnessSetupCompleted, isTrue);
       expect(cycleProv.currentCycle, isNotNull);
 
-      // Verify transition to MainNavigation screen
+      // Verify transition away from wizard
       expect(find.byType(FitnessSetupWizardScreen), findsNothing);
     });
 
     testWidgets(
-        'Back button in AppBar navigates back to Step 5 (Target Weight)',
+        'Back button in AppBar navigates back to Step 7 (Target Weight)',
         (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+      await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
       await tester.pumpAndSettle();
 
-      await navigateToStep6(tester);
-      expect(find.text('STEP 6 OF 6'), findsOneWidget);
+      expect(find.text('STEP 8 OF 8'), findsOneWidget);
 
       // Tap back in AppBar
       final backBtn = find.byIcon(Icons.arrow_back_ios_new_rounded);
@@ -272,8 +274,8 @@ void main() {
       await tester.tap(backBtn);
       await tester.pumpAndSettle();
 
-      // Should now be on Step 5
-      expect(find.text('STEP 5 OF 6'), findsOneWidget);
+      // Should now be on Step 7
+      expect(find.text('STEP 7 OF 8'), findsOneWidget);
     });
   });
 }

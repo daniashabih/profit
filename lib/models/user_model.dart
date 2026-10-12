@@ -109,7 +109,10 @@ class UserModel {
   final int membershipDaysRemaining;
   final DateTime membershipExpiryDate;
   final bool fitnessSetupCompleted;
+  final bool profileCompleted;
   final int trainingDaysPerWeek;
+  final int? workoutDuration;
+  final double? proteinTarget;
   final String? assignedTrainerId;
   final String? assignedWorkoutPlan;
   final String? assignedDietPlan;
@@ -118,6 +121,10 @@ class UserModel {
   String get fullName => name;
   String get profileImage => avatarUrl;
   String get goalType => goal;
+  String get fitnessGoal => goal;
+  double get weightKg => currentWeightKg;
+  int get workoutDays => trainingDaysPerWeek;
+  bool get isProfileCompleted => profileCompleted || fitnessSetupCompleted;
 
   /// Computed Body Mass Index (BMI) using standard formula: weight(kg) / height(m)^2
   double get bmi => FitnessCalculators.calculateBmi(currentWeightKg, heightCm);
@@ -130,6 +137,39 @@ class UserModel {
         weightKg: currentWeightKg,
         heightCm: heightCm,
       );
+
+  final bool hasEnteredHeight;
+  final bool hasEnteredWeight;
+  final bool hasEnteredGoal;
+  final bool hasEnteredTargetWeight;
+  final bool hasEnteredWorkoutPreferences;
+
+  int get completedProfileSteps {
+    if (isProfileCompleted) return 8;
+    int steps = 0;
+    // Step 1: Basic info (Name and valid numeric Age)
+    if (name.trim().isNotEmpty && age != null && age! > 0) steps++;
+    // Step 2: Gender
+    if (gender != null && gender!.trim().isNotEmpty) steps++;
+    // Step 3: Height
+    if (hasEnteredHeight || (heightCm > 0 && age != null && gender != null)) steps++;
+    // Step 4: Current Weight
+    if (hasEnteredWeight || (currentWeightKg > 0 && age != null && gender != null)) steps++;
+    // Step 5: Fitness Goal
+    if (hasEnteredGoal || (goal.trim().isNotEmpty && goal != 'Build Muscle' && goal != 'Build Lean Muscle & Strength' && age != null)) steps++;
+    // Step 6: Auto BMI
+    if ((hasEnteredHeight && hasEnteredWeight) || (heightCm > 0 && currentWeightKg > 0 && age != null && gender != null)) steps++;
+    // Step 7: Target Weight
+    if (hasEnteredTargetWeight || (targetWeightKg > 0 && age != null && gender != null && hasEnteredGoal)) steps++;
+    // Step 8: Workout Preferences
+    if (hasEnteredWorkoutPreferences || (workoutDuration != null)) steps++;
+    return steps.clamp(0, 8);
+  }
+
+  double get profileCompletionPercentage {
+    if (isProfileCompleted) return 1.0;
+    return (completedProfileSteps / 8.0).clamp(0.0, 1.0);
+  }
 
   /// Evidence-based daily protein recommendation based on body weight, goal, and activity
   ProteinRecommendation get proteinRecommendation =>
@@ -168,7 +208,15 @@ class UserModel {
     this.membershipDaysRemaining = 184,
     DateTime? membershipExpiryDate,
     this.fitnessSetupCompleted = false,
+    this.profileCompleted = false,
     this.trainingDaysPerWeek = 4,
+    this.workoutDuration,
+    this.proteinTarget,
+    this.hasEnteredHeight = false,
+    this.hasEnteredWeight = false,
+    this.hasEnteredGoal = false,
+    this.hasEnteredTargetWeight = false,
+    this.hasEnteredWorkoutPreferences = false,
     this.assignedTrainerId,
     this.assignedWorkoutPlan,
     this.assignedDietPlan,
@@ -205,7 +253,15 @@ class UserModel {
     int? membershipDaysRemaining,
     DateTime? membershipExpiryDate,
     bool? fitnessSetupCompleted,
+    bool? profileCompleted,
     int? trainingDaysPerWeek,
+    int? workoutDuration,
+    double? proteinTarget,
+    bool? hasEnteredHeight,
+    bool? hasEnteredWeight,
+    bool? hasEnteredGoal,
+    bool? hasEnteredTargetWeight,
+    bool? hasEnteredWorkoutPreferences,
     String? assignedTrainerId,
     String? assignedWorkoutPlan,
     String? assignedDietPlan,
@@ -243,8 +299,24 @@ class UserModel {
           membershipExpiryDate ?? this.membershipExpiryDate,
       fitnessSetupCompleted:
           fitnessSetupCompleted ?? this.fitnessSetupCompleted,
+      profileCompleted:
+          profileCompleted ?? this.profileCompleted,
       trainingDaysPerWeek:
           trainingDaysPerWeek ?? this.trainingDaysPerWeek,
+      workoutDuration:
+          workoutDuration ?? this.workoutDuration,
+      proteinTarget:
+          proteinTarget ?? this.proteinTarget,
+      hasEnteredHeight:
+          hasEnteredHeight ?? this.hasEnteredHeight,
+      hasEnteredWeight:
+          hasEnteredWeight ?? this.hasEnteredWeight,
+      hasEnteredGoal:
+          hasEnteredGoal ?? this.hasEnteredGoal,
+      hasEnteredTargetWeight:
+          hasEnteredTargetWeight ?? this.hasEnteredTargetWeight,
+      hasEnteredWorkoutPreferences:
+          hasEnteredWorkoutPreferences ?? this.hasEnteredWorkoutPreferences,
       assignedTrainerId: assignedTrainerId ?? this.assignedTrainerId,
       assignedWorkoutPlan: assignedWorkoutPlan ?? this.assignedWorkoutPlan,
       assignedDietPlan: assignedDietPlan ?? this.assignedDietPlan,
@@ -270,17 +342,23 @@ class UserModel {
       'fitnessLevel': fitnessLevel,
       'goal': goal,
       'goalType': goal,
+      'fitnessGoal': goal,
       if (age != null) 'age': age,
       if (gender != null) 'gender': gender,
       'activityLevel': activityLevel,
       'currentWeightKg': currentWeightKg,
+      'weightKg': currentWeightKg,
       'startWeightKg': startWeightKg,
       'targetWeightKg': targetWeightKg,
       'heightCm': heightCm,
       'bmi': bmi,
       'bmiCategory': bmiCategory,
-      'fitnessSetupCompleted': fitnessSetupCompleted,
+      'fitnessSetupCompleted': isProfileCompleted,
+      'profileCompleted': isProfileCompleted,
       'trainingDaysPerWeek': trainingDaysPerWeek,
+      'workoutDays': trainingDaysPerWeek,
+      if (workoutDuration != null) 'workoutDuration': workoutDuration,
+      if (proteinTarget != null) 'proteinTarget': proteinTarget,
       'streakDays': streakDays,
       'totalWorkouts': totalWorkouts,
       'totalTrainingMinutes': totalTrainingMinutes,
@@ -305,6 +383,7 @@ class UserModel {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    final isCompleted = map['profileCompleted'] == true || map['fitnessSetupCompleted'] == true;
     return UserModel(
       id: map['uid']?.toString() ?? map['id']?.toString() ?? '',
       name: map['fullName']?.toString() ?? map['name']?.toString() ?? '',
@@ -323,11 +402,11 @@ class UserModel {
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       fitnessLevel: map['fitnessLevel']?.toString() ?? 'Intermediate',
-      goal: map['goalType']?.toString() ?? map['goal']?.toString() ?? 'Build Muscle',
+      goal: map['fitnessGoal']?.toString() ?? map['goalType']?.toString() ?? map['goal']?.toString() ?? 'Build Muscle',
       age: (map['age'] as num?)?.toInt(),
       gender: map['gender']?.toString(),
       activityLevel: map['activityLevel']?.toString() ?? 'moderately_active',
-      currentWeightKg: (map['currentWeightKg'] as num?)?.toDouble() ?? 70.0,
+      currentWeightKg: (map['currentWeightKg'] as num?)?.toDouble() ?? (map['weightKg'] as num?)?.toDouble() ?? 70.0,
       startWeightKg: (map['startWeightKg'] as num?)?.toDouble() ?? 75.0,
       targetWeightKg: (map['targetWeightKg'] as num?)?.toDouble() ?? 68.0,
       heightCm: (map['heightCm'] as num?)?.toDouble() ?? 175.0,
@@ -345,8 +424,16 @@ class UserModel {
           ? DateTime.tryParse(map['membershipExpiryDate'].toString()) ??
               DateTime.now()
           : DateTime.now(),
-      fitnessSetupCompleted: map['fitnessSetupCompleted'] == true,
-      trainingDaysPerWeek: (map['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
+      fitnessSetupCompleted: isCompleted,
+      profileCompleted: isCompleted,
+      trainingDaysPerWeek: (map['workoutDays'] as num?)?.toInt() ?? (map['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
+      workoutDuration: (map['workoutDuration'] as num?)?.toInt(),
+      proteinTarget: (map['proteinTarget'] as num?)?.toDouble(),
+      hasEnteredHeight: isCompleted || (map.containsKey('heightCm') && map['heightCm'] != null),
+      hasEnteredWeight: isCompleted || (map.containsKey('currentWeightKg') && map['currentWeightKg'] != null) || (map.containsKey('weightKg') && map['weightKg'] != null),
+      hasEnteredGoal: isCompleted || (map.containsKey('fitnessGoal') && map['fitnessGoal'] != null) || (map.containsKey('goal') && map['goal'] != null),
+      hasEnteredTargetWeight: isCompleted || (map.containsKey('targetWeightKg') && map['targetWeightKg'] != null),
+      hasEnteredWorkoutPreferences: isCompleted || (map.containsKey('workoutDuration') && map['workoutDuration'] != null) || (map.containsKey('workoutDays') && map['workoutDays'] != null),
       assignedTrainerId: map['assignedTrainerId']?.toString(),
       assignedWorkoutPlan: map['assignedWorkoutPlan']?.toString(),
       assignedDietPlan: map['assignedDietPlan']?.toString(),

@@ -93,6 +93,15 @@ class _TrainerOnboardingScreenState extends State<TrainerOnboardingScreen> {
 
     await authProv.updateTrainerProfile(profile);
 
+    final currentUser = authProv.user;
+    if (currentUser != null) {
+      final updatedUser = currentUser.copyWith(
+        profileCompleted: true,
+        fitnessSetupCompleted: true,
+      );
+      await authProv.saveUserProfile(updatedUser);
+    }
+
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,

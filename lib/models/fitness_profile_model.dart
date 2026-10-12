@@ -14,8 +14,13 @@ class FitnessProfile {
   final String fitnessLevel; // 'Beginner', 'Intermediate', 'Advanced'
   final String activityLevel;
   final bool fitnessSetupCompleted;
+  final bool profileCompleted;
+  final int? workoutDuration;
+  final double? proteinTarget;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  bool get isProfileCompleted => profileCompleted || fitnessSetupCompleted;
 
   const FitnessProfile({
     required this.userId,
@@ -32,6 +37,9 @@ class FitnessProfile {
     this.fitnessLevel = 'Beginner',
     this.activityLevel = 'moderately_active',
     this.fitnessSetupCompleted = true,
+    this.profileCompleted = true,
+    this.workoutDuration,
+    this.proteinTarget,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -51,6 +59,9 @@ class FitnessProfile {
     String? fitnessLevel,
     String? activityLevel,
     bool? fitnessSetupCompleted,
+    bool? profileCompleted,
+    int? workoutDuration,
+    double? proteinTarget,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -69,6 +80,9 @@ class FitnessProfile {
       fitnessLevel: fitnessLevel ?? this.fitnessLevel,
       activityLevel: activityLevel ?? this.activityLevel,
       fitnessSetupCompleted: fitnessSetupCompleted ?? this.fitnessSetupCompleted,
+      profileCompleted: profileCompleted ?? this.profileCompleted,
+      workoutDuration: workoutDuration ?? this.workoutDuration,
+      proteinTarget: proteinTarget ?? this.proteinTarget,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -90,13 +104,17 @@ class FitnessProfile {
       'trainingDaysPerWeek': trainingDaysPerWeek,
       'fitnessLevel': fitnessLevel,
       'activityLevel': activityLevel,
-      'fitnessSetupCompleted': fitnessSetupCompleted,
+      'fitnessSetupCompleted': isProfileCompleted,
+      'profileCompleted': isProfileCompleted,
+      if (workoutDuration != null) 'workoutDuration': workoutDuration,
+      if (proteinTarget != null) 'proteinTarget': proteinTarget,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   factory FitnessProfile.fromMap(Map<String, dynamic> map, {String? fallbackUserId}) {
+    final isCompleted = map['profileCompleted'] == true || map['fitnessSetupCompleted'] == true;
     return FitnessProfile(
       userId: map['userId']?.toString() ?? map['id']?.toString() ?? fallbackUserId ?? '',
       fullName: map['fullName']?.toString() ?? '',
@@ -111,7 +129,10 @@ class FitnessProfile {
       trainingDaysPerWeek: (map['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
       fitnessLevel: map['fitnessLevel']?.toString() ?? 'Beginner',
       activityLevel: map['activityLevel']?.toString() ?? 'moderately_active',
-      fitnessSetupCompleted: map['fitnessSetupCompleted'] == true,
+      fitnessSetupCompleted: isCompleted,
+      profileCompleted: isCompleted,
+      workoutDuration: (map['workoutDuration'] as num?)?.toInt(),
+      proteinTarget: (map['proteinTarget'] as num?)?.toDouble(),
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),

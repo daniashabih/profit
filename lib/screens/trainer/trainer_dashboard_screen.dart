@@ -10,6 +10,9 @@ import '../../widgets/common/fit_flow_card.dart';
 import '../../widgets/common/fit_flow_button.dart';
 import '../main_navigation.dart';
 import '../auth/login_screen.dart';
+import 'client_nutrition_screen.dart';
+import 'trainer_onboarding_screen.dart';
+import '../../models/user_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ROOT FIX NOTES (2026-10-01):
@@ -107,8 +110,8 @@ class _TrainerBottomNav extends StatelessWidget {
 
     final items = [
       _NavItem(Icons.dashboard_rounded, 'Home'),
-      _NavItem(Icons.groups_rounded, 'Clients'),
-      _NavItem(Icons.assignment_rounded, 'Programs'),
+      _NavItem(Icons.groups_rounded, 'Members'),
+      _NavItem(Icons.assignment_rounded, 'Plans'),
       _NavItem(Icons.trending_up_rounded, 'Progress'),
       _NavItem(Icons.person_rounded, 'Profile'),
     ];
@@ -382,46 +385,53 @@ class _TrainerHomeTabState extends State<_TrainerHomeTab> {
     }
 
     return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          // ── App Bar ──
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-            surfaceTintColor: Colors.transparent,
-            title: const ProFitLogo(size: 24, showText: true, fontSize: 18),
-            actions: [
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLime.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryLime.withOpacity(0.5)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── App Bar Row ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const ProFitLogo(size: 24, showText: true, fontSize: 18),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLime.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primaryLime.withOpacity(0.5)),
+                      ),
+                      child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(Icons.sports_gymnastics_rounded, size: 14, color: AppColors.primaryLime),
+                        SizedBox(width: 4),
+                        Text('TRAINER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.primaryLime)),
+                      ]),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.person_add_rounded, color: AppColors.primaryLime),
+                      tooltip: 'Add Client',
+                      onPressed: () => _showAddClientDialog(trainerProv),
+                    ),
+                  ],
                 ),
-                child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.sports_gymnastics_rounded, size: 14, color: AppColors.primaryLime),
-                  SizedBox(width: 4),
-                  Text('TRAINER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.primaryLime)),
-                ]),
-              ),
-              IconButton(
-                icon: const Icon(Icons.person_add_rounded, color: AppColors.primaryLime),
-                tooltip: 'Add Client',
-                onPressed: () => _showAddClientDialog(trainerProv),
-              ),
-              const SizedBox(width: 4),
-            ],
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+              ],
+            ),
+            const SizedBox(height: 12),
 
                 // ── Greeting Header ──
                 _buildGreetingHeader(trainerName, isDark),
                 const SizedBox(height: 18),
+
+                // ── Incomplete Profile Prompt Card (if incomplete) ──
+                if (user != null && !user.isProfileCompleted) ...[
+                  _buildCompleteProfileCard(context, user, isDark),
+                  const SizedBox(height: 18),
+                ],
 
                 // ── Trainer Profile Summary Card ──
                 _buildTrainerProfileCard(trainerName, profile, isDark),
@@ -433,13 +443,13 @@ class _TrainerHomeTabState extends State<_TrainerHomeTab> {
 
                 // ── 4 KPI Cards ──
                 Row(children: [
-                  Expanded(child: _buildMetricCard(title: 'Total Clients', value: '${clients.length}', subtext: '+2 this month', icon: Icons.groups_rounded, accentColor: AppColors.primaryLime, isDark: isDark)),
+                  Expanded(child: _buildMetricCard(title: 'Total Members', value: '${clients.length}', subtext: '+2 this month', icon: Icons.groups_rounded, accentColor: AppColors.primaryLime, isDark: isDark)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildMetricCard(title: 'Active', value: '${activeClients.length}', subtext: 'High compliance', icon: Icons.check_circle_outline_rounded, accentColor: AppColors.proteinColor, isDark: isDark)),
+                  Expanded(child: _buildMetricCard(title: 'Active Members', value: '${activeClients.length}', subtext: 'High compliance', icon: Icons.check_circle_outline_rounded, accentColor: AppColors.proteinColor, isDark: isDark)),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _buildMetricCard(title: 'Programs', value: '${plans.length}', subtext: 'Active routines', icon: Icons.assignment_outlined, accentColor: AppColors.carbsColor, isDark: isDark)),
+                  Expanded(child: _buildMetricCard(title: 'Workout Plans', value: '${plans.length}', subtext: 'Active routines', icon: Icons.assignment_outlined, accentColor: AppColors.carbsColor, isDark: isDark)),
                   const SizedBox(width: 12),
                   Expanded(child: _buildMetricCard(title: 'Pending', value: '${pendingClients.length}', subtext: 'Needs review', icon: Icons.person_add_alt_rounded, accentColor: Colors.amber, isDark: isDark)),
                 ]),
@@ -449,15 +459,15 @@ class _TrainerHomeTabState extends State<_TrainerHomeTab> {
                 _buildSectionHeader('QUICK ACTIONS'),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _buildQuickActionButton(icon: Icons.add_circle_outline_rounded, title: 'Create Program', subtitle: 'New routine', isDark: isDark, onTap: () => _showCreatePlanDialog(trainerProv))),
+                  Expanded(child: _buildQuickActionButton(icon: Icons.add_circle_outline_rounded, title: 'Create Plan', subtitle: 'New routine', isDark: isDark, onTap: () => _showCreatePlanDialog(trainerProv))),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildQuickActionButton(icon: Icons.people_alt_outlined, title: 'Add Client', subtitle: 'Client roster', isDark: isDark, onTap: () => _showAddClientDialog(trainerProv))),
+                  Expanded(child: _buildQuickActionButton(icon: Icons.people_alt_outlined, title: 'View Members', subtitle: 'Client roster', isDark: isDark, onTap: () => widget.onTabChanged(1))),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _buildQuickActionButton(icon: Icons.calendar_today_rounded, title: 'View Schedule', subtitle: 'Session plan', isDark: isDark, onTap: () => widget.onTabChanged(2))),
+                  Expanded(child: _buildQuickActionButton(icon: Icons.calendar_today_rounded, title: 'Manage Plans', subtitle: 'Session plan', isDark: isDark, onTap: () => widget.onTabChanged(2))),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildQuickActionButton(icon: Icons.insights_rounded, title: 'Progress', subtitle: 'Client stats', isDark: isDark, onTap: () => widget.onTabChanged(3))),
+                  Expanded(child: _buildQuickActionButton(icon: Icons.insights_rounded, title: 'View Progress', subtitle: 'Client stats', isDark: isDark, onTap: () => widget.onTabChanged(3))),
                 ]),
                 const SizedBox(height: 24),
 
@@ -495,12 +505,10 @@ class _TrainerHomeTabState extends State<_TrainerHomeTab> {
                 const SizedBox(height: 12),
                 _buildRecentActivitySection(activeClients, isDark),
                 const SizedBox(height: 32),
-              ]),
+              ],
             ),
           ),
-        ],
-      ),
-    );
+        );
   }
 
   Widget _buildLoadingState(bool isDark) {
@@ -541,6 +549,116 @@ class _TrainerHomeTabState extends State<_TrainerHomeTab> {
           style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         ),
       ],
+    );
+  }
+
+  Widget _buildCompleteProfileCard(
+    BuildContext context,
+    UserModel user,
+    bool isDark,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primaryLime,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLime.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.sports_gymnastics_rounded,
+                  color: AppColors.primaryLime,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Complete Your Coach Profile',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.3,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Trainer Setup Pending',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryLime,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Complete your professional profile to showcase your specialties, gym center, and training categories.',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => TrainerOnboardingScreen(user: user)),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryLime,
+                foregroundColor: Colors.black,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Complete Profile',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -924,7 +1042,7 @@ class _TrainerMembersTabState extends State<_TrainerMembersTab> {
           SizedBox(width: 8),
           Text('Delete Client?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         ]),
-        content: Text('Remove "${client.memberName}" from your client roster? This cannot be undone.',
+        content: Text('Are you sure you want to remove "${client.memberName}" from your client roster? This cannot be undone.',
             style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -1016,7 +1134,19 @@ class _TrainerMembersTabState extends State<_TrainerMembersTab> {
               const SizedBox(height: 4),
               Text(client.notes!, style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            FitFlowButton(
+              text: 'View Food Journal & Nutrition',
+              icon: Icons.restaurant_menu_rounded,
+              height: 44,
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ClientNutritionScreen(client: client)),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
             Row(children: [
               Expanded(child: FitFlowButton(text: 'Change Plan', icon: Icons.assignment_outlined, isOutlined: true, height: 44, onPressed: () => Navigator.pop(ctx))),
               const SizedBox(width: 12),

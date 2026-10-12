@@ -19,8 +19,8 @@ service cloud.firestore {
     //   - phoneNumber: string (optional, <= 30 chars)
     //   - gymLocation: string (optional, <= 120 chars)
     //   - fitnessLevel: string (optional, <= 60 chars)
-    //   - goal: string (optional, <= 200 chars)
-    //   - currentWeightKg, startWeightKg, targetWeightKg: number (optional, 0.1-500)
+    //   - goal, fitnessGoal: string (optional, <= 200 chars)
+    //   - currentWeightKg, startWeightKg, targetWeightKg, weightKg: number (optional, 0.1-500)
     //   - heightCm: number (optional, 10-300)
     //   - age: number (optional, 5-120)
     //   - gender: string (optional, <= 40 chars)
@@ -31,11 +31,13 @@ service cloud.firestore {
     //   - membershipDaysRemaining: number (optional, >= 0)
     //   - membershipExpiryDate: string or timestamp (optional)
     //   - trainerId, assignedTrainerId: string (optional, 1-128 chars)
-    //   - fitnessSetupCompleted: bool (optional)
+    //   - fitnessSetupCompleted, profileCompleted: bool (optional)
     //   - goalType: string (optional, <= 60 chars)
     //   - bmi: number (optional, 0-100)
     //   - bmiCategory: string (optional, <= 60 chars)
-    //   - trainingDaysPerWeek: number (optional, 1-7)
+    //   - trainingDaysPerWeek, workoutDays: number (optional, 1-7)
+    //   - workoutDuration: number (optional, 10-300)
+    //   - proteinTarget: number (optional, 0-1000)
     //   - createdAt, updatedAt: string or timestamp (optional)
     //
     // Collection: trainer_members
@@ -198,8 +200,11 @@ service cloud.firestore {
     //   - userId: string (required, UID of owner, <= 128 chars)
     //   - monthId, monthName: string (optional, <= 30 chars)
     //   - year: number (optional, 2000-2100)
-    //   - startDate, endDate: string or timestamp (optional)
-    //   - startingWeight, endingWeight, startingBmi, endingBmi: number (optional)
+    //   - startDate, endDate, date: string or timestamp (optional)
+    //   - startingWeight, endingWeight, weight: number (optional, 0.1-500)
+    //   - startingBmi, endingBmi, bmi: number (optional, 0-100)
+    //   - height: number (optional, 10-300)
+    //   - goal: string (optional, <= 200 chars)
     //   - workoutCompletionRate, proteinGoalCompletionRate: number (optional)
     //   - calorieAverage: number (optional)
     //   - createdAt, updatedAt: string or timestamp (optional)
@@ -218,6 +223,44 @@ service cloud.firestore {
     //   - isCurrent: bool (optional)
     //   - reviewedAt: string or timestamp (optional)
     //   - reviewNotes: string (optional, <= 1000 chars)
+    //   - createdAt, updatedAt: string or timestamp (optional)
+    //
+    // Collection: foodPosts
+    // Document ID: {postId}
+    // Fields:
+    //   - id: string (optional, matches postId, <= 128 chars)
+    //   - userId: string (required, matches owner UID, <= 128 chars)
+    //   - mealType: string (required, 'breakfast', 'lunch', 'dinner', 'snack', 'drink', 'other')
+    //   - imageUrl: string (optional, URL <= 2048 chars)
+    //   - imagePath: string (optional, <= 1000 chars)
+    //   - title: string (optional, <= 200 chars)
+    //   - notes: string (optional, <= 1000 chars)
+    //   - description: string (optional, <= 1000 chars)
+    //   - createdAt, mealDate, updatedAt: string or timestamp (optional)
+    //   - analysisStatus: string (optional, 'pending', 'analyzing', 'completed', 'failed', 'needs_review')
+    //   - analysisVersion: string (optional, <= 50 chars)
+    //   - calories, protein, carbs, fat, fiber, sugar, sodium, cholesterol: number (optional, >= 0)
+    //   - detectedFoods: list (optional, max 100 items)
+    //   - portionEstimates: map (optional)
+    //   - micronutrients: map (optional)
+    //   - vitamins: map (optional)
+    //   - aiConfidence: number (optional, 0.0 - 1.0)
+    //   - userVerified: bool (optional)
+    //
+    // Collection: trainerFeedback
+    // Document ID: {feedbackId}
+    // Fields:
+    //   - id: string (optional, matches feedbackId, <= 128 chars)
+    //   - foodPostId: string (required, <= 128 chars)
+    //   - postId: string (optional, <= 128 chars)
+    //   - userId: string (required, UID of the client receiving feedback, <= 128 chars)
+    //   - clientUserId: string (optional, <= 128 chars)
+    //   - trainerId: string (required, UID of the trainer author, <= 128 chars)
+    //   - trainerName: string (optional, <= 100 chars)
+    //   - trainerAvatarUrl: string (optional, <= 1000 chars)
+    //   - comment: string (required, 1-1000 chars)
+    //   - suggestedProteinGrams, suggestedFiberGrams: number (optional, >= 0)
+    //   - tags: list (optional, max 20 strings)
     //   - createdAt, updatedAt: string or timestamp (optional)
     //
     // ===============================================================
@@ -349,7 +392,9 @@ service cloud.firestore {
         'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
         'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
         'trainerId', 'assignedTrainerId',
-        'fitnessSetupCompleted', 'goalType', 'bmi', 'bmiCategory', 'trainingDaysPerWeek'
+        'fitnessSetupCompleted', 'goalType', 'bmi', 'bmiCategory', 'trainingDaysPerWeek',
+        'profileCompleted', 'fitnessGoal', 'workoutDays', 'workoutDuration',
+        'proteinTarget', 'weightKg'
       ]) &&
       hasValidUserName(data) &&
       data.email is string && isValidEmail(data.email) && data.email.size() <= 100 &&
@@ -384,7 +429,13 @@ service cloud.firestore {
       isValidOptionalString('goalType', 0, 60) &&
       isValidOptionalNumber('bmi', 0, 100) &&
       isValidOptionalString('bmiCategory', 0, 60) &&
-      isValidOptionalNumber('trainingDaysPerWeek', 1, 7);
+      isValidOptionalNumber('trainingDaysPerWeek', 1, 7) &&
+      isValidOptionalBool('profileCompleted') &&
+      isValidOptionalString('fitnessGoal', 0, 200) &&
+      isValidOptionalNumber('workoutDays', 1, 7) &&
+      isValidOptionalNumber('workoutDuration', 10, 300) &&
+      isValidOptionalNumber('proteinTarget', 0, 1000) &&
+      isValidOptionalNumber('weightKg', 0.1, 500);
     }
 
     function isValidTrainerMember(data) {
@@ -582,7 +633,8 @@ service cloud.firestore {
         'id', 'userId', 'monthId', 'monthName', 'year', 'startDate', 'endDate',
         'startingWeight', 'endingWeight', 'startingBmi', 'endingBmi',
         'workoutCompletionRate', 'proteinGoalCompletionRate', 'calorieAverage',
-        'createdAt', 'updatedAt'
+        'createdAt', 'updatedAt',
+        'date', 'weight', 'height', 'bmi', 'goal'
       ]) &&
       data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
       isValidOptionalString('id', 1, 128) &&
@@ -595,7 +647,11 @@ service cloud.firestore {
       isValidOptionalNumber('endingBmi', 0, 100) &&
       isValidOptionalNumber('workoutCompletionRate', 0, 100) &&
       isValidOptionalNumber('proteinGoalCompletionRate', 0, 100) &&
-      isValidOptionalNumber('calorieAverage', 0, 20000);
+      isValidOptionalNumber('calorieAverage', 0, 20000) &&
+      isValidOptionalNumber('weight', 0.1, 500) &&
+      isValidOptionalNumber('height', 10, 300) &&
+      isValidOptionalNumber('bmi', 0, 100) &&
+      isValidOptionalString('goal', 0, 200);
     }
 
     function isValidMonthlyCycle(data) {
@@ -621,6 +677,64 @@ service cloud.firestore {
       isValidOptionalNumber('proteinGoalCompletionRate', 0, 100) &&
       isValidOptionalBool('isCurrent') &&
       isValidOptionalString('reviewNotes', 0, 1000);
+    }
+
+    function isValidFoodPost(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'mealType', 'imageUrl', 'imagePath', 'title', 'notes',
+        'description', 'createdAt', 'mealDate', 'updatedAt', 'analysisStatus',
+        'analysisVersion', 'calories', 'protein', 'carbs', 'fat', 'fiber',
+        'sugar', 'sodium', 'cholesterol', 'detectedFoods', 'portionEstimates',
+        'micronutrients', 'vitamins', 'aiConfidence', 'userVerified'
+      ]) &&
+      data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+      data.mealType is string && data.mealType in ['breakfast', 'lunch', 'dinner', 'snack', 'drink', 'other'] &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('imageUrl', 0, 2048) &&
+      isValidOptionalString('imagePath', 0, 1000) &&
+      isValidOptionalString('title', 0, 200) &&
+      isValidOptionalString('notes', 0, 1000) &&
+      isValidOptionalString('description', 0, 1000) &&
+      (!('analysisStatus' in data) || (data.analysisStatus is string && data.analysisStatus in ['pending', 'analyzing', 'completed', 'failed', 'needs_review'])) &&
+      isValidOptionalString('analysisVersion', 0, 50) &&
+      isValidOptionalNumber('calories', 0, 50000) &&
+      isValidOptionalNumber('protein', 0, 5000) &&
+      isValidOptionalNumber('carbs', 0, 5000) &&
+      isValidOptionalNumber('fat', 0, 5000) &&
+      isValidOptionalNumber('fiber', 0, 5000) &&
+      isValidOptionalNumber('sugar', 0, 5000) &&
+      isValidOptionalNumber('sodium', 0, 50000) &&
+      isValidOptionalNumber('cholesterol', 0, 50000) &&
+      isValidOptionalList('detectedFoods', 100) &&
+      isValidOptionalMap('portionEstimates') &&
+      isValidOptionalMap('micronutrients') &&
+      isValidOptionalMap('vitamins') &&
+      isValidOptionalNumber('aiConfidence', 0.0, 1.0) &&
+      isValidOptionalBool('userVerified');
+    }
+
+    function isValidTrainerFeedback(data) {
+      return hasOnlyAllowedFields([
+        'id', 'foodPostId', 'postId', 'userId', 'clientUserId', 'trainerId',
+        'trainerName', 'trainerAvatarUrl', 'comment', 'suggestedProteinGrams',
+        'suggestedFiberGrams', 'tags', 'createdAt', 'updatedAt'
+      ]) &&
+      (
+        ('foodPostId' in data && data.foodPostId is string && data.foodPostId.size() > 0 && data.foodPostId.size() <= 128) ||
+        ('postId' in data && data.postId is string && data.postId.size() > 0 && data.postId.size() <= 128)
+      ) &&
+      (
+        ('userId' in data && data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128) ||
+        ('clientUserId' in data && data.clientUserId is string && data.clientUserId.size() > 0 && data.clientUserId.size() <= 128)
+      ) &&
+      data.trainerId is string && data.trainerId.size() > 0 && data.trainerId.size() <= 128 &&
+      data.comment is string && data.comment.size() >= 1 && data.comment.size() <= 1000 &&
+      isValidOptionalString('id', 1, 128) &&
+      isValidOptionalString('trainerName', 0, 100) &&
+      isValidOptionalString('trainerAvatarUrl', 0, 1000) &&
+      isValidOptionalNumber('suggestedProteinGrams', 0, 5000) &&
+      isValidOptionalNumber('suggestedFiberGrams', 0, 5000) &&
+      isValidOptionalList('tags', 20);
     }
 
     // ===============================================================
@@ -1168,6 +1282,84 @@ service cloud.firestore {
         );
 
       allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // 19. Food Posts Collection: /foodPosts/{postId}
+    match /foodPosts/{postId} {
+      // Read: Owner, Assigned Trainer, or Admin
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAssignedTrainer(resource.data.userId) ||
+        isAdmin()
+      );
+
+      // Create: Owner or Admin, validating schema and allowed fields
+      allow create: if isAuthenticated() &&
+        isValidFoodPost(request.resource.data) && (
+          (
+            request.resource.data.userId == request.auth.uid &&
+            (!('id' in request.resource.data) || request.resource.data.id == postId)
+          ) ||
+          isAdmin()
+        );
+
+      // Update: Owner or Admin, validating schema, immutable fields unchanged
+      allow update: if isAuthenticated() &&
+        isValidFoodPost(request.resource.data) && (
+          (
+            isOwner(resource.data.userId) &&
+            areImmutableFieldsUnchanged(['id', 'userId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Owner or Admin
+      allow delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) ||
+        isAdmin()
+      );
+    }
+
+    // 20. Trainer Food Feedback Collection: /trainerFeedback/{feedbackId}
+    match /trainerFeedback/{feedbackId} {
+      // Read: Client owner, Trainer author, Assigned Trainer, or Admin
+      allow read: if isAuthenticated() && (
+        resource.data.get('userId', '') == request.auth.uid ||
+        resource.data.get('clientUserId', '') == request.auth.uid ||
+        resource.data.trainerId == request.auth.uid ||
+        isAssignedTrainer(resource.data.get('userId', resource.data.get('clientUserId', ''))) ||
+        isAdmin()
+      );
+
+      // Create: Authenticated assigned trainer for the client or Admin
+      allow create: if isAuthenticated() &&
+        isValidTrainerFeedback(request.resource.data) && (
+          (
+            request.resource.data.trainerId == request.auth.uid &&
+            (!('id' in request.resource.data) || request.resource.data.id == feedbackId) &&
+            (
+              isAssignedTrainer(request.resource.data.get('userId', request.resource.data.get('clientUserId', ''))) ||
+              isAdmin()
+            )
+          ) ||
+          isAdmin()
+        );
+
+      // Update: Author trainer with immutable fields protected, or Admin
+      allow update: if isAuthenticated() &&
+        isValidTrainerFeedback(request.resource.data) && (
+          (
+            resource.data.trainerId == request.auth.uid &&
+            areImmutableFieldsUnchanged(['id', 'foodPostId', 'postId', 'userId', 'clientUserId', 'trainerId', 'createdAt'])
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Author trainer or Admin
+      allow delete: if isAuthenticated() && (
+        resource.data.trainerId == request.auth.uid ||
+        isAdmin()
+      );
     }
 
   }

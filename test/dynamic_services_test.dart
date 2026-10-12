@@ -184,12 +184,13 @@ void main() {
       const allowedUserFields = {
         'id', 'uid', 'name', 'fullName', 'email', 'avatarUrl', 'profileImage', 'role',
         'trainerStatus', 'trainerProfile', 'phoneNumber', 'gymLocation', 'createdAt',
-        'updatedAt', 'fitnessLevel', 'goal', 'currentWeightKg', 'startWeightKg',
-        'targetWeightKg', 'heightCm', 'age', 'gender', 'activityLevel', 'streakDays',
-        'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
+        'updatedAt', 'fitnessLevel', 'goal', 'fitnessGoal', 'currentWeightKg', 'weightKg',
+        'startWeightKg', 'targetWeightKg', 'heightCm', 'age', 'gender', 'activityLevel',
+        'streakDays', 'totalWorkouts', 'totalTrainingMinutes', 'totalVolumeKg', 'totalCaloriesBurned',
         'membershipTier', 'membershipDaysRemaining', 'membershipExpiryDate',
-        'trainerId', 'assignedTrainerId',
-        'fitnessSetupCompleted', 'goalType', 'bmi', 'bmiCategory', 'trainingDaysPerWeek'
+        'trainerId', 'assignedTrainerId', 'assignedWorkoutPlan', 'assignedDietPlan',
+        'fitnessSetupCompleted', 'profileCompleted', 'goalType', 'bmi', 'bmiCategory',
+        'trainingDaysPerWeek', 'workoutDays', 'workoutDuration', 'proteinTarget',
       };
 
       final user = UserModel(
@@ -217,7 +218,8 @@ void main() {
       const allowedFitnessProfileFields = {
         'id', 'userId', 'heightCm', 'currentWeightKg', 'targetWeightKg', 'goalType',
         'bmi', 'bmiCategory', 'trainingDaysPerWeek', 'fitnessLevel', 'age', 'gender',
-        'activityLevel', 'createdAt', 'updatedAt', 'fullName', 'fitnessSetupCompleted'
+        'activityLevel', 'createdAt', 'updatedAt', 'fullName', 'fitnessSetupCompleted',
+        'profileCompleted', 'workoutDuration', 'proteinTarget',
       };
 
       final profile = FitnessProfile(

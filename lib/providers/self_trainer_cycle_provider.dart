@@ -237,6 +237,8 @@ class SelfTrainerCycleProvider extends ChangeNotifier {
     required double targetWeightKg,
     required String goalType,
     required int trainingDaysPerWeek,
+    int? workoutDuration,
+    double? proteinTarget,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -259,9 +261,12 @@ class SelfTrainerCycleProvider extends ChangeNotifier {
         bmi: calculatedBmi,
         bmiCategory: category,
         trainingDaysPerWeek: trainingDaysPerWeek,
+        workoutDuration: workoutDuration,
+        proteinTarget: proteinTarget,
         fitnessLevel: 'Beginner',
         activityLevel: 'moderately_active',
         fitnessSetupCompleted: true,
+        profileCompleted: true,
         createdAt: now,
         updatedAt: now,
       );
@@ -292,7 +297,7 @@ class SelfTrainerCycleProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates current weight, recalculates BMI, creates new BMI record, and refreshes UI
+  /// Updates current weight, recalculates BMI, creates new BMI record and progress record, and refreshes UI
   Future<void> updateWeight(double newWeightKg) async {
     if (_boundUserId == null || _fitnessProfile == null) return;
 
@@ -305,6 +310,17 @@ class SelfTrainerCycleProvider extends ChangeNotifier {
       if (updatedProfile != null) {
         _fitnessProfile = updatedProfile;
         _bmiHistory = await _bmiService.getBmiHistory(_boundUserId!);
+
+        // Log historical progress record without overwriting past history
+        await _monthlyCycleService.logWeightProgressRecord(
+          userId: _boundUserId!,
+          weight: newWeightKg,
+          height: updatedProfile.heightCm,
+          bmi: updatedProfile.bmi,
+          goal: updatedProfile.goalType,
+        );
+        _progressRecords = await _monthlyCycleService.getProgressRecords(_boundUserId!);
+
         notifyListeners();
       }
     } catch (e) {

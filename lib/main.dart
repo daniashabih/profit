@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 
 import 'theme/app_theme.dart';
@@ -14,6 +15,7 @@ import 'providers/ai_coach_provider.dart';
 import 'providers/role_provider.dart';
 import 'providers/trainer_provider.dart';
 import 'providers/self_trainer_cycle_provider.dart';
+import 'providers/food_journal_provider.dart';
 
 import 'services/auth_service.dart';
 import 'services/ai_coach_service.dart';
@@ -23,6 +25,13 @@ import 'screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SharedPreferences platform channel
+  try {
+    await SharedPreferences.getInstance();
+  } catch (e) {
+    debugPrint('SharedPreferences initialization notice: $e');
+  }
 
   // Initialize Firebase with platform-specific options
   try {
@@ -88,6 +97,9 @@ void main() async {
         ),
         ChangeNotifierProvider<SelfTrainerCycleProvider>(
           create: (_) => SelfTrainerCycleProvider(),
+        ),
+        ChangeNotifierProvider<FoodJournalProvider>(
+          create: (_) => FoodJournalProvider(),
         ),
       ],
       child: const ProfitApp(),

@@ -11,6 +11,8 @@ import '../self_trainer/today_workout_screen.dart';
 import '../self_trainer/edit_fitness_profile_dialog.dart';
 import '../self_trainer/monthly_history_screen.dart';
 import '../self_trainer/monthly_review_screen.dart';
+import '../self_trainer/fitness_setup_wizard_screen.dart';
+import '../../models/user_model.dart';
 
 /// Complete Dynamic Self Trainer Daily Dashboard for PROFIT.
 /// Matches Section 18 layout and Section 28 dynamic calculations:
@@ -151,6 +153,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ],
 
               // ==========================================
+              // INCOMPLETE PROFILE BANNER CARD (Section 2 & 13)
+              // ==========================================
+              if (user != null && !user.isProfileCompleted) ...[
+                StaggeredEntrance(
+                  index: 0,
+                  child: _buildCompleteProfileCard(context, user, isDark),
+                ),
+                const SizedBox(height: 18),
+              ],
+
+              // ==========================================
               // 1. YOUR GOAL SECTION
               // ==========================================
               StaggeredEntrance(
@@ -224,6 +237,154 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompleteProfileCard(
+    BuildContext context,
+    UserModel user,
+    bool isDark,
+  ) {
+    final completedSteps = user.completedProfileSteps;
+    final percent = (user.profileCompletionPercentage * 100).round();
+    final progressValue = user.profileCompletionPercentage;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primaryLime,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryLime.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLime.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.primaryLime,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Complete Your Profile',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.3,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      completedSteps > 0
+                          ? 'Profile $completedSteps/8 completed'
+                          : 'Profile Setup Pending',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryLime,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLime.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$percent% Complete',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryLime,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Complete your profile to get your personalized BMI, workout plan, nutrition targets and fitness recommendations.',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progressValue,
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryLime),
+              minHeight: 6,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FitnessSetupWizardScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryLime,
+                foregroundColor: Colors.black,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Complete Profile',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

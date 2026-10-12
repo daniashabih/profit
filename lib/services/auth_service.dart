@@ -174,6 +174,8 @@ class FirebaseAuthService implements AuthService {
         'membershipTier': 'FREE',
         'membershipDaysRemaining': 30,
         'membershipExpiryDate': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+        'profileCompleted': false,
+        'fitnessSetupCompleted': false,
         if (safeRole == UserRole.trainer) 'trainerStatus': 'approved',
         if (safeRole == UserRole.trainer)
           'trainerProfile': const TrainerProfile(
@@ -291,6 +293,8 @@ class FirebaseAuthService implements AuthService {
       'membershipTier': 'FREE',
       'membershipDaysRemaining': 30,
       'membershipExpiryDate': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+      'profileCompleted': false,
+      'fitnessSetupCompleted': false,
     };
 
     await _firestore.collection('users').doc(user.uid).set(
@@ -465,6 +469,8 @@ class MockAuthService implements AuthService {
             )
           : null,
       trainerStatus: safeRole == UserRole.trainer ? 'approved' : null,
+      profileCompleted: false,
+      fitnessSetupCompleted: false,
       currentWeightKg: 70.0,
       startWeightKg: 70.0,
       targetWeightKg: 65.0,

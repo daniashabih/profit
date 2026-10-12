@@ -446,6 +446,10 @@ void _confirmDeleteMeal(BuildContext context, MealItemModel item) {
         return Icons.dinner_dining_rounded;
       case MealType.snack:
         return Icons.bakery_dining_rounded;
+      case MealType.drink:
+        return Icons.local_cafe_rounded;
+      case MealType.other:
+        return Icons.restaurant_rounded;
     }
   }
 }

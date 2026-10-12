@@ -123,19 +123,11 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+    await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
     await tester.pumpAndSettle();
 
-    // Navigate from Step 1 to Step 6
-    for (int i = 0; i < 5; i++) {
-      final continueBtn = find.widgetWithText(ElevatedButton, 'Continue');
-      expect(continueBtn, findsOneWidget);
-      await tester.tap(continueBtn);
-      await tester.pumpAndSettle();
-    }
-
-    // Now on Step 6: Verify training days options are visible
-    expect(find.text('How many days per week do you want to train?'), findsOneWidget);
+    // Now on Step 8: Verify training days options are visible
+    expect(find.text('How many days can you train per week?'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
 
     final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
@@ -210,15 +202,8 @@ void main() {
   testWidgets(
       'FitnessSetupWizardScreen Step 6 training day circular badges render visible borders and colors',
       (WidgetTester tester) async {
-    await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen()));
+    await tester.pumpWidget(buildTestApp(const FitnessSetupWizardScreen(initialStep: 7)));
     await tester.pumpAndSettle();
-
-    // Navigate to Step 6
-    for (int i = 0; i < 5; i++) {
-      final continueBtn = find.widgetWithText(ElevatedButton, 'Continue');
-      await tester.tap(continueBtn);
-      await tester.pumpAndSettle();
-    }
 
     // Step 6: Tap on option '4 Days / Week' to select 4 training days
     final option4 = find.text('4 Days / Week');

@@ -124,6 +124,8 @@ class FirestoreService {
       'role': safeRole.firestoreValue, // 'self_trainer' or 'trainer'
       'profileImage': '',
       'avatarUrl': '',
+      'profileCompleted': false,
+      'fitnessSetupCompleted': false,
       'trainerStatus': safeRole == UserRole.trainer ? 'approved' : null,
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
